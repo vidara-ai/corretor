@@ -118,10 +118,11 @@ async function loadHomeProperties() {
                     <div class="card-imagem">
                         <img src="${imagem}" alt="${imovel.titulo}">
                         <span class="badge-tipo">${imovel.tipo_imovel || 'Imóvel'}</span>
-                        <span class="badge-local">Consulte a localização</span>
+                        <span class="badge-local">${imovel.cidade}</span>
                     </div>
 
                     <div class="card-imovel-body">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">${imovel.bairro}</p>
                         <h3 class="titulo">${imovel.titulo}</h3>
                         
                         <div class="preco">
