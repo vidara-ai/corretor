@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Gerenciar Imóveis - ImobiMaster</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/style.css">
+    <script type="module" src="js/auth-guard.js"></script>
+</head>
+<body class="bg-slate-50 flex flex-col md:flex-row">
+    <aside class="w-full md:w-64 bg-slate-900 md:min-h-screen text-white p-6 sticky top-0 z-50 md:block">
+        <div class="flex items-center justify-between md:block">
+            <h2 class="text-xl font-bold md:mb-10 flex items-center gap-2">
+                <span class="bg-blue-600 p-1 rounded text-white font-serif text-sm">I</span>
+                Admin Panel
+            </h2>
+            <button class="md:hidden text-slate-400" onclick="document.getElementById('mobile-nav').classList.toggle('hidden')">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+            </button>
+        </div>
+        <nav id="mobile-nav" class="hidden md:block space-y-2 mt-6 md:mt-0">
+            <a href="dashboard.html" class="block p-3 hover:bg-slate-800 rounded-lg transition">Visão Geral</a>
+            <a href="leads.html" class="block p-3 hover:bg-slate-800 rounded-lg transition">Leads</a>
+            <a href="imoveis.html" class="block p-3 bg-blue-600 rounded-lg">Imóveis</a>
+            <a href="configuracoes.html" class="block p-3 hover:bg-slate-800 rounded-lg transition">Configurações</a>
+            <button id="btn-logout" class="block w-full text-left p-3 text-red-400 hover:bg-red-950 rounded-lg mt-10">Sair</button>
+        </nav>
+    </aside>
+
+    <main class="flex-1 p-6 md:p-10">
+        <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-10">
+            <div>
+                <h1 class="text-3xl font-bold text-slate-900">Gestão de Imóveis</h1>
+                <p class="text-slate-500 text-sm">Visualize e controle seu catálogo de propriedades.</p>
+            </div>
+            <a href="imovel-form.html" class="w-full md:w-auto bg-blue-600 text-white px-6 py-4 md:py-3 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 active:scale-95 flex items-center justify-center gap-2">
+                <span>+ Novo Imóvel</span>
+            </a>
+        </header>
+
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden responsive-table">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-slate-50 border-b border-slate-100">
+                        <tr>
+                            <th class="p-5 text-xs font-bold text-slate-400 uppercase tracking-widest">Cód.</th>
+                            <th class="p-5 text-xs font-bold text-slate-400 uppercase tracking-widest">Imóvel</th>
+                            <th class="p-5 text-xs font-bold text-slate-400 uppercase tracking-widest">Valor</th>
+                            <th class="p-5 text-xs font-bold text-slate-400 uppercase tracking-widest text-center">Status</th>
+                            <th class="p-5 text-xs font-bold text-slate-400 uppercase tracking-widest text-right">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="properties-table-body">
+                        <tr>
+                            <td colspan="5" class="p-20 text-center text-slate-400">Carregando catálogo...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="properties-cards-mobile" class="responsive-cards grid grid-cols-1 gap-4">
+            <div class="p-10 text-center text-slate-400">Carregando catálogo...</div>
+        </div>
+    </main>
+
+    <script type="module" src="js/auth.js"></script>
+    <script type="module" src="js/imoveis.js"></script>
+</body>
+</html>

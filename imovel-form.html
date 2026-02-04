@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Gerenciar Imóvel - ImobiMaster</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/style.css">
+    <script type="module" src="js/auth-guard.js"></script>
+    <style>
+        .chip-active {
+            background-color: #2563eb !important;
+            color: white !important;
+            border-color: #2563eb !important;
+            box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 flex">
+    <aside class="w-64 bg-slate-900 min-h-screen text-white p-6 sticky top-0 hidden md:block">
+        <h2 class="text-xl font-bold mb-10 flex items-center gap-2">
+            <span class="bg-blue-600 p-1 rounded text-white font-serif text-sm">I</span> Admin Panel
+        </h2>
+        <nav class="space-y-2">
+            <a href="dashboard.html" class="block p-3 hover:bg-slate-800 rounded-lg transition">Visão Geral</a>
+            <a href="leads.html" class="block p-3 hover:bg-slate-800 rounded-lg transition">Leads</a>
+            <a href="imoveis.html" class="block p-3 bg-blue-600 rounded-lg">Imóveis</a>
+            <a href="configuracoes.html" class="block p-3 hover:bg-slate-800 rounded-lg transition">Configurações</a>
+            <button id="btn-logout" class="block w-full text-left p-3 text-red-400 hover:bg-red-950 rounded-lg mt-10">Sair</button>
+        </nav>
+    </aside>
+
+    <main class="flex-1 p-6 md:p-10 max-w-6xl mx-auto">
+        <header class="mb-10 flex justify-between items-center">
+            <div>
+                <h1 id="page-title" class="text-3xl font-bold text-slate-900">Novo Imóvel</h1>
+                <p class="text-slate-500">Cadastre todos os detalhes da propriedade.</p>
+            </div>
+            <a href="imoveis.html" class="text-slate-400 hover:text-slate-600 font-medium">Voltar para a lista</a>
+        </header>
+
+        <form id="property-form" class="space-y-8">
+            <!-- Seção 1: Identificação e Status -->
+            <section class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
+                <h3 class="text-lg font-bold mb-6 flex items-center gap-2">
+                    <span class="w-8 h-8 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center text-sm">1</span>
+                    Identificação e Status
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <div>
+                        <label class="block text-sm font-semibold mb-2 text-slate-700">Ref. Interna</label>
+                        <input id="f-referencia" type="text" placeholder="Ex: CS-001" class="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-2 text-slate-700">Código Sistema</label>
+                        <input id="f-codigo" type="text" readonly class="w-full p-4 bg-slate-100 border border-slate-100 rounded-xl outline-none text-slate-500 cursor-not-allowed">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-2 text-slate-700">Status</label>
+                        <select id="f-status" class="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl outline-none">
+                            <option value="ativo">Ativo</option>
+                            <option value="inativo">Inativo</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-2 text-slate-700">Finalidade</label>
+                        <select id="f-finalidade" class="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl outline-none">
+                            <option value="venda">Venda</option>
+                            <option value="aluguel">Aluguel</option>
+                        </select>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Seção 2: Dados Principais -->
+            <section class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
+                <h3 class="text-lg font-bold mb-6 flex items-center gap-2">
+                    <span class="w-8 h-8 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center text-sm">2</span>
+                    Dados da Propriedade
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-semibold mb-2 text-slate-700">Título do Anúncio *</label>
+                        <input id="f-title" type="text" required placeholder="Ex: Casa Duplex de Luxo com Piscina" class="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-2 text-slate-700">Tipo de Imóvel</label>
+                        <select id="f-tipo" class="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl outline-none">
+                            <option value="casa">Casa</option>
+                            <option value="apartamento">Apartamento</option>
+                            <option value="terreno">Terreno</option>
+                            <option value="comercial">Comercial</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-2 text-slate-700">Preço (R$) *</label>
+                        <input id="f-price" type="number" required placeholder="0.00" class="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-2 text-slate-700">Área M²</label>
+                        <input id="f-area" type="number" placeholder="Ex: 120" class="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-2 text-slate-700">Dormitórios</label>
+                        <input id="f-rooms" type="number" value="0" min="0" class="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-2 text-slate-700">Suítes</label>
+                        <input id="f-suites" type="number" value="0" min="0" class="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-2 text-slate-700">Banheiros</label>
+                        <input id="f-bathrooms" type="number" value="0" min="0" class="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-2 text-slate-700">Vagas Garagem</label>
+                        <input id="f-vagas" type="number" value="0" min="0" class="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl outline-none">
+                    </div>
+                </div>
+            </section>
+
+            <!-- Seção 3: Localização (Campos mantidos para UX, mas ignorados no payload final se não existirem no banco) -->
+            <section class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
+                <h3 class="text-lg font-bold mb-6 flex items-center gap-2">
+                    <span class="w-8 h-8 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center text-sm">3</span>
+                    Localização
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                        <label class="block text-sm font-semibold mb-2 text-slate-700">Bairro *</label>
+                        <input id="f-bairro" type="text" required placeholder="Ex: Jardins" class="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-2 text-slate-700">Cidade *</label>
+                        <input id="f-cidade" type="text" required placeholder="Ex: São Paulo" class="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-2 text-slate-700">UF *</label>
+                        <input id="f-uf" type="text" required placeholder="Ex: SP" maxlength="2" class="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 uppercase">
+                    </div>
+                </div>
+            </section>
+
+            <!-- Seção 4: Marketing e Destaque -->
+            <section class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-lg font-bold flex items-center gap-2">
+                        <span class="w-8 h-8 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center text-sm">4</span>
+                        Marketing e Destaque
+                    </h3>
+                </div>
+                <textarea id="f-description" rows="6" required class="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl outline-none leading-relaxed mb-6" placeholder="Descreva os diferenciais deste imóvel..."></textarea>
+                
+                <div class="flex items-center gap-6">
+                    <label class="flex items-center gap-3 cursor-pointer group">
+                        <input type="checkbox" id="f-featured" class="w-5 h-5 rounded text-blue-600 border-slate-300">
+                        <span class="text-sm font-bold text-slate-700 group-hover:text-blue-600 transition-colors">Exibir em destaque na Home</span>
+                    </label>
+                </div>
+            </section>
+
+            <!-- Seção 5: Fotos -->
+            <section class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
+                <h3 class="text-lg font-bold mb-6 flex items-center gap-2">
+                    <span class="w-8 h-8 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center text-sm">5</span>
+                    Galeria de Fotos (Até 15)
+                </h3>
+                <div id="photo-dropzone" class="border-2 border-dashed border-slate-200 rounded-2xl p-10 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50/30 transition-all mb-6">
+                    <input type="file" id="f-photos" multiple accept="image/*" class="hidden">
+                    <div class="flex flex-col items-center gap-2 text-slate-400">
+                        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        <p class="font-semibold text-slate-600">Selecione suas fotos</p>
+                        <p class="text-xs">Primeira foto será a Capa. Limite de 15 imagens.</p>
+                    </div>
+                </div>
+                <div id="photo-grid" class="grid grid-cols-2 md:grid-cols-5 gap-4"></div>
+            </section>
+
+            <!-- Seção 6: Características do Imóvel (Chips) -->
+            <section class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
+                <details open class="group">
+                    <summary class="text-lg font-bold flex items-center justify-between cursor-pointer list-none">
+                        <div class="flex items-center gap-2">
+                            <span class="w-8 h-8 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center text-sm">6</span>
+                            Características do Imóvel
+                        </div>
+                        <svg class="w-5 h-5 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </summary>
+                    <div id="imovel-features-container" class="flex flex-wrap gap-2 mt-8 max-h-[400px] overflow-y-auto no-scrollbar p-1">
+                        <!-- Chips gerados dinamicamente via JS -->
+                    </div>
+                </details>
+            </section>
+
+            <!-- Seção 7: Características do Condomínio (Chips) -->
+            <section class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
+                <details class="group">
+                    <summary class="text-lg font-bold flex items-center justify-between cursor-pointer list-none">
+                        <div class="flex items-center gap-2">
+                            <span class="w-8 h-8 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center text-sm">7</span>
+                            Características do Condomínio
+                        </div>
+                        <svg class="w-5 h-5 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </summary>
+                    <div id="condominio-features-container" class="flex flex-wrap gap-2 mt-8 max-h-[400px] overflow-y-auto no-scrollbar p-1">
+                        <!-- Chips gerados dinamicamente via JS -->
+                    </div>
+                </details>
+            </section>
+
+            <!-- Seção 8: Negociação -->
+            <section class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
+                <h3 class="text-lg font-bold mb-6 flex items-center gap-2">
+                    <span class="w-8 h-8 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center text-sm">8</span>
+                    Opções de Negociação
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <p class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Pagamento</p>
+                        <div class="space-y-3">
+                            <label class="flex items-center gap-3 text-slate-600 cursor-pointer"><input type="checkbox" name="negociacao" value="financiamento" class="w-4 h-4 rounded text-blue-600"> Financiamento</label>
+                            <label class="flex items-center gap-3 text-slate-600 cursor-pointer"><input type="checkbox" name="negociacao" value="fgts" class="w-4 h-4 rounded text-blue-600"> Uso de FGTS</label>
+                            <label class="flex items-center gap-3 text-slate-600 cursor-pointer"><input type="checkbox" name="negociacao" value="carta_credito" class="w-4 h-4 rounded text-blue-600"> Carta de Crédito</label>
+                            <label class="flex items-center gap-3 text-slate-600 cursor-pointer"><input type="checkbox" name="negociacao" value="permuta" class="w-4 h-4 rounded text-blue-600"> Aceita Permuta</label>
+                        </div>
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Garantias (Locação)</p>
+                        <div class="space-y-3">
+                            <label class="flex items-center gap-3 text-slate-600 cursor-pointer"><input type="checkbox" name="negociacao" value="fiador" class="w-4 h-4 rounded text-blue-600"> Fiador</label>
+                            <label class="flex items-center gap-3 text-slate-600 cursor-pointer"><input type="checkbox" name="negociacao" value="caucao" class="w-4 h-4 rounded text-blue-600"> Depósito Caução</label>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <div class="flex justify-end items-center gap-6 pt-10 border-t border-slate-200">
+                <a href="imoveis.html" class="text-slate-400 font-bold hover:text-slate-600">Cancelar</a>
+                <button type="submit" id="btn-save" class="bg-blue-600 text-white px-12 py-4 rounded-2xl font-bold hover:bg-blue-700 shadow-xl shadow-blue-200 transition-all">
+                    <span id="btn-save-text">Salvar Imóvel</span>
+                </button>
+            </div>
+        </form>
+    </main>
+
+    <script type="module" src="js/auth.js"></script>
+    <script type="module" src="js/imovel-form.js"></script>
+</body>
+</html>

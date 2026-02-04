@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalhes do Imóvel - ImobiMaster</title>
+    <meta name="description" content="Veja todos os detalhes deste imóvel exclusivo na ImobiMaster.">
+    
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Imóvel em Destaque - ImobiMaster">
+    <meta property="og:description" content="Confira as características deste imóvel.">
+    <meta property="og:image" content="">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        @keyframes shimmer {
+            0% { background-position: -468px 0; }
+            100% { background-position: 468px 0; }
+        }
+        .skeleton {
+            background: #f6f7f8;
+            background-image: linear-gradient(to right, #f6f7f8 0%, #edeef1 20%, #f6f7f8 40%, #f6f7f8 100%);
+            background-repeat: no-repeat;
+            background-size: 800px 104px;
+            animation: shimmer 1.2s infinite linear;
+        }
+    </style>
+</head>
+<body class="bg-slate-50">
+    <nav class="bg-white border-b border-slate-100 py-4">
+        <div class="max-w-7xl mx-auto px-4"><a href="index.html" class="font-bold text-slate-900">← Voltar</a></div>
+    </nav>
+    <main id="property-detail" class="max-w-7xl mx-auto px-4 py-12">
+        <!-- Skeleton Detail -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start opacity-50">
+            <div class="space-y-4">
+                <div class="w-full rounded-3xl aspect-video skeleton"></div>
+                <div class="grid grid-cols-4 gap-4">
+                    <div class="h-20 skeleton rounded-xl"></div>
+                    <div class="h-20 skeleton rounded-xl"></div>
+                    <div class="h-20 skeleton rounded-xl"></div>
+                    <div class="h-20 skeleton rounded-xl"></div>
+                </div>
+            </div>
+            <div class="space-y-6">
+                <div class="flex gap-2">
+                    <div class="w-24 h-6 skeleton rounded-full"></div>
+                    <div class="w-20 h-6 skeleton rounded-full"></div>
+                </div>
+                <div class="h-12 w-3/4 skeleton rounded"></div>
+                <div class="h-8 w-1/4 skeleton rounded"></div>
+                <div class="space-y-2 pt-4">
+                    <div class="h-4 w-full skeleton rounded"></div>
+                    <div class="h-4 w-full skeleton rounded"></div>
+                    <div class="h-4 w-2/3 skeleton rounded"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <script type="module" src="js/site-publico.js"></script>
+</body>
+</html>
