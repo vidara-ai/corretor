@@ -1,0 +1,129 @@
+/* Base Mobile-First */
+body {
+    -webkit-font-smoothing: antialiased;
+    font-size: 16px;
+    font-family: 'Inter', sans-serif;
+}
+
+/* 3️⃣ CSS IGUAL AO PRINT */
+.card-imovel {
+  background: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 6px 16px rgba(0,0,0,.12);
+  transition: transform 0.2s ease-in-out;
+}
+
+.card-imovel:hover {
+  transform: translateY(-4px);
+}
+
+.card-img {
+  position: relative;
+}
+
+.card-img img {
+  width: 100%;
+  height: 240px;
+  object-fit: cover;
+}
+
+.badge {
+  position: absolute;
+  left: 12px;
+  padding: 6px 10px;
+  color: #fff;
+  font-size: 12px;
+  border-radius: 4px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.badge.tipo {
+  top: 12px;
+  background: #c62828;
+}
+
+.badge.cidade {
+  top: 42px;
+  background: #ef6c00;
+}
+
+.card-body {
+  padding: 16px;
+}
+
+.card-body .nome {
+  color: #c62828;
+  font-weight: 700;
+  margin-bottom: 6px;
+  font-size: 1.1rem;
+}
+
+.card-body .descricao {
+  font-size: 14px;
+  margin-bottom: 12px;
+  color: #64748b;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.icons {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+
+.preco {
+  color: #c62828;
+  font-weight: bold;
+  margin-bottom: 12px;
+}
+
+.preco strong {
+  font-size: 1.25rem;
+}
+
+.btn-detalhar {
+  display: block;
+  text-align: center;
+  background: #c62828;
+  color: #fff;
+  padding: 10px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 700;
+  transition: background 0.2s;
+}
+
+.btn-detalhar:hover {
+  background: #b71c1c;
+}
+
+/* Utilitários Extras */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+@media (max-width: 768px) {
+    .responsive-table { display: none; }
+}
+
+@media (min-width: 769px) {
+    .responsive-cards { display: none; }
+}
+
+.wa-float {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 100;
+}
