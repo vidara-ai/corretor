@@ -1,5 +1,9 @@
 import { supabase } from './supabase.js';
 
+// Estado global para a galeria da página de detalhes
+let currentPhotos = [];
+let currentIndex = 0;
+
 /**
  * Inicialização do Site Público
  * Gerencia tanto a Home (lista) quanto a página de Detalhes
@@ -66,12 +70,11 @@ async function loadHomeProperties() {
     if (!container) return;
 
     try {
-        // PASSO 5 — CONSULTA DE IMÓVEIS COM ORDENAÇÃO PRIORIZADA POR DESTAQUE
         const { data: imoveis, error: imoveisError } = await supabase
           .from('imoveis')
           .select('*')
           .eq('ativo', true)
-          .order('destaque', { ascending: false }) // Prioriza Destaque = true
+          .order('destaque', { ascending: false })
           .order('ordem_destaque', { ascending: true, nullsLast: true })
           .order('created_at', { ascending: false });
 
@@ -81,7 +84,6 @@ async function loadHomeProperties() {
           return;
         }
 
-        // PASSO 6 — BUSCAR FOTOS (QUERY SEPARADA)
         const { data: fotos, error: fotosError } = await supabase
           .from('imoveis_fotos')
           .select('*')
@@ -91,7 +93,6 @@ async function loadHomeProperties() {
           console.error('Erro ao buscar fotos:', fotosError);
         }
 
-        // PASSO 7 — MERGE MANUAL (SEM SUPABASE EMBED)
         const imoveisComFoto = imoveis.map(imovel => {
           const fotoCapa = (fotos || []).find(f => f.imovel_id === imovel.id);
           return {
@@ -105,17 +106,12 @@ async function loadHomeProperties() {
             return;
         }
 
-        // RENDERIZAÇÃO: Template do card ajustado conforme especificações de portal imobiliário
         container.innerHTML = imoveisComFoto.map(imovel => {
-            // PASSO 3 — PREÇO (USAR APENAS CAMPOS EXISTENTES)
             const preco = imovel.valor_venda
               ? `R$ ${Number(imovel.valor_venda).toLocaleString('pt-BR')}`
               : (imovel.valor_locacao ? `R$ ${Number(imovel.valor_locacao).toLocaleString('pt-BR')}` : 'Sob consulta');
 
-            // PASSO 8 — USAR A IMAGEM NO CARD
             const imagem = imovel.foto_url || 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=600';
-            
-            // Badge Destaque Condicional
             const badgeDestaque = imovel.destaque ? `<div class="badge-destaque">DESTAQUE</div>` : '';
 
             return `
@@ -166,6 +162,42 @@ async function loadHomeProperties() {
 }
 
 /**
+ * Funções da Galeria (Globais para acesso via onclick)
+ */
+window.nextPhoto = () => {
+    if (currentPhotos.length <= 1) return;
+    currentIndex = (currentIndex + 1) % currentPhotos.length;
+    updateGalleryDisplay();
+};
+
+window.prevPhoto = () => {
+    if (currentPhotos.length <= 1) return;
+    currentIndex = (currentIndex - 1 + currentPhotos.length) % currentPhotos.length;
+    updateGalleryDisplay();
+};
+
+window.setPhoto = (index) => {
+    currentIndex = index;
+    updateGalleryDisplay();
+};
+
+function updateGalleryDisplay() {
+    const mainImg = document.getElementById('galeria-foto-principal');
+    if (mainImg && currentPhotos[currentIndex]) {
+        mainImg.src = currentPhotos[currentIndex].url;
+    }
+
+    // Atualiza classes das miniaturas
+    document.querySelectorAll('.miniatura-item').forEach((thumb, idx) => {
+        if (idx === currentIndex) {
+            thumb.classList.add('border-blue-600', 'ring-2', 'ring-blue-100');
+        } else {
+            thumb.classList.remove('border-blue-600', 'ring-2', 'ring-blue-100');
+        }
+    });
+}
+
+/**
  * Carrega os detalhes de um imóvel específico
  */
 async function loadPropertyDetail(id) {
@@ -173,7 +205,6 @@ async function loadPropertyDetail(id) {
     if (!container) return;
 
     try {
-        // Query de imóvel sem embed para evitar erro PGRST201
         const { data: p, error: pError } = await supabase
             .from('imoveis')
             .select('*')
@@ -186,50 +217,96 @@ async function loadPropertyDetail(id) {
             return;
         }
 
-        // Busca fotos separadamente
+        // Busca fotos com ordenação específica
         const { data: fotos, error: fError } = await supabase
             .from('imoveis_fotos')
             .select('*')
             .eq('imovel_id', id)
-            .order('ordem', { ascending: true });
+            .order('ordem', { ascending: true })
+            .order('created_at', { ascending: true });
 
-        const coverPhoto = fotos?.find(f => f.is_capa)?.url || fotos?.[0]?.url || 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=600';
+        currentPhotos = fotos || [];
+        currentIndex = 0;
+
+        const mainPhotoUrl = currentPhotos.length > 0 ? currentPhotos[0].url : 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=600';
         const preco = p.valor_venda || p.valor_locacao || 0;
+        const formattedPrice = Number(preco).toLocaleString('pt-BR');
 
+        // Construção do HTML com a Galeria no Topo
         container.innerHTML = `
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start animate-in fade-in duration-700">
-                <div class="space-y-4">
-                    <img src="${coverPhoto}" class="w-full rounded-[2.5rem] shadow-2xl aspect-video object-cover" id="main-photo">
-                    <div class="flex gap-4 overflow-x-auto pb-4 no-scrollbar">
-                        ${fotos ? fotos.map(f => `
-                            <img src="${f.url}" loading="lazy" class="rounded-2xl h-24 w-32 shrink-0 object-cover border-2 border-transparent hover:border-blue-600 cursor-pointer transition-all" onclick="document.getElementById('main-photo').src=this.src">
-                        `).join('') : ''}
-                    </div>
+            <div class="animate-in fade-in duration-700">
+                <!-- ETAPA 1: Container da Galeria -->
+                <div class="galeria-imovel mb-8">
+                    ${currentPhotos.length > 1 ? `
+                        <button onclick="window.prevPhoto()" class="galeria-btn galeria-prev">‹</button>
+                        <button onclick="window.nextPhoto()" class="galeria-btn galeria-next">›</button>
+                    ` : ''}
+
+                    <img id="galeria-foto-principal" src="${mainPhotoUrl}" alt="${p.titulo}">
+
+                    ${currentPhotos.length > 1 ? `
+                        <div class="galeria-miniaturas no-scrollbar" id="galeria-miniaturas">
+                            ${currentPhotos.map((f, idx) => `
+                                <img src="${f.url}" 
+                                     class="miniatura-item ${idx === 0 ? 'border-blue-600 ring-2 ring-blue-100' : ''}" 
+                                     onclick="window.setPhoto(${idx})">
+                            `).join('')}
+                        </div>
+                    ` : ''}
                 </div>
-                <div class="space-y-8">
-                    <div class="inline-block bg-blue-50 text-blue-600 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider">
-                        ${p.tipo_imovel || 'Imóvel'}
-                    </div>
-                    <h1 class="text-4xl md:text-5xl font-black text-slate-900 leading-tight">${p.titulo}</h1>
-                    <p class="text-4xl text-blue-600 font-black">R$ ${preco.toLocaleString('pt-BR')}</p>
-                    <div class="prose prose-slate max-w-none text-slate-600 text-lg whitespace-pre-line leading-relaxed">
-                        ${p.descricao || 'Sem descrição disponível.'}
-                    </div>
-                    
-                    <div class="grid grid-cols-2 gap-4 pt-6">
-                         <div class="bg-slate-50 p-4 rounded-2xl">
-                            <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Dormitórios</p>
-                            <p class="text-slate-900 font-bold">${p.dormitorios || 0}</p>
-                         </div>
-                         <div class="bg-slate-50 p-4 rounded-2xl">
-                            <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Suítes</p>
-                            <p class="text-slate-900 font-bold">${p.suites || 0}</p>
-                         </div>
+
+                <!-- Conteúdo Abaixo da Galeria -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start mt-12">
+                    <div class="space-y-6">
+                        <div class="inline-block bg-blue-50 text-blue-600 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider">
+                            ${p.tipo_imovel || 'Imóvel'}
+                        </div>
+                        <h1 class="text-4xl md:text-5xl font-black text-slate-900 leading-tight">${p.titulo}</h1>
+                        <p class="text-4xl text-blue-600 font-black">R$ ${formattedPrice}</p>
+                        
+                        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm space-y-4">
+                            <h3 class="font-bold text-slate-800 text-lg border-b pb-3">Sobre este imóvel</h3>
+                            <div class="prose prose-slate max-w-none text-slate-600 text-lg whitespace-pre-line leading-relaxed">
+                                ${p.descricao || 'Sem descrição disponível.'}
+                            </div>
+                        </div>
                     </div>
 
-                    <a href="https://wa.me/5500000000000?text=Olá, tenho interesse no imóvel Ref ${p.referencia}: ${p.titulo}" target="_blank" class="block w-full text-center bg-emerald-500 text-white py-5 rounded-[2rem] font-bold text-lg hover:bg-emerald-600 transition-all shadow-xl shadow-emerald-100">
-                        Tenho Interesse via WhatsApp
-                    </a>
+                    <div class="space-y-8">
+                        <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-xl space-y-6">
+                            <h3 class="font-bold text-slate-900 text-xl">Detalhes</h3>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="bg-slate-50 p-4 rounded-2xl">
+                                    <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Dormitórios</p>
+                                    <p class="text-slate-900 font-bold text-lg">${p.dormitorios || 0}</p>
+                                </div>
+                                <div class="bg-slate-50 p-4 rounded-2xl">
+                                    <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Suítes</p>
+                                    <p class="text-slate-900 font-bold text-lg">${p.suites || 0}</p>
+                                </div>
+                                <div class="bg-slate-50 p-4 rounded-2xl">
+                                    <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Banheiros</p>
+                                    <p class="text-slate-900 font-bold text-lg">${p.banheiros || 0}</p>
+                                </div>
+                                <div class="bg-slate-50 p-4 rounded-2xl">
+                                    <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Área Total</p>
+                                    <p class="text-slate-900 font-bold text-lg">${p.area_m2 || 0} m²</p>
+                                </div>
+                            </div>
+
+                            <div class="space-y-3 pt-4">
+                                <p class="text-sm font-bold text-slate-400 uppercase tracking-widest">Localização</p>
+                                <p class="text-slate-700 font-medium">${p.bairro}, ${p.cidade} - ${p.uf}</p>
+                                <p class="text-xs text-slate-400">Referência: ${p.referencia || 'N/I'}</p>
+                            </div>
+
+                            <a href="https://wa.me/5500000000000?text=Olá, tenho interesse no imóvel Ref ${p.referencia}: ${p.titulo}" 
+                               target="_blank" 
+                               class="block w-full text-center bg-emerald-500 text-white py-5 rounded-[2rem] font-bold text-lg hover:bg-emerald-600 transition-all shadow-xl shadow-emerald-100 active:scale-95">
+                                Tenho Interesse via WhatsApp
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
         `;
