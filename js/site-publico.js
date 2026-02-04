@@ -121,20 +121,24 @@ async function loadHomeProperties() {
                         <span class="badge-local">${imovel.cidade}</span>
                     </div>
 
-                    <div class="card-imovel-body">
-                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">${imovel.bairro}</p>
-                        <h3 class="titulo">${imovel.titulo}</h3>
+                    <div class="card-imovel-body imovel-card-content">
+                        <span class="imovel-bairro">${imovel.bairro}</span>
+                        <h3 class="imovel-titulo">${imovel.titulo}</h3>
                         
                         <div class="preco">
                             <strong>${preco}</strong>
                         </div>
 
-                        <div class="info-icons">
-                            🛏 ${imovel.dormitorios || 0} | 🛁 ${imovel.banheiros || 0} | 🚗 ${imovel.vagas_garagem || 0}
-                        </div>
+                        <div class="imovel-info">
+                            <div class="info-icons imovel-info-icons">
+                                <span>🛏 ${imovel.dormitorios || 0}</span>
+                                <span>🛁 ${imovel.banheiros || 0}</span>
+                                <span>🚗 ${imovel.vagas_garagem || 0}</span>
+                            </div>
 
-                        <div class="info-extra">
-                            Ref: ${imovel.referencia || 'N/I'} — Área: ${imovel.area_m2 || 0} m²
+                            <div class="info-extra">
+                                Ref: ${imovel.referencia || 'N/I'} — Área: ${imovel.area_m2 || 0} m²
+                            </div>
                         </div>
 
                         <a href="imovel.html?id=${imovel.id}" class="btn-detalhar">
