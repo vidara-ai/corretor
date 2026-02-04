@@ -1,4 +1,3 @@
-
 import { supabase } from './supabase.js';
 
 const params = new URLSearchParams(window.location.search);
@@ -140,6 +139,11 @@ async function loadPropertyData(id) {
         document.getElementById('f-cidade').value = p.cidade || '';
         document.getElementById('f-uf').value = p.uf || '';
 
+        // Características (Popula os Sets para renderizar os chips selecionados)
+        if (p.caracteristicas_imovel) selectedImovelFeatures = new Set(p.caracteristicas_imovel);
+        if (p.caracteristicas_condominio) selectedCondoFeatures = new Set(p.caracteristicas_condominio);
+        renderAllChips();
+
         // Fotos (Usando a nova tabela imoveis_fotos)
         const { data: photos } = await supabase.from('imoveis_fotos').select('*').eq('imovel_id', id).order('is_capa', { ascending: false }).order('ordem', { ascending: true });
         if (photos) {
@@ -226,6 +230,10 @@ document.getElementById('property-form').onsubmit = async (e) => {
     const cidade = document.getElementById('f-cidade').value;
     const uf = document.getElementById('f-uf').value;
 
+    // Converte os Sets de características em Arrays para o Supabase (text[])
+    const caracteristicasImovel = Array.from(selectedImovelFeatures);
+    const caracteristicasCondominio = Array.from(selectedCondoFeatures);
+
     try {
         const payload = {
             codigo_imovel: document.getElementById('f-codigo').value,
@@ -248,7 +256,10 @@ document.getElementById('property-form').onsubmit = async (e) => {
             // Inclusão dos campos de localização no payload
             bairro: bairro,
             cidade: cidade,
-            uf: uf
+            uf: uf,
+            // Persistência das características selecionadas
+            caracteristicas_imovel: caracteristicasImovel,
+            caracteristicas_condominio: caracteristicasCondominio
         };
 
         if (finalidade === 'venda') {
