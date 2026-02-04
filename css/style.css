@@ -23,6 +23,7 @@ body {
     display: flex;
     flex-direction: column;
     height: 100%;
+    cursor: pointer; /* CARD CLICÁVEL */
 }
 
 .card-imovel:hover {
@@ -272,6 +273,8 @@ body {
     text-transform: uppercase;
     font-size: 13px;
     letter-spacing: 1px;
+    border: none;
+    outline: none;
 }
 
 .btn-detalhar:hover {
