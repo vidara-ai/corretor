@@ -112,6 +112,9 @@ async function loadHomeProperties() {
 
             // PASSO 8 — USAR A IMAGEM NO CARD
             const imagem = imovel.foto_url || 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=600';
+            
+            // Badge Destaque Condicional
+            const badgeDestaque = imovel.destaque ? `<div class="badge-destaque">DESTAQUE</div>` : '';
 
             return `
                 <div class="card-imovel">
@@ -119,15 +122,20 @@ async function loadHomeProperties() {
                         <img src="${imagem}" alt="${imovel.titulo}">
                         <span class="badge-tipo">${imovel.tipo_imovel || 'Imóvel'}</span>
                         <span class="badge-local">${imovel.cidade}</span>
+                        ${badgeDestaque}
                     </div>
 
                     <div class="card-imovel-body imovel-card-content">
                         <span class="imovel-bairro">${imovel.bairro}</span>
-                        <h3 class="imovel-titulo">${imovel.titulo}</h3>
+                        <h3 class="imovel-titulo text-center lg:text-left">${imovel.titulo}</h3>
                         
-                        <div class="preco">
+                        <div class="divisor-card"></div>
+
+                        <div class="preco text-center">
                             <strong>${preco}</strong>
                         </div>
+
+                        <div class="divisor-card"></div>
 
                         <div class="imovel-info">
                             <div class="info-icons imovel-info-icons">
@@ -135,6 +143,8 @@ async function loadHomeProperties() {
                                 <span>🛁 ${imovel.banheiros || 0}</span>
                                 <span>🚗 ${imovel.vagas_garagem || 0}</span>
                             </div>
+
+                            <div class="divisor-card"></div>
 
                             <div class="imovel-ref-area">
                                 Ref: ${imovel.referencia || 'N/I'} — Área: ${imovel.area_m2 || 0} m²
