@@ -79,26 +79,26 @@ body {
     flex-direction: column;
 }
 
-/* PATCH VISUAL - ETAPA 2 */
+/* PATCH VISUAL - AJUSTES DE ESPAÇAMENTO E HIERARQUIA */
 .imovel-card-content {
-  padding: 18px;
+  padding: 24px;
   width: 100%;
 }
 
 .imovel-bairro {
   display: block;
-  font-size: 0.9rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  margin-bottom: 8px;
+  font-size: 0.95rem; /* Aumentado de 0.9rem */
+  font-weight: 700;   /* Aumentado de 600 */
+  letter-spacing: 0.08em;
+  margin-bottom: 12px; /* Aumentado de 8px */
   text-transform: uppercase;
-  color: #8a8a8a;
+  color: #64748b;     /* Slate-500 mais suave que #8a8a8a */
 }
 
 .imovel-titulo {
-  font-size: 1.4rem;
-  line-height: 1.2;
-  margin-bottom: 14px;
+  font-size: 1.45rem;
+  line-height: 1.3;
+  margin-bottom: 18px; /* Aumentado de 14px */
   font-weight: 800;
   color: #0f172a;
   display: -webkit-box;
@@ -108,7 +108,7 @@ body {
 }
 
 .imovel-info {
-  margin-top: 14px;
+  margin-top: 20px; /* Aumentado de 14px */
   width: 100%;
 }
 
@@ -116,13 +116,26 @@ body {
   display: flex;
   justify-content: space-between;
   width: 100%;
-  margin-bottom: 12px;
+  margin-bottom: 20px; /* Aumentado de 12px */
   font-size: 14px;
   font-weight: 600;
   color: #475569;
 }
 
-/* ÍCONES E INFOS */
+/* NOVO BLOCO CENTRALIZADO E DESTACADO */
+.imovel-ref-area {
+  text-align: center;
+  font-size: 14px;      /* Aumentado de 12px (info-extra padrão) */
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  line-height: 1.6;
+  margin-bottom: 24px;  /* Mais respiro antes do botão */
+  width: 100%;
+}
+
+/* ÍCONES E INFOS (MANTIDOS PARA COMPATIBILIDADE SE NECESSÁRIO) */
 .info-icons {
     font-size: 14px;
     font-weight: 600;
@@ -141,11 +154,11 @@ body {
 
 /* PREÇO E BOTÃO */
 .preco {
-    margin-bottom: 15px;
+    margin-bottom: 20px;
 }
 
 .preco strong {
-    font-size: 1.4rem;
+    font-size: 1.6rem;
     color: #c62828;
     font-weight: 900;
 }
@@ -156,13 +169,13 @@ body {
     text-align: center;
     background: #c62828;
     color: white;
-    padding: 12px;
+    padding: 14px;
     border-radius: 8px;
     font-weight: 800;
     text-decoration: none;
     transition: all 0.2s;
     text-transform: uppercase;
-    font-size: 12px;
+    font-size: 13px;
     letter-spacing: 1px;
 }
 
