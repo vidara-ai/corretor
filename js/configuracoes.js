@@ -7,13 +7,13 @@ async function loadConfig() {
     try {
         // Buscamos o registro de ID 1 (Singleton)
         const { data, error } = await supabase
-            .from('configuracoes_site')
-            .select('*')
-            .eq('id', 1)
-            .single();
+  .from('configuracoes_site')
+  .select('*')
+  .single();
+
 
         if (error) {
-            console.error('Configuração não encontrada:', error.message);
+            console.error('Configuração não encontrada:', error);
             return;
         }
 
