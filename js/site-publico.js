@@ -66,77 +66,66 @@ async function loadHomeProperties() {
     if (!container) return;
 
     try {
-        // CORREÇÃO: Query atualizada para buscar todos os campos necessários para o card
-        const { data: imoveis, error } = await supabase
-            .from('imoveis')
-            .select(`
-                id,
-                titulo,
-                descricao,
-                tipo_imovel,
-                cidade,
-                uf,
-                valor_venda,
-                valor_locacao,
-                dormitorios,
-                banheiros,
-                vagas_garagem,
-                area_m2,
-                referencia
-            `)
-            .eq('ativo', true)
-            .order('created_at', { ascending: false })
-            .limit(6);
+        // PASSO 5 — CONSULTA DE IMÓVEIS (SEM EMBED)
+        const { data: imoveis, error: imoveisError } = await supabase
+          .from('imoveis')
+          .select('*')
+          .eq('ativo', true)
+          .order('ordem_destaque', { ascending: true, nullsLast: true });
 
-        if (error) {
-            console.error('Erro ao buscar imóveis:', error);
-            container.innerHTML = `<p class="col-span-full text-center text-red-500 py-10">Erro ao carregar catálogo: ${error.message}</p>`;
-            return;
+        if (imoveisError) {
+          console.error('Erro ao buscar imóveis:', imoveisError);
+          container.innerHTML = `<p class="col-span-full text-center text-red-500 py-10">Erro: ${imoveisError.message}</p>`;
+          return;
         }
 
-        if (!imoveis || imoveis.length === 0) {
+        // PASSO 6 — BUSCAR FOTOS (QUERY SEPARADA)
+        const { data: fotos, error: fotosError } = await supabase
+          .from('imoveis_fotos')
+          .select('*')
+          .eq('is_capa', true);
+
+        if (fotosError) {
+          console.error('Erro ao buscar fotos:', fotosError);
+        }
+
+        // PASSO 7 — MERGE MANUAL (SEM SUPABASE EMBED)
+        const imoveisComFoto = imoveis.map(imovel => {
+          const fotoCapa = (fotos || []).find(f => f.imovel_id === imovel.id);
+          return {
+            ...imovel,
+            foto_url: fotoCapa ? fotoCapa.url : null
+          };
+        });
+
+        if (imoveisComFoto.length === 0) {
             container.innerHTML = '<p class="col-span-full text-center text-slate-400 py-10">Nenhum imóvel disponível no momento.</p>';
             return;
         }
 
-        const imovelIds = imoveis.map(i => i.id);
-
-        const { data: fotosData } = await supabase
-          .from('imoveis_fotos')
-          .select('imovel_id, url, is_capa')
-          .in('imovel_id', imovelIds);
-
-        const fotosPorImovel = {};
-        fotosData?.forEach(f => {
-          if (!fotosPorImovel[f.imovel_id]) {
-            fotosPorImovel[f.imovel_id] = [];
-          }
-          fotosPorImovel[f.imovel_id].push(f);
-        });
-
         // RENDERIZAÇÃO: Template do card ajustado conforme especificações de portal imobiliário
-        container.innerHTML = imoveis.map(imovel => {
-            const fotos = fotosPorImovel[imovel.id] || [];
-            const capa = fotos.find(f => f.is_capa)?.url || 
-                         fotos[0]?.url || 
-                         'https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=600';
-            
-            const preco = imovel.valor_venda || imovel.valor_locacao || 0;
-            const precoFormatado = preco > 0 ? `R$ ${preco.toLocaleString('pt-BR')}` : 'Sob consulta';
+        container.innerHTML = imoveisComFoto.map(imovel => {
+            // PASSO 3 — PREÇO (USAR APENAS CAMPOS EXISTENTES)
+            const preco = imovel.valor_venda
+              ? `R$ ${Number(imovel.valor_venda).toLocaleString('pt-BR')}`
+              : (imovel.valor_locacao ? `R$ ${Number(imovel.valor_locacao).toLocaleString('pt-BR')}` : 'Sob consulta');
+
+            // PASSO 8 — USAR A IMAGEM NO CARD
+            const imagem = imovel.foto_url || 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=600';
 
             return `
                 <div class="card-imovel">
                     <div class="card-imagem">
-                        <img src="${capa}" alt="${imovel.titulo}">
+                        <img src="${imagem}" alt="${imovel.titulo}">
                         <span class="badge-tipo">${imovel.tipo_imovel || 'Imóvel'}</span>
-                        <span class="badge-local">${imovel.cidade || 'Localização'} - ${imovel.uf || 'UF'}</span>
+                        <span class="badge-local">Consulte a localização</span>
                     </div>
 
                     <div class="card-imovel-body">
                         <h3 class="titulo">${imovel.titulo}</h3>
                         
                         <div class="preco">
-                            <strong>${precoFormatado}</strong>
+                            <strong>${preco}</strong>
                         </div>
 
                         <div class="info-icons">
@@ -169,22 +158,27 @@ async function loadPropertyDetail(id) {
     if (!container) return;
 
     try {
-        const { data: p, error } = await supabase
+        // Query de imóvel sem embed para evitar erro PGRST201
+        const { data: p, error: pError } = await supabase
             .from('imoveis')
-            .select(`
-                *, 
-                imoveis_fotos:imoveis_fotos!imoveis_fotos_imovel_fk (*)
-            `)
+            .select('*')
             .eq('id', id)
             .single();
 
-        if (error) throw error;
+        if (pError) throw pError;
         if (!p) {
             container.innerHTML = '<p class="text-center py-20 text-slate-500">Imóvel não encontrado.</p>';
             return;
         }
 
-        const coverPhoto = p.imoveis_fotos?.find(f => f.is_capa)?.url || p.imoveis_fotos?.[0]?.url || '';
+        // Busca fotos separadamente
+        const { data: fotos, error: fError } = await supabase
+            .from('imoveis_fotos')
+            .select('*')
+            .eq('imovel_id', id)
+            .order('ordem', { ascending: true });
+
+        const coverPhoto = fotos?.find(f => f.is_capa)?.url || fotos?.[0]?.url || 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=600';
         const preco = p.valor_venda || p.valor_locacao || 0;
 
         container.innerHTML = `
@@ -192,7 +186,7 @@ async function loadPropertyDetail(id) {
                 <div class="space-y-4">
                     <img src="${coverPhoto}" class="w-full rounded-[2.5rem] shadow-2xl aspect-video object-cover" id="main-photo">
                     <div class="flex gap-4 overflow-x-auto pb-4 no-scrollbar">
-                        ${p.imoveis_fotos ? p.imoveis_fotos.map(f => `
+                        ${fotos ? fotos.map(f => `
                             <img src="${f.url}" loading="lazy" class="rounded-2xl h-24 w-32 shrink-0 object-cover border-2 border-transparent hover:border-blue-600 cursor-pointer transition-all" onclick="document.getElementById('main-photo').src=this.src">
                         `).join('') : ''}
                     </div>
