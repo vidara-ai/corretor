@@ -75,7 +75,10 @@ async function loadHomeProperties() {
                 cidade, 
                 valor_venda, 
                 valor_locacao, 
-                imoveis_fotos (url, is_capa)
+                imoveis_fotos:imoveis_fotos!imoveis_fotos_imovel_fk (
+                    url, 
+                    is_capa
+                )
             `)
             .eq('ativo', true)
             .order('created_at', { ascending: false })
@@ -133,7 +136,10 @@ async function loadPropertyDetail(id) {
     try {
         const { data: p, error } = await supabase
             .from('imoveis')
-            .select('*, imoveis_fotos(*)')
+            .select(`
+                *, 
+                imoveis_fotos:imoveis_fotos!imoveis_fotos_imovel_fk (*)
+            `)
             .eq('id', id)
             .single();
 
