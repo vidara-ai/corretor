@@ -115,7 +115,7 @@ async function loadHomeProperties() {
             const badgeDestaque = imovel.destaque ? `<div class="badge-destaque">DESTAQUE</div>` : '';
 
             return `
-                <div class="card-imovel">
+                <div class="card-imovel" data-id="${imovel.id}">
                     <div class="card-imagem">
                         <img src="${imagem}" alt="${imovel.titulo}">
                         <span class="badge-tipo">${imovel.tipo_imovel || 'Imóvel'}</span>
@@ -149,16 +149,47 @@ async function loadHomeProperties() {
                             </div>
                         </div>
 
-                        <a href="imovel.html?id=${imovel.id}" class="btn-detalhar">
+                        <button class="btn-detalhar">
                             Detalhar
-                        </a>
+                        </button>
                     </div>
                 </div>
             `;
         }).join('');
+
+        // Configurar listeners de clique nos cards e botões
+        setupCardEventListeners();
+
     } catch (err) {
         console.error('Erro crítico no site público:', err);
     }
+}
+
+/**
+ * Configura os eventos de clique para os cards e botões de detalhar
+ */
+function setupCardEventListeners() {
+    // Clique no card inteiro
+    document.querySelectorAll('.card-imovel').forEach(card => {
+        card.addEventListener('click', () => {
+            const id = card.dataset.id;
+            if (id) {
+                window.location.href = `imovel.html?id=${id}`;
+            }
+        });
+    });
+
+    // Clique no botão detalhar (com stopPropagation)
+    document.querySelectorAll('.btn-detalhar').forEach(botao => {
+        botao.addEventListener('click', (event) => {
+            event.stopPropagation();
+            const card = botao.closest('.card-imovel');
+            const id = card ? card.dataset.id : null;
+            if (id) {
+                window.location.href = `imovel.html?id=${id}`;
+            }
+        });
+    });
 }
 
 /**
