@@ -67,18 +67,14 @@ async function loadHomeProperties() {
     if (!container) return;
 
     try {
+        // CORREÇÃO 1 — REMOVER EMBED AUTOMÁTICO E COLUNA INEXISTENTE (cidade)
         const { data: imoveis, error } = await supabase
             .from('imoveis')
             .select(`
-                id, 
-                titulo, 
-                cidade, 
-                valor_venda, 
-                valor_locacao, 
-                imoveis_fotos:imoveis_fotos!imoveis_fotos_imovel_fk (
-                    url, 
-                    is_capa
-                )
+                id,
+                titulo,
+                valor_venda,
+                valor_locacao
             `)
             .eq('ativo', true)
             .order('created_at', { ascending: false })
@@ -95,9 +91,27 @@ async function loadHomeProperties() {
             return;
         }
 
+        // CORREÇÃO 2 — BUSCAR FOTOS EM QUERY SEPARADA
+        const imovelIds = imoveis.map(i => i.id);
+
+        const { data: fotosData } = await supabase
+          .from('imoveis_fotos')
+          .select('imovel_id, url, is_capa')
+          .in('imovel_id', imovelIds);
+
+        const fotosPorImovel = {};
+        fotosData?.forEach(f => {
+          if (!fotosPorImovel[f.imovel_id]) {
+            fotosPorImovel[f.imovel_id] = [];
+          }
+          fotosPorImovel[f.imovel_id].push(f);
+        });
+
+        // CORREÇÃO 3 e 4 — AJUSTAR RENDERIZAÇÃO
         container.innerHTML = imoveis.map(imovel => {
-            const capa = imovel.imoveis_fotos?.find(f => f.is_capa)?.url || 
-                         imovel.imoveis_fotos?.[0]?.url || 
+            const fotos = fotosPorImovel[imovel.id] || [];
+            const capa = fotos.find(f => f.is_capa)?.url || 
+                         fotos[0]?.url || 
                          'https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=600';
             
             const preco = imovel.valor_venda || imovel.valor_locacao || 0;
@@ -110,7 +124,7 @@ async function loadHomeProperties() {
                     </div>
                     <div class="p-6 flex flex-col flex-1">
                         <h3 class="font-bold text-slate-900 text-lg mb-1 truncate">${imovel.titulo}</h3>
-                        <p class="text-slate-500 text-sm mb-4">${imovel.cidade || 'Localização não informada'}</p>
+                        <p class="text-slate-500 text-sm mb-4">Consulte a localização</p>
                         <div class="mt-auto">
                             <p class="text-blue-600 font-bold text-xl mb-4">${precoFormatado}</p>
                             <a href="imovel.html?id=${imovel.id}" class="block text-center bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition-colors">
