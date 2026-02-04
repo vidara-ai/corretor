@@ -50,7 +50,10 @@ async function iniciarPaginaImovel() {
         // 4. Render Data
         renderizarImovel(imovel);
 
-        // 5. Cleanup UI State
+        // 5. Setup Gallery Listeners
+        setupGalleryEvents();
+
+        // 6. Cleanup UI State
         finalizarLoading();
 
     } catch (err) {
@@ -113,5 +116,145 @@ function renderizarImovel(p) {
 
                     ${p.caracteristicas_imovel && p.caracteristicas_imovel.length > 0 ? `
                         <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
-                            <h3 class="font-bold text-slate-800 text-xl mb-6">Características</h3>
-                            <div class="flex flex-
+                            <h3 class="font-bold text-slate-800 text-xl mb-6">Características do Imóvel</h3>
+                            <div class="flex flex-wrap gap-2">
+                                ${p.caracteristicas_imovel.map(feat => `
+                                    <span class="bg-slate-50 border border-slate-100 text-slate-600 px-4 py-2 rounded-xl text-sm font-medium">
+                                        ${feat}
+                                    </span>
+                                `).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+
+                    ${p.caracteristicas_condominio && p.caracteristicas_condominio.length > 0 ? `
+                        <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
+                            <h3 class="font-bold text-slate-800 text-xl mb-6">Lazer e Condomínio</h3>
+                            <div class="flex flex-wrap gap-2">
+                                ${p.caracteristicas_condominio.map(feat => `
+                                    <span class="bg-emerald-50 border border-emerald-100 text-emerald-700 px-4 py-2 rounded-xl text-sm font-medium">
+                                        ${feat}
+                                    </span>
+                                `).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+
+                <!-- Detalhes Card -->
+                <div class="space-y-8 sticky top-24">
+                    <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-xl space-y-6">
+                        <h3 class="font-bold text-slate-900 text-xl">Ficha Técnica</h3>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="bg-slate-50 p-4 rounded-2xl">
+                                <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Dormitórios</p>
+                                <p class="text-slate-900 font-bold text-lg">${p.dormitorios || 0}</p>
+                            </div>
+                            <div class="bg-slate-50 p-4 rounded-2xl">
+                                <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Suítes</p>
+                                <p class="text-slate-900 font-bold text-lg">${p.suites || 0}</p>
+                            </div>
+                            <div class="bg-slate-50 p-4 rounded-2xl">
+                                <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Banheiros</p>
+                                <p class="text-slate-900 font-bold text-lg">${p.banheiros || 0}</p>
+                            </div>
+                            <div class="bg-slate-50 p-4 rounded-2xl">
+                                <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Área Total</p>
+                                <p class="text-slate-900 font-bold text-lg">${p.area_m2 || 0} m²</p>
+                            </div>
+                        </div>
+
+                        <div class="space-y-3 pt-4">
+                            <p class="text-sm font-bold text-slate-400 uppercase tracking-widest">Localização</p>
+                            <p class="text-slate-700 font-medium">${p.bairro || ''}, ${p.cidade || ''} - ${p.uf || ''}</p>
+                            <p class="text-xs text-slate-400">Referência: ${p.referencia || 'N/I'}</p>
+                        </div>
+
+                        <a href="https://wa.me/5500000000000?text=Olá, tenho interesse no imóvel Ref ${p.referencia || p.id}: ${p.titulo}" 
+                           target="_blank" 
+                           class="block w-full text-center bg-emerald-500 text-white py-5 rounded-[2rem] font-bold text-lg hover:bg-emerald-600 transition-all shadow-xl shadow-emerald-100 active:scale-95">
+                            Tenho Interesse via WhatsApp
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+/**
+ * Gallery Navigation Logic
+ */
+function setupGalleryEvents() {
+    const btnNext = document.getElementById('btn-next');
+    const btnPrev = document.getElementById('btn-prev');
+    const thumbnails = document.querySelectorAll('.miniatura-item');
+
+    if (btnNext) {
+        btnNext.addEventListener('click', () => {
+            currentIndex = (currentIndex + 1) % currentPhotos.length;
+            atualizarExibicaoGaleria();
+        });
+    }
+
+    if (btnPrev) {
+        btnPrev.addEventListener('click', () => {
+            currentIndex = (currentIndex - 1 + currentPhotos.length) % currentPhotos.length;
+            atualizarExibicaoGaleria();
+        });
+    }
+
+    thumbnails.forEach(thumb => {
+        thumb.addEventListener('click', () => {
+            currentIndex = parseInt(thumb.dataset.index);
+            atualizarExibicaoGaleria();
+        });
+    });
+}
+
+function atualizarExibicaoGaleria() {
+    const mainImg = document.getElementById('galeria-foto-principal');
+    const thumbnails = document.querySelectorAll('.miniatura-item');
+
+    if (mainImg && currentPhotos[currentIndex]) {
+        mainImg.src = currentPhotos[currentIndex].url;
+    }
+
+    thumbnails.forEach((thumb, idx) => {
+        if (idx === currentIndex) {
+            thumb.classList.add('border-blue-600', 'ring-2', 'ring-blue-100');
+        } else {
+            thumb.classList.remove('border-blue-600', 'ring-2', 'ring-blue-100');
+        }
+    });
+}
+
+/**
+ * UI State Helpers
+ */
+function finalizarLoading() {
+    const loader = document.getElementById('loading-container');
+    const content = document.getElementById('content-container');
+    
+    if (loader) loader.style.display = 'none';
+    if (content) content.style.display = 'block';
+}
+
+function mostrarErro(msg) {
+    const container = document.getElementById('property-detail');
+    if (container) {
+        container.innerHTML = `
+            <div class="text-center py-20">
+                <div class="bg-red-50 text-red-600 p-8 rounded-3xl inline-block max-w-md">
+                    <svg class="w-12 h-12 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                    <h2 class="text-xl font-bold mb-2">Ops! Ocorreu um erro</h2>
+                    <p class="text-sm opacity-80 mb-6">${msg}</p>
+                    <a href="index.html" class="bg-red-600 text-white px-6 py-2 rounded-full font-bold text-xs uppercase tracking-widest">Voltar para a Home</a>
+                </div>
+            </div>
+        `;
+    }
+}
+
+// Start execution
+document.addEventListener('DOMContentLoaded', iniciarPaginaImovel);
