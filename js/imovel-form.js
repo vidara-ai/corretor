@@ -1,3 +1,4 @@
+
 import { supabase } from './supabase.js';
 
 const params = new URLSearchParams(window.location.search);
@@ -133,6 +134,11 @@ async function loadPropertyData(id) {
         document.getElementById('f-area').value = p.area_m2 || '';
         document.getElementById('f-description').value = p.descricao || '';
         document.getElementById('f-featured').checked = p.destaque || false;
+        
+        // Localização
+        document.getElementById('f-bairro').value = p.bairro || '';
+        document.getElementById('f-cidade').value = p.cidade || '';
+        document.getElementById('f-uf').value = p.uf || '';
 
         // Fotos (Usando a nova tabela imoveis_fotos)
         const { data: photos } = await supabase.from('imoveis_fotos').select('*').eq('imovel_id', id).order('is_capa', { ascending: false }).order('ordem', { ascending: true });
@@ -214,6 +220,11 @@ document.getElementById('property-form').onsubmit = async (e) => {
     const titulo = document.getElementById('f-title').value;
     const preco = Number(document.getElementById('f-price').value);
     const finalidade = document.getElementById('f-finalidade').value;
+    
+    // Leitura explícita dos campos de localização
+    const bairro = document.getElementById('f-bairro').value;
+    const cidade = document.getElementById('f-cidade').value;
+    const uf = document.getElementById('f-uf').value;
 
     try {
         const payload = {
@@ -233,7 +244,11 @@ document.getElementById('property-form').onsubmit = async (e) => {
             area_total: Number(document.getElementById('f-area').value || 0),
             ativo: document.getElementById('f-status').value === 'ativo',
             destaque: document.getElementById('f-featured').checked,
-            updated_at: new Date().toISOString()
+            updated_at: new Date().toISOString(),
+            // Inclusão dos campos de localização no payload
+            bairro: bairro,
+            cidade: cidade,
+            uf: uf
         };
 
         if (finalidade === 'venda') {
