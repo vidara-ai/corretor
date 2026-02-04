@@ -1,174 +1,192 @@
 import { supabase } from './supabase.js';
 
-function setMeta(name, content) {
-    if (!content) return;
-    let el = document.querySelector(`meta[name="${name}"]`) || document.querySelector(`meta[property="${name}"]`);
-    if (!el) {
-        el = document.createElement('meta');
-        if (name.startsWith('og:')) el.setAttribute('property', name);
-        else el.setAttribute('name', name);
-        document.head.appendChild(el);
+/**
+ * Inicialização do Site Público
+ * Gerencia tanto a Home (lista) quanto a página de Detalhes
+ */
+async function initSite() {
+    const params = new URLSearchParams(window.location.search);
+    const propertyId = params.get('id');
+    const isDetailPage = window.location.pathname.includes('imovel.html');
+
+    // TAREFA 1: Carregar configurações do site (Safe mode)
+    // Evita erro 400 de UUID ao buscar por ID numérico fixo
+    try {
+        const { data: config, error: configError } = await supabase
+            .from('configuracoes_site')
+            .select('*')
+            .limit(1)
+            .maybeSingle();
+
+        if (configError) {
+            console.warn('Aviso: Não foi possível carregar as configurações do site (UUID Mismatch ou erro de query):', configError.message);
+        } else if (config) {
+            applySiteSettings(config);
+        }
+    } catch (err) {
+        console.warn('Erro silencioso ao processar configurações:', err);
     }
-    el.setAttribute('content', content);
+
+    // TAREFA 2: Carregar Conteúdo (Home ou Detalhe)
+    if (isDetailPage && propertyId) {
+        loadPropertyDetail(propertyId);
+    } else {
+        loadHomeProperties();
+    }
 }
 
-function applySiteSettings(data) {
-    if (!data) return;
-    const logoContainer = document.querySelector('nav a[href="index.html"]');
-    if (logoContainer) {
-        logoContainer.innerHTML = `<span class="bg-blue-600 p-1.5 rounded text-white font-serif">I</span> ${data.titulo_header}`;
-    }
+/**
+ * Aplica as configurações visuais ao site
+ */
+function applySiteSettings(config) {
+    const logoText = document.getElementById('site-logo-text');
+    if (logoText) logoText.innerText = config.titulo_header || 'ImobiMaster';
+    
     const heroTitle = document.querySelector('header h1');
+    if (heroTitle && config.hero_titulo) heroTitle.innerText = config.hero_titulo;
+
     const heroSub = document.querySelector('header p');
+    if (heroSub && config.hero_subtitulo) heroSub.innerText = config.hero_subtitulo;
+
     const heroSection = document.querySelector('header');
-    if (heroTitle) heroTitle.innerText = data.hero_titulo;
-    if (heroSub) heroSub.innerText = data.hero_subtitulo;
-    if (heroSection && data.hero_imagem_url) {
-        heroSection.style.backgroundImage = `linear-gradient(rgba(15, 23, 42, 0.8), rgba(15, 23, 42, 0.8)), url('${data.hero_imagem_url}')`;
+    if (heroSection && config.hero_imagem_url) {
+        heroSection.style.backgroundImage = `linear-gradient(rgba(15, 23, 42, 0.8), rgba(15, 23, 42, 0.8)), url('${config.hero_imagem_url}')`;
         heroSection.style.backgroundSize = 'cover';
         heroSection.style.backgroundPosition = 'center';
     }
+
     const footerText = document.getElementById('footer-copyright-text');
-    if (footerText) footerText.innerText = data.rodape_texto;
+    if (footerText) footerText.innerText = config.rodape_texto || '© ImobiMaster';
 }
 
 /**
- * 1️⃣ NOVO HTML GERADO PARA O CARD (FORMATO EXATO)
+ * Carrega a lista de imóveis na Home
  */
-function createPropertyCard(imovel) {
-    const capa = imovel.imoveis_fotos?.find(f => f.is_capa)?.url || 
-                 imovel.imoveis_fotos?.[0]?.url || 
-                 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=600';
-
-    return `
-      <article class="card-imovel">
-        <div class="card-img">
-          <img src="${capa}" alt="${imovel.titulo}">
-          <span class="badge tipo">${imovel.tipo_imovel}</span>
-          <span class="badge cidade">${imovel.cidade || ''}</span>
-        </div>
-
-        <div class="card-body">
-          <h4 class="nome">${imovel.titulo}</h4>
-          <p class="descricao">${imovel.descricao || ''}</p>
-
-          <div class="icons">
-            <span>🛏 ${imovel.dormitorios || 0}</span>
-            <span>🛁 ${imovel.suites || 0}</span>
-            <span>🚗 ${imovel.vagas_garagem || 0}</span>
-          </div>
-
-          <div class="meta">
-            <span>Ref: <strong>${imovel.referencia || ''}</strong></span>
-            <span>Área: <strong>${imovel.area_m2 || 0}m²</strong></span>
-          </div>
-
-          <div class="preco">
-            ${imovel.valor_venda
-              ? `VENDA<br><strong>R$ ${imovel.valor_venda.toLocaleString('pt-BR')}</strong>`
-              : ''}
-          </div>
-
-          <a href="imovel.html?slug=${imovel.slug}" class="btn-detalhar">
-            Detalhar
-          </a>
-        </div>
-      </article>
-    `;
-}
-
-function displayPropertyDetail(p) {
-    const container = document.getElementById('property-detail');
-    if (!container || !p) return;
-    
-    const coverPhoto = p.imoveis_fotos?.find(f => f.is_capa)?.url || p.imoveis_fotos?.[0]?.url || '';
-    const preco = p.valor_venda || p.valor_locacao || 0;
-
-    container.innerHTML = `
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start animate-in fade-in duration-700">
-            <div class="space-y-4">
-                <img src="${coverPhoto}" class="w-full rounded-[2.5rem] shadow-2xl aspect-video object-cover" id="main-photo">
-                <div class="flex gap-4 overflow-x-auto pb-4 no-scrollbar">
-                    ${p.imoveis_fotos ? p.imoveis_fotos.map(f => `
-                        <img src="${f.url}" loading="lazy" class="rounded-2xl h-24 w-32 shrink-0 object-cover border-2 border-transparent hover:border-blue-600 cursor-pointer transition-all" onclick="document.getElementById('main-photo').src=this.src">
-                    `).join('') : ''}
-                </div>
-            </div>
-            <div class="space-y-8">
-                <h1 class="text-4xl md:text-5xl font-black text-slate-900 leading-tight">${p.titulo}</h1>
-                <p class="text-4xl text-blue-600 font-black">R$ ${preco.toLocaleString('pt-BR')}</p>
-                <div class="prose prose-slate max-w-none text-slate-600 text-lg whitespace-pre-line">${p.descricao}</div>
-            </div>
-        </div>
-    `;
-}
-
-/**
- * 2️⃣ GARANTA QUE O SELECT TRAGA TODOS OS CAMPOS E USE O GRID CORRETO
- */
-async function initSite() {
-    const isDetail = window.location.pathname.includes('imovel.html');
-    const params = new URLSearchParams(window.location.search);
-    const detailId = params.get('id');
-    const slug = params.get('slug');
+async function loadHomeProperties() {
+    const container = document.getElementById('lista-imoveis');
+    if (!container) return;
 
     try {
-        const promises = [supabase.from('configuracoes_site').select('*').eq('id', 1).single()];
-        
-        // SELECT REQUISITADO
-        const selectFields = `
-          id,
-          titulo,
-          slug,
-          descricao,
-          tipo_imovel,
-          cidade,
-          dormitorios,
-          suites,
-          vagas_garagem,
-          referencia,
-          area_m2,
-          valor_venda,
-          imoveis_fotos (
-            url,
-            is_capa
-          )
-        `;
+        const { data: imoveis, error } = await supabase
+            .from('imoveis')
+            .select(`
+                id, 
+                titulo, 
+                cidade, 
+                valor_venda, 
+                valor_locacao, 
+                imoveis_fotos (url, is_capa)
+            `)
+            .eq('ativo', true)
+            .order('created_at', { ascending: false })
+            .limit(6);
 
-        if (isDetail) {
-            if (slug) {
-                promises.push(supabase.from('imoveis').select(selectFields).eq('slug', slug).single());
-            } else if (detailId) {
-                promises.push(supabase.from('imoveis').select(selectFields).eq('id', detailId).single());
-            }
-        } else {
-            promises.push(supabase.from('imoveis').select(selectFields).eq('ativo', true));
+        if (error) {
+            console.error('Erro ao buscar imóveis:', error);
+            container.innerHTML = `<p class="col-span-full text-center text-red-500 py-10">Erro ao carregar catálogo: ${error.message}</p>`;
+            return;
         }
 
-        const results = await Promise.all(promises);
-        if (results[0].data) applySiteSettings(results[0].data);
+        if (!imoveis || imoveis.length === 0) {
+            container.innerHTML = '<p class="col-span-full text-center text-slate-400 py-10">Nenhum imóvel disponível no momento.</p>';
+            return;
+        }
 
-        if (isDetail && results[1]?.data) {
-            displayPropertyDetail(results[1].data);
-        } else if (!isDetail && results[1]?.data) {
-            // ALVO CORRETO: regular-grid
-            const regularGrid = document.getElementById('regular-grid');
-            const featuredGrid = document.getElementById('featured-grid');
+        container.innerHTML = imoveis.map(imovel => {
+            const capa = imovel.imoveis_fotos?.find(f => f.is_capa)?.url || 
+                         imovel.imoveis_fotos?.[0]?.url || 
+                         'https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=600';
             
-            if (regularGrid) {
-                // Renderização no container correto
-                regularGrid.innerHTML = results[1].data.map(p => createPropertyCard(p)).join('');
-            }
+            const preco = imovel.valor_venda || imovel.valor_locacao || 0;
+            const precoFormatado = preco > 0 ? `R$ ${preco.toLocaleString('pt-BR')}` : 'Sob consulta';
 
-            if (featuredGrid) {
-                const featured = results[1].data.filter(p => p.destaque);
-                if (featured.length > 0) {
-                   document.getElementById('featured-section')?.classList.remove('hidden');
-                   featuredGrid.innerHTML = featured.map(p => createPropertyCard(p)).join('');
-                }
-            }
+            return `
+                <article class="bg-white rounded-2xl overflow-hidden shadow-lg border border-slate-100 flex flex-col h-full hover:shadow-xl transition-all group">
+                    <div class="h-48 overflow-hidden relative bg-slate-100">
+                        <img src="${capa}" alt="${imovel.titulo}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                    </div>
+                    <div class="p-6 flex flex-col flex-1">
+                        <h3 class="font-bold text-slate-900 text-lg mb-1 truncate">${imovel.titulo}</h3>
+                        <p class="text-slate-500 text-sm mb-4">${imovel.cidade || 'Localização não informada'}</p>
+                        <div class="mt-auto">
+                            <p class="text-blue-600 font-bold text-xl mb-4">${precoFormatado}</p>
+                            <a href="imovel.html?id=${imovel.id}" class="block text-center bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition-colors">
+                                Ver detalhes
+                            </a>
+                        </div>
+                    </div>
+                </article>
+            `;
+        }).join('');
+    } catch (err) {
+        console.error('Erro crítico no site público:', err);
+    }
+}
+
+/**
+ * Carrega os detalhes de um imóvel específico
+ */
+async function loadPropertyDetail(id) {
+    const container = document.getElementById('property-detail');
+    if (!container) return;
+
+    try {
+        const { data: p, error } = await supabase
+            .from('imoveis')
+            .select('*, imoveis_fotos(*)')
+            .eq('id', id)
+            .single();
+
+        if (error) throw error;
+        if (!p) {
+            container.innerHTML = '<p class="text-center py-20 text-slate-500">Imóvel não encontrado.</p>';
+            return;
         }
-    } catch (err) { console.error(err); }
+
+        const coverPhoto = p.imoveis_fotos?.find(f => f.is_capa)?.url || p.imoveis_fotos?.[0]?.url || '';
+        const preco = p.valor_venda || p.valor_locacao || 0;
+
+        container.innerHTML = `
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start animate-in fade-in duration-700">
+                <div class="space-y-4">
+                    <img src="${coverPhoto}" class="w-full rounded-[2.5rem] shadow-2xl aspect-video object-cover" id="main-photo">
+                    <div class="flex gap-4 overflow-x-auto pb-4 no-scrollbar">
+                        ${p.imoveis_fotos ? p.imoveis_fotos.map(f => `
+                            <img src="${f.url}" loading="lazy" class="rounded-2xl h-24 w-32 shrink-0 object-cover border-2 border-transparent hover:border-blue-600 cursor-pointer transition-all" onclick="document.getElementById('main-photo').src=this.src">
+                        `).join('') : ''}
+                    </div>
+                </div>
+                <div class="space-y-8">
+                    <div class="inline-block bg-blue-50 text-blue-600 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider">
+                        ${p.tipo_imovel || 'Imóvel'}
+                    </div>
+                    <h1 class="text-4xl md:text-5xl font-black text-slate-900 leading-tight">${p.titulo}</h1>
+                    <p class="text-4xl text-blue-600 font-black">R$ ${preco.toLocaleString('pt-BR')}</p>
+                    <div class="prose prose-slate max-w-none text-slate-600 text-lg whitespace-pre-line leading-relaxed">
+                        ${p.descricao || 'Sem descrição disponível.'}
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4 pt-6">
+                         <div class="bg-slate-50 p-4 rounded-2xl">
+                            <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Dormitórios</p>
+                            <p class="text-slate-900 font-bold">${p.dormitorios || 0}</p>
+                         </div>
+                         <div class="bg-slate-50 p-4 rounded-2xl">
+                            <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Suítes</p>
+                            <p class="text-slate-900 font-bold">${p.suites || 0}</p>
+                         </div>
+                    </div>
+
+                    <a href="https://wa.me/5500000000000?text=Olá, tenho interesse no imóvel: ${p.titulo}" target="_blank" class="block w-full text-center bg-emerald-500 text-white py-5 rounded-[2rem] font-bold text-lg hover:bg-emerald-600 transition-all shadow-xl shadow-emerald-100">
+                        Tenho Interesse via WhatsApp
+                    </a>
+                </div>
+            </div>
+        `;
+    } catch (err) {
+        console.error('Erro ao carregar detalhe do imóvel:', err);
+        container.innerHTML = '<p class="text-center py-20 text-red-500">Erro ao carregar detalhes do imóvel.</p>';
+    }
 }
 
 document.addEventListener('DOMContentLoaded', initSite);
