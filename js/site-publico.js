@@ -136,7 +136,7 @@ async function loadHomeProperties() {
                                 <span>🚗 ${imovel.vagas_garagem || 0}</span>
                             </div>
 
-                            <div class="info-extra">
+                            <div class="imovel-ref-area">
                                 Ref: ${imovel.referencia || 'N/I'} — Área: ${imovel.area_m2 || 0} m²
                             </div>
                         </div>
