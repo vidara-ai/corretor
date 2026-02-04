@@ -13,7 +13,7 @@
     <meta property="og:image" content="https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=1200">
     
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="./css/style.css">
+    <link rel="stylesheet" href="css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 
 <style>
@@ -23,11 +23,6 @@
 </style>
 <link rel="stylesheet" href="/index.css">
 </head>
-
-<script>
-  console.log('SCRIPT INLINE FUNCIONANDO');
-</script>
-
 
 <body class="bg-slate-50 font-['Inter']">
     <nav class="bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-slate-100">
@@ -39,8 +34,8 @@
             <div class="hidden md:flex gap-8 text-sm font-medium text-slate-600">
                 <a href="#" class="hover:text-blue-600 transition">Comprar</a>
                 <a href="#" class="hover:text-blue-600 transition">Alugar</a>
+                <a href="login.html" class="hover:text-blue-600 transition">Admin</a>
             </div>
-            <!-- Mobile Menu Toggle (Simplified) -->
             <button class="md:hidden text-slate-600">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
             </button>
@@ -59,29 +54,17 @@
     </header>
 
     <main class="max-w-7xl mx-auto px-4 py-12 md:py-20">
-        <!-- Seção de Destaques: Carrossel Mobile / Grid Desktop -->
-        <section id="featured-section" class="mb-24 hidden overflow-hidden">
-            <div class="mb-10 flex justify-between items-end">
-                <div>
-                    <h2 class="text-3xl md:text-4xl font-bold text-slate-900 tracking-tight">Imóveis em Destaque</h2>
-                    <p class="text-slate-500 mt-1">Seleção exclusiva para quem busca o melhor.</p>
-                </div>
-                <div class="hidden md:block w-24 h-1 bg-blue-600 rounded-full"></div>
-            </div>
-            
-            <div id="featured-grid" class="flex md:grid md:grid-cols-3 gap-6 md:gap-10 overflow-x-auto md:overflow-visible pb-8 md:pb-0 no-scrollbar snap-x snap-mandatory">
-                <!-- Preenchido via JS com cards snap-center -->
-            </div>
-        </section>
-
         <!-- Seção Regular: Grid Tradicional -->
         <section id="regular-section">
             <div class="mb-10">
                 <h2 class="text-2xl md:text-3xl font-bold text-slate-900">Últimas Oportunidades</h2>
                 <p class="text-slate-500">Explorar catálogo completo</p>
             </div>
-            <div id="regular-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <!-- Skeletons iniciais -->
+            
+            <!-- Container onde os imóveis são renderizados -->
+            <div id="lista-imoveis" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Preenchido via JS (site-publico.js) -->
+                <div class="col-span-full py-20 text-center animate-pulse text-slate-400">Carregando imóveis...</div>
             </div>
         </section>
     </main>
@@ -98,7 +81,8 @@
         </div>
     </footer>
 
-    <script type="module" src="./js/site-publico.js"></script>
+    <!-- Script principal como módulo JS puro -->
+    <script type="module" src="js/site-publico.js"></script>
 <script type="module" src="/index.tsx"></script>
 </body>
 </html>
