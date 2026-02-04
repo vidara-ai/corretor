@@ -156,7 +156,14 @@ async function loadPropertyData(id) {
         document.getElementById('f-price').value = p.valor_venda || p.valor_locacao || '';
         document.getElementById('f-tipo').value = p.tipo_imovel || 'casa';
         document.getElementById('f-status').value = p.status_imovel || 'ativo';
-        document.getElementById('f-finalidade').value = p.valor_locacao > 0 ? 'aluguel' : 'venda';
+        
+        // Finalidade - Prioriza coluna finalidade se existir, senão usa fallback
+        if (p.finalidade) {
+            document.getElementById('f-finalidade').value = p.finalidade;
+        } else {
+            document.getElementById('f-finalidade').value = p.valor_locacao > 0 ? 'Aluguel' : 'Venda';
+        }
+
         document.getElementById('f-rooms').value = p.dormitorios || 0;
         document.getElementById('f-suites').value = p.suites || 0;
         document.getElementById('f-bathrooms').value = p.banheiros || 0;
@@ -285,6 +292,7 @@ document.getElementById('property-form').onsubmit = async (e) => {
             descricao: document.getElementById('f-description').value,
             tipo_imovel: document.getElementById('f-tipo').value,
             status_imovel: document.getElementById('f-status').value,
+            finalidade: finalidade, // PERSISTÊNCIA DA COLUNA FINALIDADE
             dormitorios: Number(document.getElementById('f-rooms').value || 0),
             suites: Number(document.getElementById('f-suites').value || 0),
             banheiros: Number(document.getElementById('f-bathrooms').value || 0),
@@ -305,7 +313,7 @@ document.getElementById('property-form').onsubmit = async (e) => {
             garantias_locacao: garantiasLocacao
         };
 
-        if (finalidade === 'venda') {
+        if (finalidade === 'Venda') {
             payload.valor_venda = preco;
             payload.valor_locacao = null;
         } else {
