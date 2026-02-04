@@ -3,6 +3,15 @@ import { supabase } from './supabase.js';
 const params = new URLSearchParams(window.location.search);
 const propertyId = params.get('id');
 
+// Estado local
+let selectedImovelFeatures = new Set();
+let selectedCondoFeatures = new Set();
+let uploadedPhotos = [];
+
+// ETAPA 1 — ESTADO (CRIAR)
+let opcoesPagamento = [];
+let garantiasLocacao = [];
+
 // Listas de Características (Mantidas na UI para experiência do usuário)
 const LISTA_IMOVEL = [
     "Ar condicionado", "Área de serviço", "Armário na cozinha", "Armário no quarto", 
@@ -21,19 +30,13 @@ const LISTA_CONDOMINIO = [
     "Poço artesiano", "Academia", "Coworking", "Mercado interno", "Pet place"
 ];
 
-// Estado local
-let selectedImovelFeatures = new Set();
-let selectedCondoFeatures = new Set();
-let uploadedPhotos = [];
-
 /**
- * 4.1️⃣ FUNÇÃO DE UPLOAD (Cole exatamente isto)
+ * 4.1️⃣ FUNÇÃO DE UPLOAD
  */
 async function uploadFoto(file, imovelId, ordem, isCapa) {
   const ext = file.name.split('.').pop();
   const filePath = `${imovelId}/${crypto.randomUUID()}.${ext}`;
 
-  // upload no bucket
   const { error: uploadError } = await supabase
     .storage
     .from('imoveis')
@@ -41,13 +44,11 @@ async function uploadFoto(file, imovelId, ordem, isCapa) {
 
   if (uploadError) throw uploadError;
 
-  // url pública
   const { data } = supabase
     .storage
     .from('imoveis')
     .getPublicUrl(filePath);
 
-  // salvar referência no banco
   const { error: dbError } = await supabase
     .from('imoveis_fotos')
     .insert({
@@ -104,6 +105,36 @@ function generateImovelCode() {
 
 async function init() {
     renderAllChips();
+    
+    // ETAPA 2 & 3 — CHECKBOXES (PAGAMENTO E GARANTIAS)
+    const checkboxes = document.querySelectorAll('input[name="negociacao"]');
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', (e) => {
+            const valor = e.target.value;
+            // Categorias baseadas nos valores definidos no HTML
+            const isPagamento = ["financiamento", "fgts", "carta_credito", "permuta"].includes(valor);
+            const isGarantia = ["fiador", "caucao"].includes(valor);
+
+            if (isPagamento) {
+                if (e.target.checked) {
+                    if (!opcoesPagamento.includes(valor)) {
+                        opcoesPagamento.push(valor);
+                    }
+                } else {
+                    opcoesPagamento = opcoesPagamento.filter(item => item !== valor);
+                }
+            } else if (isGarantia) {
+                if (e.target.checked) {
+                    if (!garantiasLocacao.includes(valor)) {
+                        garantiasLocacao.push(valor);
+                    }
+                } else {
+                    garantiasLocacao = garantiasLocacao.filter(item => item !== valor);
+                }
+            }
+        });
+    });
+
     if (propertyId) {
         document.getElementById('page-title').innerText = 'Editar Imóvel';
         document.getElementById('btn-save-text').innerText = 'Atualizar Imóvel';
@@ -139,12 +170,28 @@ async function loadPropertyData(id) {
         document.getElementById('f-cidade').value = p.cidade || '';
         document.getElementById('f-uf').value = p.uf || '';
 
-        // Características (Popula os Sets para renderizar os chips selecionados)
+        // Características
         if (p.caracteristicas_imovel) selectedImovelFeatures = new Set(p.caracteristicas_imovel);
         if (p.caracteristicas_condominio) selectedCondoFeatures = new Set(p.caracteristicas_condominio);
         renderAllChips();
 
-        // Fotos (Usando a nova tabela imoveis_fotos)
+        // Negociação (Popular estado e marcar checkboxes)
+        if (p.opcoes_pagamento) {
+            opcoesPagamento = p.opcoes_pagamento;
+            opcoesPagamento.forEach(val => {
+                const cb = document.querySelector(`input[name="negociacao"][value="${val}"]`);
+                if (cb) cb.checked = true;
+            });
+        }
+        if (p.garantias_locacao) {
+            garantiasLocacao = p.garantias_locacao;
+            garantiasLocacao.forEach(val => {
+                const cb = document.querySelector(`input[name="negociacao"][value="${val}"]`);
+                if (cb) cb.checked = true;
+            });
+        }
+
+        // Fotos
         const { data: photos } = await supabase.from('imoveis_fotos').select('*').eq('imovel_id', id).order('is_capa', { ascending: false }).order('ordem', { ascending: true });
         if (photos) {
             uploadedPhotos = photos.map(ph => ({ id: ph.id, url: ph.url, isCover: ph.is_capa, existing: true }));
@@ -200,12 +247,9 @@ window.removePhoto = (idx) => {
     renderPhotoGrid();
 };
 
-/**
- * Helper para Slug
- */
 function slugify(text) {
     return text.toString().toLowerCase().trim()
-        .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // Remove acentos
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
         .replace(/[^\w\s-]/g, '')
         .replace(/[\s_-]+/g, '-')
         .replace(/^-+|-+$/g, '');
@@ -225,12 +269,10 @@ document.getElementById('property-form').onsubmit = async (e) => {
     const preco = Number(document.getElementById('f-price').value);
     const finalidade = document.getElementById('f-finalidade').value;
     
-    // Leitura explícita dos campos de localização
     const bairro = document.getElementById('f-bairro').value;
     const cidade = document.getElementById('f-cidade').value;
     const uf = document.getElementById('f-uf').value;
 
-    // Converte os Sets de características em Arrays para o Supabase (text[])
     const caracteristicasImovel = Array.from(selectedImovelFeatures);
     const caracteristicasCondominio = Array.from(selectedCondoFeatures);
 
@@ -253,13 +295,14 @@ document.getElementById('property-form').onsubmit = async (e) => {
             ativo: document.getElementById('f-status').value === 'ativo',
             destaque: document.getElementById('f-featured').checked,
             updated_at: new Date().toISOString(),
-            // Inclusão dos campos de localização no payload
             bairro: bairro,
             cidade: cidade,
             uf: uf,
-            // Persistência das características selecionadas
             caracteristicas_imovel: caracteristicasImovel,
-            caracteristicas_condominio: caracteristicasCondominio
+            caracteristicas_condominio: caracteristicasCondominio,
+            // ETAPA 4 — PAYLOAD SUPABASE
+            opcoes_pagamento: opcoesPagamento,
+            garantias_locacao: garantiasLocacao
         };
 
         if (finalidade === 'venda') {
@@ -281,16 +324,10 @@ document.getElementById('property-form').onsubmit = async (e) => {
             response = await supabase.from('imoveis').insert(payload).select();
         }
 
-        if (response.error) {
-            console.error("ERRO SUPABASE:", response.error.message);
-            console.error("PAYLOAD ENVIADO:", payload);
-            throw response.error;
-        }
+        if (response.error) throw response.error;
 
         const imovelSalvo = response.data[0];
 
-        // 4.2️⃣ CHAMAR O UPLOAD APÓS SALVAR O IMÓVEL
-        // Primeiro removemos as fotos que foram deletadas no caso de edição
         if (propertyId) {
             const idsKeep = uploadedPhotos.filter(p => p.existing).map(p => p.id);
             if (idsKeep.length > 0) {
@@ -300,22 +337,16 @@ document.getElementById('property-form').onsubmit = async (e) => {
             }
         }
 
-        // Upload de novas fotos
         const novasFotos = uploadedPhotos.filter(p => !p.existing);
         for (let i = 0; i < novasFotos.length; i++) {
-            await uploadFoto(
-                novasFotos[i].file,
-                imovelSalvo.id,
-                i,
-                novasFotos[i].isCover
-            );
+            await uploadFoto(novasFotos[i].file, imovelSalvo.id, i, novasFotos[i].isCover);
         }
 
         alert('Imóvel salvo com sucesso!');
         window.location.href = 'imoveis.html';
     } catch (err) {
         console.error('Erro ao salvar:', err);
-        alert('Erro ao salvar imóvel. Verifique o console para detalhes.');
+        alert('Erro ao salvar imóvel.');
     } finally {
         btn.disabled = false;
         btnText.innerText = propertyId ? 'Atualizar Imóvel' : 'Salvar Imóvel';
