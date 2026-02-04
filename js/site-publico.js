@@ -5,6 +5,24 @@ let currentPhotos = [];
 let currentIndex = 0;
 
 /**
+ * Helpers para formatação de valores
+ */
+function formatarBRL(valor) {
+    if (!valor || valor === 0) return 'Sob consulta';
+    return Number(valor).toLocaleString('pt-BR', {
+        style: 'currency',
+        currency: 'BRL'
+    });
+}
+
+function obterValorImovel(imovel) {
+    if (imovel.finalidade === 'Aluguel' || imovel.finalidade === 'aluguel') {
+        return imovel.valor_locacao;
+    }
+    return imovel.valor_venda;
+}
+
+/**
  * Inicialização do Site Público
  * Gerencia tanto a Home (lista) quanto a página de Detalhes
  */
@@ -107,10 +125,7 @@ async function loadHomeProperties() {
         }
 
         container.innerHTML = imoveisComFoto.map(imovel => {
-            const preco = imovel.valor_venda
-              ? `R$ ${Number(imovel.valor_venda).toLocaleString('pt-BR')}`
-              : (imovel.valor_locacao ? `R$ ${Number(imovel.valor_locacao).toLocaleString('pt-BR')}` : 'Sob consulta');
-
+            const precoFormatado = formatarBRL(obterValorImovel(imovel));
             const imagem = imovel.foto_url || 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=600';
             const badgeDestaque = imovel.destaque ? `<div class="badge-destaque">DESTAQUE</div>` : '';
 
@@ -130,7 +145,8 @@ async function loadHomeProperties() {
                         <div class="divisor-card"></div>
 
                         <div class="preco text-center">
-                            <strong>${preco}</strong>
+                            <div class="imovel-finalidade">${imovel.finalidade || 'Venda'}</div>
+                            <strong>${precoFormatado}</strong>
                         </div>
 
                         <div class="divisor-card"></div>
@@ -260,8 +276,7 @@ async function loadPropertyDetail(id) {
         currentIndex = 0;
 
         const mainPhotoUrl = currentPhotos.length > 0 ? currentPhotos[0].url : 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=600';
-        const preco = p.valor_venda || p.valor_locacao || 0;
-        const formattedPrice = Number(preco).toLocaleString('pt-BR');
+        const precoFormatado = formatarBRL(obterValorImovel(p));
 
         // Construção do HTML com a Galeria no Topo
         container.innerHTML = `
@@ -293,7 +308,11 @@ async function loadPropertyDetail(id) {
                             ${p.tipo_imovel || 'Imóvel'}
                         </div>
                         <h1 class="text-4xl md:text-5xl font-black text-slate-900 leading-tight">${p.titulo}</h1>
-                        <p class="text-4xl text-blue-600 font-black">R$ ${formattedPrice}</p>
+                        
+                        <div>
+                            <div class="text-sm font-bold text-slate-500 uppercase tracking-widest mb-1">${p.finalidade || 'Venda'}</div>
+                            <p class="text-4xl text-blue-600 font-black">${precoFormatado}</p>
+                        </div>
                         
                         <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm space-y-4">
                             <h3 class="font-bold text-slate-800 text-lg border-b pb-3">Sobre este imóvel</h3>

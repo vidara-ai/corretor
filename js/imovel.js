@@ -7,6 +7,24 @@ let currentPhotos = [];
 let currentIndex = 0;
 
 /**
+ * Helpers para formatação de valores
+ */
+function formatarBRL(valor) {
+    if (!valor || valor === 0) return 'Sob consulta';
+    return Number(valor).toLocaleString('pt-BR', {
+        style: 'currency',
+        currency: 'BRL'
+    });
+}
+
+function obterValorImovel(imovel) {
+    if (imovel.finalidade === 'Aluguel' || imovel.finalidade === 'aluguel') {
+        return imovel.valor_locacao;
+    }
+    return imovel.valor_venda;
+}
+
+/**
  * Initializes the property detail page
  */
 async function iniciarPaginaImovel() {
@@ -70,7 +88,7 @@ function renderizarImovel(p) {
     if (!container) return;
 
     const mainPhotoUrl = currentPhotos.length > 0 ? currentPhotos[0].url : 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=600';
-    const formattedPrice = Number(p.valor_venda || p.valor_locacao || 0).toLocaleString('pt-BR');
+    const precoFormatado = formatarBRL(obterValorImovel(p));
 
     container.innerHTML = `
         <div class="animate-in fade-in duration-700">
@@ -105,7 +123,11 @@ function renderizarImovel(p) {
                     </div>
                     
                     <h1 class="text-4xl md:text-5xl font-black text-slate-900 leading-tight">${p.titulo}</h1>
-                    <p class="text-4xl text-blue-600 font-black">R$ ${formattedPrice}</p>
+                    
+                    <div>
+                        <div class="text-sm font-bold text-slate-500 uppercase tracking-widest mb-1">${p.finalidade || 'Venda'}</div>
+                        <p class="text-4xl text-blue-600 font-black">${precoFormatado}</p>
+                    </div>
                     
                     <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-4">
                         <h3 class="font-bold text-slate-800 text-xl border-b pb-4">Descrição do Imóvel</h3>
