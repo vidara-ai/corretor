@@ -88,6 +88,13 @@ body {
     letter-spacing: 0.5px;
 }
 
+/* BADGE FINALIDADE EM DETALHE */
+.badge-finalidade-detalhe {
+    box-shadow: 0 2px 8px rgba(79, 70, 229, 0.15);
+    border: 1px solid rgba(79, 70, 229, 0.2);
+    letter-spacing: 0.05em;
+}
+
 /* GALERIA DE IMÓVEL */
 .galeria-imovel {
     position: relative;
