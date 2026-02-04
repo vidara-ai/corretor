@@ -9,7 +9,7 @@ async function loadProperties() {
             .from('imoveis')
             .select('*')
             .order('destaque', { ascending: false })
-            .order('ordem_destaque', { ascending: true, nullsFirst: false })
+            .order('ordem_destaque', { ascending: true, nullsLast: false })
             .order('created_at', { ascending: false });
 
         if (error) throw error;
@@ -76,6 +76,9 @@ function renderProperties(properties) {
                         <button onclick="window.location.href='imovel-form.html?id=${p.id}'" class="p-2 text-slate-400 hover:text-blue-600 transition-colors" title="Editar">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                         </button>
+                        <button data-id="${p.id}" class="btn-duplicate-imovel p-2 text-slate-400 hover:text-emerald-600 transition-colors" title="Duplicar imóvel">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"/></svg>
+                        </button>
                         <button data-id="${p.id}" class="btn-delete p-2 text-slate-400 hover:text-red-600 transition-colors" title="Excluir">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                         </button>
@@ -87,6 +90,61 @@ function renderProperties(properties) {
 
     setupTableActions();
 }
+
+/**
+ * Lógica de duplicação de imóvel
+ */
+function gerarNovoCodigo() {
+    const d = new Date();
+    return `${d.getFullYear().toString().slice(-2)}${(d.getMonth() + 1).toString().padStart(2, '0')}${d.getDate().toString().padStart(2, '0')}${d.getHours().toString().padStart(2, '0')}${d.getMinutes().toString().padStart(2, '0')}`;
+}
+
+async function duplicarImovel(id) {
+    const { data: imovel, error } = await supabase
+        .from('imoveis')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+    if (error) {
+        alert('Erro ao buscar imóvel original.');
+        return;
+    }
+
+    // ETAPA 4 — AJUSTAR DADOS ANTES DE INSERIR
+    delete imovel.id;
+    delete imovel.created_at;
+    delete imovel.updated_at;
+
+    imovel.codigo_imovel = gerarNovoCodigo();
+    imovel.slug = imovel.slug + '-copia';
+    imovel.ativo = false;
+    imovel.destaque = false;
+
+    const { error: insertError } = await supabase
+        .from('imoveis')
+        .insert([imovel]);
+
+    if (insertError) {
+        console.error('Erro ao duplicar:', insertError);
+        alert('Erro ao duplicar imóvel: ' + insertError.message);
+        return;
+    }
+
+    alert('Imóvel duplicado com sucesso! A cópia está inativa.');
+    window.location.reload();
+}
+
+/**
+ * ETAPA 2 — EVENTO DE CLICK
+ */
+document.addEventListener('click', (e) => {
+    const btn = e.target.closest('.btn-duplicate-imovel');
+    if (btn) {
+        const imovelId = btn.dataset.id;
+        duplicarImovel(imovelId);
+    }
+});
 
 function setupTableActions() {
     document.querySelectorAll('.btn-delete').forEach(btn => {
