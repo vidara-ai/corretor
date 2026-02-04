@@ -66,12 +66,14 @@ async function loadHomeProperties() {
     if (!container) return;
 
     try {
-        // PASSO 5 — CONSULTA DE IMÓVEIS (SEM EMBED)
+        // PASSO 5 — CONSULTA DE IMÓVEIS COM ORDENAÇÃO PRIORIZADA POR DESTAQUE
         const { data: imoveis, error: imoveisError } = await supabase
           .from('imoveis')
           .select('*')
           .eq('ativo', true)
-          .order('ordem_destaque', { ascending: true, nullsLast: true });
+          .order('destaque', { ascending: false }) // Prioriza Destaque = true
+          .order('ordem_destaque', { ascending: true, nullsLast: true })
+          .order('created_at', { ascending: false });
 
         if (imoveisError) {
           console.error('Erro ao buscar imóveis:', imoveisError);
