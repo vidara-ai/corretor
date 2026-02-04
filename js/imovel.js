@@ -115,17 +115,18 @@ function renderizarImovel(p) {
             <!-- Content Grid -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start mt-12">
                 <div class="space-y-6">
+                    <!-- Badges Topo -->
                     <div class="flex flex-wrap gap-2">
                         <span class="inline-block bg-blue-50 text-blue-600 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider">
                             ${p.tipo_imovel || 'Imóvel'}
                         </span>
                         ${p.destaque ? '<span class="bg-amber-100 text-amber-700 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider">Destaque</span>' : ''}
+                        ${p.finalidade ? `<span class="bg-indigo-100 text-indigo-700 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider badge-finalidade-detalhe">Para ${p.finalidade}</span>` : ''}
                     </div>
                     
                     <h1 class="text-4xl md:text-5xl font-black text-slate-900 leading-tight">${p.titulo}</h1>
                     
                     <div>
-                        <div class="text-sm font-bold text-slate-500 uppercase tracking-widest mb-1">${p.finalidade || 'Venda'}</div>
                         <p class="text-4xl text-blue-600 font-black">${precoFormatado}</p>
                     </div>
                     
