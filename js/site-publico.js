@@ -137,8 +137,6 @@ async function loadHomeProperties() {
                             Ref: ${imovel.referencia || 'N/I'} — Área: ${imovel.area_m2 || 0} m²
                         </div>
 
-                        <p class="descricao">${imovel.descricao || ''}</p>
-
                         <a href="imovel.html?id=${imovel.id}" class="btn-detalhar">
                             Detalhar
                         </a>
