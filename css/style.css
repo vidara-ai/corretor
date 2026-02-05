@@ -5,20 +5,11 @@ body {
     font-family: 'Inter', sans-serif;
 }
 
-/* 
-   PALETA OFICIAL
-   Creme claro: #F4E8C1
-   Verde acinzentado: #A0C1B9
-   Azul petróleo claro: #70A0AF
-   Azul arroxeado profundo: #706993
-   Roxo escuro: #331E38
-*/
-
 /* HERO SECTION CUSTOM */
 .hero-home {
   position: relative;
   min-height: 520px;
-  background-image: url("https://urcrpzbxxomluvyxucvj.supabase.co/storage/v1/object/public/assets/generated_image_cf578668-7316-485c-9227-35f04a281c5d.png");
+  background-image: url("https://urcrpzbxxomluvyxucvj.supabase.co/storage/v1/object/public/assets/fotor-202602050732.jpg");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -28,20 +19,20 @@ body {
   overflow: hidden;
 }
 
-/* OVERLAY — DESKTOP */
+/* OVERLAY ESCURO PREMIUM */
 .hero-home::before {
   content: "";
   position: absolute;
   inset: 0;
   background: linear-gradient(
-    180deg,
-    rgba(51, 30, 56, 0.55),
-    rgba(51, 30, 56, 0.75)
+    to bottom,
+    rgba(5, 10, 25, 0.55),
+    rgba(5, 10, 25, 0.75)
   );
   z-index: 1;
 }
 
-/* CONTAINER COM GLASSMORPHISM PREMIUM */
+/* CONTAINER COM GLASSMORPHISM */
 .hero-home .hero-content {
   position: relative;
   z-index: 2;
@@ -50,34 +41,34 @@ body {
   padding: 48px 56px;
   border-radius: 20px;
 
-  /* #A0C1B9 com transparência */
-  background: rgba(160, 193, 185, 0.18);
+  background: rgba(255, 255, 255, 0.12);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
 
-  /* Borda sutil com #F4E8C1 */
-  border: 1px solid rgba(244, 232, 193, 0.25);
-
   box-shadow:
-    0 20px 50px rgba(51, 30, 56, 0.45),
-    inset 0 1px 0 rgba(244, 232, 193, 0.25);
+    0 20px 50px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* TEXTO — HEADLINE E SUBHEADLINE */
+/* SOMBRA NA HEADLINE (EFEITO FLUTUANTE) */
 .hero-home h1 {
-  color: #F4E8C1;
-  text-shadow: 0 6px 18px rgba(51, 30, 56, 0.6);
+  color: #ffffff;
+  text-shadow: 0 6px 20px rgba(0, 0, 0, 0.55);
 }
 
+/* SOMBRA NA SUB-HEADLINE */
 .hero-home p {
-  color: #EAE2C5; /* Variante próxima ao creme */
-  text-shadow: 0 4px 14px rgba(51, 30, 56, 0.45);
+  color: #e5e7eb;
+  text-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
 }
 
-/* MOBILE — SEM IMAGEM, GRADIENTE DA PALETA */
+/* MOBILE AJUSTES */
 @media (max-width: 768px) {
-  .hero-home {
+  .hero {
     min-height: 420px;
+
     background-image: none;
     background: linear-gradient(
       180deg,
@@ -87,52 +78,20 @@ body {
     );
   }
 
-  .hero-home::before {
-    background: none;
-  }
-
-  .hero-home .hero-content {
-    padding: 28px 22px;
-    border-radius: 16px;
-  }
+/* CAMPO DE BUSCA COM EFEITO DE SUSPENSÃO */
+.hero-search-container {
+    background: transparent;
 }
 
-/* CAMPO DE BUSCA */
 .hero-home input {
-  background: rgba(244, 232, 193, 0.95);
-  color: #331E38;
+  background: rgba(255, 255, 255, 0.95);
   border-radius: 12px;
   border: none;
-  box-shadow: 0 10px 28px rgba(51, 30, 56, 0.35);
-  transition: all 0.3s;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
 }
 
-.hero-home input::placeholder {
-    color: rgba(51, 30, 56, 0.6);
-}
-
-.hero-home input:focus {
-  background: rgba(244, 232, 193, 1);
-  box-shadow: 0 10px 32px rgba(51, 30, 56, 0.45);
-}
-
-/* BOTÃO DE BUSCA */
 .hero-home button {
-  background: linear-gradient(
-    135deg,
-    #70A0AF,
-    #706993
-  );
-  color: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 12px 30px rgba(51, 30, 56, 0.45);
-  transition: all 0.3s ease;
-}
-
-.hero-home button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 15px 35px rgba(51, 30, 56, 0.55);
-    filter: brightness(1.1);
+  box-shadow: 0 14px 35px rgba(0, 0, 0, 0.35);
 }
 
 /* GRID DE IMÓVEIS */
@@ -153,7 +112,7 @@ body {
     display: flex;
     flex-direction: column;
     height: 100%;
-    cursor: pointer;
+    cursor: pointer; /* CARD CLICÁVEL */
 }
 
 .card-imovel:hover {
@@ -218,6 +177,13 @@ body {
     letter-spacing: 0.5px;
 }
 
+/* BADGE FINALIDADE EM DETALHE */
+.badge-finalidade-detalhe {
+    box-shadow: 0 2px 8px rgba(79, 70, 229, 0.15);
+    border: 1px solid rgba(79, 70, 229, 0.2);
+    letter-spacing: 0.05em;
+}
+
 /* GALERIA DE IMÓVEL */
 .galeria-imovel {
     position: relative;
@@ -230,7 +196,7 @@ body {
 
 #galeria-foto-principal {
     width: 100%;
-    height: 400px;
+    height: 400px; /* Mobile altura */
     object-fit: contain;
     background: #000;
     display: block;
@@ -238,7 +204,7 @@ body {
 
 @media (min-width: 1024px) {
     #galeria-foto-principal {
-        height: 600px;
+        height: 600px; /* Desktop altura */
     }
 }
 
@@ -419,6 +385,9 @@ body {
     background: #b71c1c;
     transform: scale(1.02);
 }
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
 .wa-float {
     position: fixed;
