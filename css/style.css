@@ -25,6 +25,46 @@ body {
 .border-blue-600 { border-color: var(--color-primary) !important; }
 .ring-blue-100 { --tw-ring-color: var(--color-badge-alt) !important; }
 
+/* === STATIC SHELL (ANTI-FLASH) === */
+[data-shell] {
+  background-color: #e5e7eb;
+  color: transparent !important;
+  border-radius: 8px;
+  display: block;
+}
+
+.shell-title {
+  width: 70%;
+  height: 48px;
+  margin: 0 auto 16px;
+}
+
+.shell-subtitle {
+  width: 50%;
+  height: 20px;
+  margin: 0 auto 32px;
+}
+
+.shell-search {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.shell-input {
+  flex: 1;
+  height: 56px;
+  background: #e5e7eb;
+  border-radius: 12px;
+}
+
+.shell-button {
+  width: 180px;
+  height: 56px;
+  background: #e5e7eb;
+  border-radius: 12px;
+}
+
 /* HERO SECTION CUSTOM */
 .hero-home {
   position: relative;
@@ -58,7 +98,6 @@ body {
   width: 95%;
   padding: 48px 56px;
   border-radius: 20px;
-  /* Fundo mais sólido para garantir visibilidade imediata e contraste */
   background: rgba(15, 23, 42, 0.4); 
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.15);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -74,6 +113,8 @@ body {
     background-position: center top;
   }
   .hero-home .hero-content { padding: 28px 22px; border-radius: 16px; }
+  .shell-search { flex-direction: column; }
+  .shell-button { width: 100%; }
 }
 
 .hero-search-container { background: transparent; }
