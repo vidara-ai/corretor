@@ -1,5 +1,4 @@
 import { supabase } from './supabase.js';
-import { resolveColorScheme, applyColorScheme } from './theme/engine.js';
 
 // ETAPA 6: Inicialização imediata do Hero via JavaScript (sem skeletons, sem duplicidade)
 (function createHero() {
@@ -106,11 +105,8 @@ async function startDataLoading() {
 }
 
 function applySiteSettings(config) {
-    // Aplica o tema
-    if (config.color_scheme) {
-        const scheme = resolveColorScheme(config.color_scheme);
-        applyColorScheme(scheme);
-    }
+    // O tema NÃO é reaplicado aqui para evitar flash visual (FOUC).
+    // Ele é aplicado exclusivamente pelo script inline no <head> via localStorage.
 
     const logoText = document.getElementById('site-logo-text');
     if (logoText) logoText.innerText = config.header_nome_site || 'ImobiMaster';
