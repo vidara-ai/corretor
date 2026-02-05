@@ -134,16 +134,23 @@ document.getElementById('config-form').onsubmit = async (e) => {
             hero_cta_texto: document.getElementById('c-hero-cta-text').value,
             hero_cta_link: document.getElementById('c-hero-cta-link').value,
             hero_bg_desktop_url: finalHeroUrl,
-            hero_imagem_url: finalHeroUrl, // Compatibilidade
+            hero_bg_mobile_url: finalHeroUrl, // Compatibilidade
             rodape_texto: document.getElementById('c-footer-text').value,
             updated_at: new Date().toISOString()
         };
 
         // 3. Executa o UPDATE no registro Singleton (ID=1)
         const { error } = await supabase
-            .from('configuracoes_site')
-            .update(payload)
-            .eq('id', 1);
+  .from('configuracoes_site')
+  .update({
+    hero_titulo,
+    hero_subtitulo,
+    hero_cta_texto,
+    hero_cta_link,
+    hero_bg_desktop_url,
+    hero_bg_mobile_url
+  })
+  .eq('id', configuracaoId);
 
         if (error) throw error;
 
