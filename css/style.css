@@ -1,3 +1,15 @@
+/* ===============================
+   RENDER GATE GLOBAL
+   =============================== */
+
+html.render-locked body {
+  visibility: hidden;
+}
+
+html.render-ready body {
+  visibility: visible;
+}
+
 /* Base Mobile-First */
 :root {
     /* Fallback padrão (Ruby Red) */
