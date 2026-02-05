@@ -114,6 +114,20 @@ function applySiteSettings(config) {
 
     const footerText = document.getElementById('footer-copyright-text');
     if (footerText) footerText.innerText = config.rodape_texto || '© ImobiMaster';
+
+    // CTA do Header (Entre em contato)
+    const headerCta = document.getElementById('header-cta-contato');
+    if (headerCta) {
+        if (config.header_whatsapp) {
+            const msg = "Olá, quero receber um contato para sanar algumas dúvidas.";
+            const num = config.header_whatsapp.replace(/\D/g, '');
+            headerCta.href = `https://wa.me/${num}?text=${encodeURIComponent(msg)}`;
+            headerCta.target = "_blank";
+            headerCta.classList.remove('hidden');
+        } else {
+            headerCta.classList.add('hidden');
+        }
+    }
 }
 
 /**
