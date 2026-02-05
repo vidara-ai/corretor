@@ -218,10 +218,6 @@ function setupCardEventListeners() {
 // EXECUÇÃO IMEDIATA (Módulos são deferred por padrão, DOM já está disponível)
 initSite();
 
-// PASSO FINAL: Liberação do Render Gate Global
-document.documentElement.classList.remove('render-locked');
-document.documentElement.classList.add('render-ready');
-
 (function mountHeroWhenReady() {
   const mount = document.getElementById('hero-mount');
   if (!mount) return;
@@ -240,3 +236,9 @@ document.documentElement.classList.add('render-ready');
     </header>
   `;
 })();
+
+// LIBERAÇÃO FINAL DO RENDER GATE
+requestAnimationFrame(() => {
+  document.documentElement.classList.remove('render-locked');
+  document.documentElement.classList.add('render-ready');
+});
