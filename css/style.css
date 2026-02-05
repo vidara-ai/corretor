@@ -9,7 +9,8 @@ body {
 .hero-home {
   position: relative;
   min-height: 520px;
-  background-image: url("https://urcrpzbxxomluvyxucvj.supabase.co/storage/v1/object/public/assets/fotor-202602050732.jpg");
+  /* Background dinâmico via JS */
+  background-image: var(--hero-bg-desktop);
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -68,7 +69,7 @@ body {
 @media (max-width: 768px) {
   .hero-home {
     min-height: 460px;
-    background-image: url("https://urcrpzbxxomluvyxucvj.supabase.co/storage/v1/object/public/assets/generated_image_7f5b0795-5a95-49c6-83d2-677e786232b7.png");
+    background-image: var(--hero-bg-mobile, var(--hero-bg-desktop));
     background-position: center top;
   }
 
@@ -331,6 +332,10 @@ body {
     display: flex;
     align-items: center;
     gap: 6px;
+}
+
+.imovel-info-icons span i {
+  font-style: normal;
 }
 
 .imovel-ref-area {
