@@ -61,12 +61,12 @@ async function iniciarPaginaImovel() {
         currentPhotos = fotos || [];
         currentIndex = 0;
 
-        // 4. Fetch Site Configurations (Sem ID fixo para evitar erro UUID)
+        // 4. Fetch Site Configurations (for CTA)
         const { data: config } = await supabase
             .from('configuracoes_site')
             .select('imovel_cta_texto, imovel_cta_whatsapp')
-            .limit(1)
-            .maybeSingle();
+            .eq('id', 1)
+            .single();
 
         // 5. Render Data
         renderizarImovel(imovel, config || {});
@@ -204,7 +204,7 @@ function renderizarImovel(p, config) {
                             <p class="text-xs text-slate-400">Referência: ${referencia}</p>
                         </div>
 
-                        <a id="btn-cta-whatsapp" href="${whatsappLink}" 
+                        <a href="${whatsappLink}" 
                            target="_blank" 
                            class="block w-full text-center bg-emerald-500 text-white py-5 rounded-[2rem] font-bold text-lg hover:bg-emerald-600 transition-all shadow-xl shadow-emerald-100 active:scale-95">
                             ${ctaTexto}
