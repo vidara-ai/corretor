@@ -6,40 +6,19 @@
     <title>ImobiMaster - Encontre seu novo lar</title>
     <meta name="description" content="Encontre os melhores imóveis em localizações exclusivas com a ImobiMaster.">
     
-    <!-- RENDER GATE CSS: Bloqueio local do HERO para evitar double render visual -->
-    <style id="render-gate-css">
-        /* Bloqueio global preventivo */
-        html { background: #ffffff; }
-        body { visibility: hidden; }
-        
-        /* RENDER GATE LOCAL: HERO */
-        .hero-home { 
-            visibility: hidden !important; 
-            opacity: 0 !important;
-        }
-        .hero-home.hero-ready { 
-            visibility: visible !important; 
-            opacity: 1 !important;
-            transition: opacity 0.5s ease-in-out;
-        }
+    <!-- PASSO 1: RENDER GATE (Bloqueio do Primeiro Paint) -->
+    <style>
+      html[data-ui-locked="true"],
+      html[data-ui-locked="true"] body {
+        visibility: hidden !important;
+      }
+      html { background: #ffffff; }
     </style>
-
-    <!-- RENDER GATE JS -->
-    <script id="render-gate-js">
-        (function() {
-            const root = document.documentElement;
-            root.classList.add('ui-locked');
-            
-            window.releaseRenderGate = function() {
-                document.body.style.visibility = 'visible';
-                root.classList.remove('ui-locked');
-            };
-            // Fallback de segurança
-            setTimeout(window.releaseRenderGate, 4000);
-        })();
+    <script>
+      document.documentElement.setAttribute('data-ui-locked', 'true');
     </script>
 
-    <!-- Script crítico para evitar FOUC de cores -->
+    <!-- Script crítico para aplicação do tema via LocalStorage (Previne FOUC de cores) -->
     <script>
         (function() {
             try {
