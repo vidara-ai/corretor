@@ -24,6 +24,7 @@ async function loadConfig() {
 
         // Preenche campos de Identidade
         document.getElementById('c-site-name').value = data.header_nome_site || '';
+        document.getElementById('header_whatsapp').value = data.header_whatsapp || '';
         
         // Preenche campos de Hero
         document.getElementById('c-hero-title').value = data.hero_titulo || '';
@@ -34,6 +35,10 @@ async function loadConfig() {
         // Preenche campos de Oportunidades
         document.getElementById('home_titulo_oportunidades').value = data.home_titulo_oportunidades || '';
         document.getElementById('home_subtitulo_oportunidades').value = data.home_subtitulo_oportunidades || '';
+
+        // Preenche campos de CTA Imóvel
+        document.getElementById('imovel_cta_texto').value = data.imovel_cta_texto || '';
+        document.getElementById('imovel_cta_whatsapp').value = data.imovel_cta_whatsapp || '';
 
         // Preenche campos de Rodapé
         document.getElementById('c-footer-text').value = data.rodape_texto || '';
@@ -129,9 +134,15 @@ document.getElementById('config-form').onsubmit = async (e) => {
             finalHeroUrl = await uploadHeroImage(pendingFile);
         }
 
+        // Captura valores dos novos campos
+        const imovel_cta_texto = document.getElementById('imovel_cta_texto').value;
+        const imovel_cta_whatsapp = document.getElementById('imovel_cta_whatsapp').value;
+        const header_whatsapp = document.getElementById('header_whatsapp').value;
+
         // 2. Prepara o payload de atualização
         const payload = {
             header_nome_site: document.getElementById('c-site-name').value,
+            header_whatsapp: header_whatsapp || null,
             hero_titulo: document.getElementById('c-hero-title').value,
             hero_subtitulo: document.getElementById('c-hero-subtitle').value,
             hero_cta_texto: document.getElementById('c-hero-cta-text').value,
@@ -139,6 +150,8 @@ document.getElementById('config-form').onsubmit = async (e) => {
             hero_bg_desktop_url: finalHeroUrl,
             home_titulo_oportunidades: document.getElementById('home_titulo_oportunidades').value,
             home_subtitulo_oportunidades: document.getElementById('home_subtitulo_oportunidades').value,
+            imovel_cta_texto: imovel_cta_texto,
+            imovel_cta_whatsapp: imovel_cta_whatsapp,
             rodape_texto: document.getElementById('c-footer-text').value,
             updated_at: new Date().toISOString()
         };
