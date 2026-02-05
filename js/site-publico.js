@@ -33,10 +33,22 @@ function obterValorImovel(imovel) {
 }
 
 /**
- * Inicialização do Site - Execução Síncrona para Preparação da UI
+ * Liberação Visual Imediata (Render Gate Global)
+ */
+function unlockUI() {
+    if (typeof window.releaseRenderGate === 'function') {
+        window.releaseRenderGate();
+    }
+}
+
+/**
+ * Inicialização do Site
  */
 function initSite() {
-    // Sincronização de containers (Fallback para páginas com loaders estruturais)
+    // 1. LIBERAÇÃO DA ESTRUTURA GLOBAL (Garante que o body seja visível)
+    document.documentElement.removeAttribute('data-ui-locked');
+
+    // Suporte para transição de estados de loading/content (conforme imovel.html)
     const loader = document.getElementById('loading-container');
     const content = document.getElementById('content-container');
     if (loader) loader.style.display = 'none';
@@ -44,12 +56,12 @@ function initSite() {
 
     initTheme();
 
-    // Dispara carregamento assíncrono em background sem bloquear a UI principal
+    // 2. CARREGAMENTO EM BACKGROUND
     startDataLoading();
 }
 
 /**
- * Processamento assíncrono em background (Não bloqueante)
+ * Processamento assíncrono em background
  */
 async function startDataLoading() {
     try {
@@ -61,17 +73,31 @@ async function startDataLoading() {
 
         if (configError) {
             console.warn('Falha ao carregar configurações:', configError.message);
+            removeHeroShells();
         } else if (config) {
             applySiteSettings(config);
+        } else {
+            removeHeroShells();
         }
     } catch (err) {
         console.warn('Erro ao processar configurações:', err);
+        removeHeroShells();
     }
 
     const isDetailPage = window.location.pathname.includes('imovel.html');
     if (!isDetailPage) {
         loadHomeProperties();
     }
+}
+
+/**
+ * Remove os atributos de shell e limpa classes CSS de shell
+ */
+function removeHeroShells() {
+    document.querySelectorAll('[data-shell]').forEach(el => {
+        el.removeAttribute('data-shell');
+        el.classList.remove('shell-title', 'shell-subtitle');
+    });
 }
 
 function applySiteSettings(config) {
@@ -84,21 +110,33 @@ function applySiteSettings(config) {
     const logoText = document.getElementById('site-logo-text');
     if (logoText) logoText.innerText = config.header_nome_site || 'ImobiMaster';
     
-    // Injeção de dados no HERO
+    // HIDRATAÇÃO DO HERO
     const heroTitle = document.querySelector('header h1');
-    if (heroTitle && config.hero_titulo) heroTitle.innerText = config.hero_titulo;
+    if (heroTitle) heroTitle.innerText = config.hero_titulo || 'Encontre o imóvel que combina com sua vida';
 
     const heroSub = document.querySelector('header p');
-    if (heroSub && config.hero_subtitulo) heroSub.innerText = config.hero_subtitulo;
+    if (heroSub) heroSub.innerText = config.hero_subtitulo || 'Os melhores imóveis em localizações exclusivas com consultoria especializada.';
 
-    const heroCtaBtn = document.querySelector('header button');
-    if (heroCtaBtn && config.hero_cta_texto) heroCtaBtn.innerText = config.hero_cta_texto;
+    // Hidratação da Busca
+    const searchContainer = document.querySelector('.hero-search-container');
+    if (searchContainer) {
+        searchContainer.innerHTML = `
+            <input type="text" placeholder="Bairro, cidade ou condomínio..." class="flex-1 px-6 py-4 text-slate-900 outline-none rounded-xl">
+            <button class="bg-blue-600 hover:bg-blue-700 text-white px-10 py-4 rounded-xl font-bold transition-all active:scale-95">
+                ${config.hero_cta_texto || 'Buscar Agora'}
+            </button>
+        `;
+        searchContainer.classList.remove('shell-search');
+    }
 
     const heroSection = document.querySelector('header.hero-home');
     if (heroSection) {
         if (config.hero_bg_desktop_url) heroSection.style.setProperty('--hero-bg-desktop', `url('${config.hero_bg_desktop_url}')`);
         if (config.hero_bg_mobile_url) heroSection.style.setProperty('--hero-bg-mobile', `url('${config.hero_bg_mobile_url}')`);
     }
+
+    // REMOVER SHELLS
+    removeHeroShells();
 
     const sectionTitle = document.querySelector('#regular-section h2');
     if (sectionTitle && config.home_titulo_oportunidades) sectionTitle.innerText = config.home_titulo_oportunidades;
@@ -203,8 +241,5 @@ function setupCardEventListeners() {
     });
 }
 
-// EXECUÇÃO IMEDIATA (Módulos são deferred por padrão, DOM já está disponível)
+// EXECUÇÃO IMEDIATA
 initSite();
-
-// PASSO FINAL: Unlocking do Render Gate (Garante zero flash visual)
-document.documentElement.removeAttribute('data-ui-locked');
