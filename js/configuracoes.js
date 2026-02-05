@@ -5,54 +5,47 @@ import { supabase } from './supabase.js';
  */
 let currentHeroBgUrl = null;
 let pendingFile = null;
-let configuracaoId = null; // Armazena o UUID real da linha de configurações
 
 /**
- * Carrega as configurações atuais do banco
+ * Carrega as configurações atuais do banco (ID=1)
  */
 async function loadConfig() {
     try {
-        // Busca a linha única de configurações sem assumir ID numérico
         const { data, error } = await supabase
             .from('configuracoes_site')
             .select('*')
-            .limit(1)
-            .maybeSingle();
+            .eq('id', 1)
+            .single();
 
         if (error) {
-            console.error('Erro ao buscar configurações:', error);
+            console.error('Configuração não encontrada ou erro:', error);
             return;
         }
 
-        if (data) {
-            // Guarda o UUID real para os updates posteriores
-            configuracaoId = data.id;
+        // Preenche campos de Identidade
+        document.getElementById('c-site-name').value = data.header_nome_site || '';
+        document.getElementById('header_whatsapp').value = data.header_whatsapp || '';
+        
+        // Preenche campos de Hero
+        document.getElementById('c-hero-title').value = data.hero_titulo || '';
+        document.getElementById('c-hero-subtitle').value = data.hero_subtitulo || '';
+        document.getElementById('c-hero-cta-text').value = data.hero_cta_texto || '';
+        document.getElementById('c-hero-cta-link').value = data.hero_cta_link || '';
 
-            // Preenche campos de Identidade
-            document.getElementById('c-site-name').value = data.header_nome_site || '';
-            document.getElementById('header_whatsapp').value = data.header_whatsapp || '';
-            
-            // Preenche campos de Hero
-            document.getElementById('c-hero-title').value = data.hero_titulo || '';
-            document.getElementById('c-hero-subtitle').value = data.hero_subtitulo || '';
-            document.getElementById('c-hero-cta-text').value = data.hero_cta_texto || '';
-            document.getElementById('c-hero-cta-link').value = data.hero_cta_link || '';
+        // Preenche campos de Oportunidades
+        document.getElementById('home_titulo_oportunidades').value = data.home_titulo_oportunidades || '';
+        document.getElementById('home_subtitulo_oportunidades').value = data.home_subtitulo_oportunidades || '';
 
-            // Preenche campos de Oportunidades
-            document.getElementById('home_titulo_oportunidades').value = data.home_titulo_oportunidades || '';
-            document.getElementById('home_subtitulo_oportunidades').value = data.home_subtitulo_oportunidades || '';
+        // Preenche campos de CTA Imóvel
+        document.getElementById('imovel_cta_texto').value = data.imovel_cta_texto || '';
+        document.getElementById('imovel_cta_whatsapp').value = data.imovel_cta_whatsapp || '';
 
-            // Preenche campos de CTA Imóvel
-            document.getElementById('imovel_cta_texto').value = data.imovel_cta_texto || '';
-            document.getElementById('imovel_cta_whatsapp').value = data.imovel_cta_whatsapp || '';
+        // Preenche campos de Rodapé
+        document.getElementById('c-footer-text').value = data.rodape_texto || '';
 
-            // Preenche campos de Rodapé
-            document.getElementById('c-footer-text').value = data.rodape_texto || '';
-
-            // Preview da Imagem
-            currentHeroBgUrl = data.hero_bg_desktop_url;
-            updateHeroPreview(currentHeroBgUrl);
-        }
+        // Preview da Imagem
+        currentHeroBgUrl = data.hero_bg_desktop_url;
+        updateHeroPreview(currentHeroBgUrl);
 
     } catch (err) {
         console.error('Erro crítico ao carregar configurações:', err);
@@ -127,12 +120,6 @@ if (fileInput) {
  */
 document.getElementById('config-form').onsubmit = async (e) => {
     e.preventDefault();
-
-    if (!configuracaoId) {
-        alert('Erro: ID de configuração não localizado. Tente atualizar a página.');
-        return;
-    }
-
     const btn = document.getElementById('btn-save-config');
     const btnText = document.getElementById('btn-text');
     
@@ -147,10 +134,15 @@ document.getElementById('config-form').onsubmit = async (e) => {
             finalHeroUrl = await uploadHeroImage(pendingFile);
         }
 
-        // 2. Prepara o payload de atualização incluindo o WhatsApp do Header
+        // Captura valores dos novos campos
+        const imovel_cta_texto = document.getElementById('imovel_cta_texto').value;
+        const imovel_cta_whatsapp = document.getElementById('imovel_cta_whatsapp').value;
+        const header_whatsapp = document.getElementById('header_whatsapp').value;
+
+        // 2. Prepara o payload de atualização
         const payload = {
             header_nome_site: document.getElementById('c-site-name').value,
-            header_whatsapp: document.getElementById('header_whatsapp').value || null,
+            header_whatsapp: header_whatsapp || null,
             hero_titulo: document.getElementById('c-hero-title').value,
             hero_subtitulo: document.getElementById('c-hero-subtitle').value,
             hero_cta_texto: document.getElementById('c-hero-cta-text').value,
@@ -158,17 +150,17 @@ document.getElementById('config-form').onsubmit = async (e) => {
             hero_bg_desktop_url: finalHeroUrl,
             home_titulo_oportunidades: document.getElementById('home_titulo_oportunidades').value,
             home_subtitulo_oportunidades: document.getElementById('home_subtitulo_oportunidades').value,
-            imovel_cta_texto: document.getElementById('imovel_cta_texto').value,
-            imovel_cta_whatsapp: document.getElementById('imovel_cta_whatsapp').value,
+            imovel_cta_texto: imovel_cta_texto,
+            imovel_cta_whatsapp: imovel_cta_whatsapp,
             rodape_texto: document.getElementById('c-footer-text').value,
             updated_at: new Date().toISOString()
         };
 
-        // 3. Executa o UPDATE no registro usando o UUID capturado no load
+        // 3. Executa o UPDATE no registro (ID=1)
         const { error } = await supabase
             .from('configuracoes_site')
             .update(payload)
-            .eq('id', configuracaoId);
+            .eq('id', 1);
 
         if (error) throw error;
 
