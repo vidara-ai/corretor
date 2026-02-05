@@ -10,6 +10,10 @@
     <style id="render-gate-css">
         html { opacity: 0 !important; visibility: hidden !important; pointer-events: none !important; background-color: #f8fafc; }
         html.ui-ready { opacity: 1 !important; visibility: visible !important; pointer-events: auto !important; transition: opacity 0.4s ease-out; }
+        
+        /* HERO RENDER GATE: Bloqueio local para evitar double render do conteúdo dinâmico */
+        .hero-home { opacity: 0 !important; transform: translateY(10px); }
+        .hero-home.hero-ready { opacity: 1 !important; transform: translateY(0); transition: opacity 0.6s ease-out, transform 0.6s ease-out; }
     </style>
 
     <!-- RENDER GATE JS: Controle de liberação e Fallback -->
