@@ -221,3 +221,22 @@ initSite();
 // PASSO FINAL: Liberação do Render Gate Global
 document.documentElement.classList.remove('render-locked');
 document.documentElement.classList.add('render-ready');
+
+(function mountHeroWhenReady() {
+  const mount = document.getElementById('hero-mount');
+  if (!mount) return;
+
+  mount.innerHTML = `
+    <header class="hero-home py-12 md:py-32 px-4 text-center relative flex items-center justify-center">
+      <div class="hero-content mx-auto w-full max-w-2xl">
+        <h1 class="hero-title">Seu imóvel do jeito certo</h1>
+        <p class="hero-subtitle">Encontre o imóvel ideal para você</p>
+
+        <div class="hero-search-container flex flex-col md:flex-row gap-2">
+          <input class="hero-input" placeholder="Bairro, cidade ou condomínio..." />
+          <button class="hero-button">Buscar Agora</button>
+        </div>
+      </div>
+    </header>
+  `;
+})();
