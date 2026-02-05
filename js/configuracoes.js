@@ -1,18 +1,39 @@
 import { supabase } from './supabase.js';
+import { COLOR_SCHEMES } from './theme/schemes.js';
+import { resolveColorScheme, applyColorScheme } from './theme/engine.js';
 
 /**
  * Estado Local
  */
 let currentHeroBgUrl = null;
 let pendingFile = null;
-let configuracaoId = null; // Armazena o UUID real da linha de configurações
+let configuracaoId = null;
+
+/**
+ * Popula o select de esquemas de cores
+ */
+function populateColorSchemeSelect() {
+    const select = document.getElementById('color_scheme_id');
+    if (!select) return;
+
+    select.innerHTML = COLOR_SCHEMES.map(scheme => 
+        `<option value="${scheme.id}">${scheme.label}</option>`
+    ).join('');
+
+    // Listener para aplicação imediata
+    select.addEventListener('change', (e) => {
+        const scheme = resolveColorScheme(e.target.value);
+        applyColorScheme(scheme);
+    });
+}
 
 /**
  * Carrega as configurações atuais do banco
  */
 async function loadConfig() {
     try {
-        // Busca a linha única de configurações sem assumir ID numérico
+        populateColorSchemeSelect();
+
         const { data, error } = await supabase
             .from('configuracoes_site')
             .select('*')
@@ -25,13 +46,19 @@ async function loadConfig() {
         }
 
         if (data) {
-            // Guarda o UUID real para os updates posteriores
             configuracaoId = data.id;
 
             // Preenche campos de Identidade
             document.getElementById('c-site-name').value = data.header_nome_site || '';
             document.getElementById('header_whatsapp').value = data.header_whatsapp || '';
             
+            // Esquema de Cores
+            if (data.color_scheme_id) {
+                document.getElementById('color_scheme_id').value = data.color_scheme_id;
+                const scheme = resolveColorScheme(data.color_scheme_id);
+                applyColorScheme(scheme);
+            }
+
             // Preenche campos de Hero
             document.getElementById('c-hero-title').value = data.hero_titulo || '';
             document.getElementById('c-hero-subtitle').value = data.hero_subtitulo || '';
@@ -96,61 +123,42 @@ async function uploadHeroImage(file) {
     return data.publicUrl;
 }
 
-/**
- * Listeners de Arquivo
- */
 const dropzone = document.getElementById('hero-bg-dropzone');
 const fileInput = document.getElementById('c-hero-bg-file');
 
-if (dropzone) {
-    dropzone.onclick = () => fileInput.click();
-}
-
+if (dropzone) dropzone.onclick = () => fileInput.click();
 if (fileInput) {
     fileInput.onchange = (e) => {
         const file = e.target.files[0];
         if (!file) return;
-
         pendingFile = file;
-        
-        // Preview Instantâneo (Local)
         const reader = new FileReader();
-        reader.onload = (event) => {
-            updateHeroPreview(event.target.result);
-        };
+        reader.onload = (event) => updateHeroPreview(event.target.result);
         reader.readAsDataURL(file);
     };
 }
 
-/**
- * Salva as alterações
- */
 document.getElementById('config-form').onsubmit = async (e) => {
     e.preventDefault();
 
     if (!configuracaoId) {
-        alert('Erro: ID de configuração não localizado. Tente atualizar a página.');
+        alert('Erro: ID de configuração não localizado.');
         return;
     }
 
     const btn = document.getElementById('btn-save-config');
     const btnText = document.getElementById('btn-text');
-    
     btn.disabled = true;
     btnText.innerText = 'Salvando...';
 
     try {
         let finalHeroUrl = currentHeroBgUrl;
+        if (pendingFile) finalHeroUrl = await uploadHeroImage(pendingFile);
 
-        // 1. Se houver novo arquivo, faz upload primeiro
-        if (pendingFile) {
-            finalHeroUrl = await uploadHeroImage(pendingFile);
-        }
-
-        // 2. Prepara o payload de atualização incluindo o WhatsApp do Header
         const payload = {
             header_nome_site: document.getElementById('c-site-name').value,
             header_whatsapp: document.getElementById('header_whatsapp').value || null,
+            color_scheme_id: document.getElementById('color_scheme_id').value,
             hero_titulo: document.getElementById('c-hero-title').value,
             hero_subtitulo: document.getElementById('c-hero-subtitle').value,
             hero_cta_texto: document.getElementById('c-hero-cta-text').value,
@@ -164,7 +172,6 @@ document.getElementById('config-form').onsubmit = async (e) => {
             updated_at: new Date().toISOString()
         };
 
-        // 3. Executa o UPDATE no registro usando o UUID capturado no load
         const { error } = await supabase
             .from('configuracoes_site')
             .update(payload)
@@ -172,20 +179,16 @@ document.getElementById('config-form').onsubmit = async (e) => {
 
         if (error) throw error;
 
-        // 4. Limpeza e Feedback
         pendingFile = null;
         currentHeroBgUrl = finalHeroUrl;
-        
-        alert('✅ Configurações salvas com sucesso!');
-        
+        alert('✅ Configurações salvas!');
     } catch (err) {
-        console.error('Erro ao salvar configurações:', err);
-        alert('❌ Erro ao salvar: ' + (err.message || 'Verifique sua conexão e tente novamente.'));
+        console.error('Erro ao salvar:', err);
+        alert('❌ Erro: ' + err.message);
     } finally {
         btn.disabled = false;
         btnText.innerText = 'Salvar Alterações';
     }
 };
 
-// Inicializa a página
 document.addEventListener('DOMContentLoaded', loadConfig);
