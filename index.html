@@ -1,16 +1,21 @@
 <!DOCTYPE html>
 <html lang="pt-br" class="render-locked">
 <head>
+    <!-- BLOQUEIO IMEDIATO DE RENDER -->
+    <script>
+      document.documentElement.classList.add('render-locked');
+    </script>
+    <style>
+      html.render-locked body {
+        visibility: hidden !important;
+      }
+    </style>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ImobiMaster - Encontre seu novo lar</title>
     <meta name="description" content="Encontre os melhores imóveis em localizações exclusivas com a ImobiMaster.">
     
-    <!-- PASSO 1.2: RENDER GATE SCRIPT INLINE (Execução imediata) -->
-    <script>
-      document.documentElement.classList.add('render-locked');
-    </script>
-
     <!-- Script crítico para aplicação do tema via LocalStorage (Previne FOUC de cores) -->
     <script>
         (function() {
@@ -33,7 +38,7 @@
     <meta property="og:description" content="Os melhores imóveis em localizações exclusivas com consultoria especializada.">
     <meta property="og:image" content="https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=1200">
     
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/tailwind.css">
     <link rel="stylesheet" href="css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 
