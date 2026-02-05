@@ -7,7 +7,7 @@ let currentHeroBgUrl = null;
 let pendingFile = null;
 
 /**
- * Carrega as configurações atuais do banco (ID=1)
+ * Carrega as configurações atuais do banco (Singleton ID=1)
  */
 async function loadConfig() {
     try {
@@ -23,7 +23,7 @@ async function loadConfig() {
         }
 
         // Preenche campos de Identidade
-        document.getElementById('c-site-name').value = data.header_nome_site || '';
+        document.getElementById('c-site-name').value = data.header_nome_site || data.titulo_header || '';
         
         // Preenche campos de Hero
         document.getElementById('c-hero-title').value = data.hero_titulo || '';
@@ -35,7 +35,7 @@ async function loadConfig() {
         document.getElementById('c-footer-text').value = data.rodape_texto || '';
 
         // Preview da Imagem
-        currentHeroBgUrl = data.hero_bg_desktop_url;
+        currentHeroBgUrl = data.hero_bg_desktop_url || data.hero_imagem_url;
         updateHeroPreview(currentHeroBgUrl);
 
     } catch (err) {
@@ -49,7 +49,7 @@ async function loadConfig() {
 function updateHeroPreview(url) {
     const container = document.getElementById('hero-image-preview-container');
     const img = document.getElementById('hero-image-preview');
-    if (url && (url.startsWith('http') || url.startsWith('data:'))) {
+    if (url && url.startsWith('http')) {
         img.src = url;
         container.classList.remove('hidden');
     } else {
@@ -126,19 +126,20 @@ document.getElementById('config-form').onsubmit = async (e) => {
         }
 
         // 2. Prepara o payload de atualização
-        // IMPORTANTE: Utilizar apenas colunas existentes no banco para evitar PGRST204
         const payload = {
             header_nome_site: document.getElementById('c-site-name').value,
+            titulo_header: document.getElementById('c-site-name').value, // Compatibilidade
             hero_titulo: document.getElementById('c-hero-title').value,
             hero_subtitulo: document.getElementById('c-hero-subtitle').value,
             hero_cta_texto: document.getElementById('c-hero-cta-text').value,
             hero_cta_link: document.getElementById('c-hero-cta-link').value,
             hero_bg_desktop_url: finalHeroUrl,
+            hero_imagem_url: finalHeroUrl, // Compatibilidade
             rodape_texto: document.getElementById('c-footer-text').value,
             updated_at: new Date().toISOString()
         };
 
-        // 3. Executa o UPDATE no registro (ID=1)
+        // 3. Executa o UPDATE no registro Singleton (ID=1)
         const { error } = await supabase
             .from('configuracoes_site')
             .update(payload)
