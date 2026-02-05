@@ -78,7 +78,7 @@ async function startDataLoading() {
 }
 
 /**
- * Aplica as configurações do site e constrói o Hero exclusivamente via JS
+ * Aplica as configurações do site e atualiza o Hero já existente
  */
 function applySiteSettings(config) {
     // 1. Identidade Visual (Textos Globais)
@@ -88,10 +88,10 @@ function applySiteSettings(config) {
     const footerText = document.getElementById('footer-copyright-text');
     if (footerText) footerText.innerText = config.rodape_texto || '© ImobiMaster';
 
-    // 2. Construção ÚNICA do Hero (Garante que o fundo e o texto apareçam juntos)
+    // 2. Atualização do Hero (O esqueleto já foi injetado pelo script inline no index.html)
     const heroSection = document.querySelector('header.hero-home');
     if (heroSection) {
-        // Define as variáveis de background antes de injetar o HTML
+        // Define as variáveis de background
         if (config.hero_bg_desktop_url) {
             heroSection.style.setProperty('--hero-bg-desktop', `url('${config.hero_bg_desktop_url}')`);
         }
@@ -99,31 +99,15 @@ function applySiteSettings(config) {
             heroSection.style.setProperty('--hero-bg-mobile', `url('${config.hero_bg_mobile_url}')`);
         }
 
-        const titulo = config.hero_titulo || 'Seu imóvel do jeito certo';
-        const subtitulo = config.hero_subtitulo || 'Encontre o imóvel ideal para você';
-        const ctaTexto = config.hero_cta_texto || 'Buscar Agora';
+        // Atualiza apenas os textos dinâmicos se houver configuração no banco,
+        // preservando a estrutura para evitar flashes de layout (CLS).
+        const h1 = heroSection.querySelector('h1');
+        const p = heroSection.querySelector('p');
+        const btn = heroSection.querySelector('button');
 
-        // Injeta o HTML completo apenas após as variáveis de estilo estarem prontas
-        heroSection.innerHTML = `
-          <div class="hero-content mx-auto w-full max-w-2xl text-center">
-            <h1 class="text-4xl md:text-5xl font-bold text-white mb-4">
-              ${titulo}
-            </h1>
-            <p class="text-slate-200 mb-8">
-              ${subtitulo}
-            </p>
-            <div class="hero-search-container flex flex-col md:flex-row gap-2 max-w-xl mx-auto">
-              <input
-                type="text"
-                placeholder="Bairro, cidade ou condomínio..."
-                class="flex-1 rounded-lg px-4 py-3 text-slate-900 outline-none"
-              />
-              <button class="bg-emerald-500 text-white px-8 py-3 rounded-lg font-bold hover:bg-emerald-600 transition-colors whitespace-nowrap">
-                ${ctaTexto}
-              </button>
-            </div>
-          </div>
-        `;
+        if (h1 && config.hero_titulo) h1.innerText = config.hero_titulo;
+        if (p && config.hero_subtitulo) p.innerText = config.hero_subtitulo;
+        if (btn && config.hero_cta_texto) btn.innerText = config.hero_cta_texto;
     }
 
     // 3. Outras Seções
