@@ -1,6 +1,33 @@
 import { supabase } from './supabase.js';
 import { resolveColorScheme, applyColorScheme } from './theme/engine.js';
 
+// ETAPA 6: Inicialização imediata do Hero via JavaScript (sem skeletons, sem duplicidade)
+(function createHero() {
+    const hero = document.querySelector('.hero-home');
+    if (!hero) return;
+
+    hero.innerHTML = `
+      <div class="hero-content mx-auto w-full max-w-2xl text-center">
+        <h1 class="text-4xl md:text-5xl font-bold text-white mb-4">
+          Seu imóvel do jeito certo
+        </h1>
+        <p class="text-slate-200 mb-8">
+          Encontre o imóvel ideal para você
+        </p>
+        <div class="hero-search-container flex flex-col md:flex-row gap-2 max-w-2xl mx-auto">
+          <input
+            type="text"
+            placeholder="Bairro, cidade ou condomínio..."
+            class="flex-1 rounded-lg px-4 py-3 text-slate-900 outline-none"
+          />
+          <button class="bg-emerald-500 text-white px-6 py-3 rounded-lg font-bold hover:bg-emerald-600 transition-colors">
+            Buscar Agora
+          </button>
+        </div>
+      </div>
+    `;
+})();
+
 // Estado global para a galeria da página de detalhes
 let currentPhotos = [];
 let currentIndex = 0;
@@ -61,7 +88,6 @@ async function startDataLoading() {
 
         if (configError) {
             console.warn('Falha ao carregar configurações:', configError.message);
-            // Se houver erro, hidratamos com valores padrão para remover o skeleton
             applySiteSettings({});
         } else if (config) {
             applySiteSettings(config);
@@ -89,22 +115,8 @@ function applySiteSettings(config) {
     const logoText = document.getElementById('site-logo-text');
     if (logoText) logoText.innerText = config.header_nome_site || 'ImobiMaster';
     
-    // HIDRATAÇÃO DO HERO (Substitui os Skeletons)
-    const heroContent = document.querySelector('.hero-content');
-    if (heroContent) {
-        const titulo = config.hero_titulo || 'Encontre o imóvel que combina com sua vida';
-        const subtitulo = config.hero_subtitulo || 'Os melhores imóveis em localizações exclusivas com consultoria especializada.';
-        const ctaTexto = config.hero_cta_texto || 'Buscar Agora';
-
-        heroContent.innerHTML = `
-            <h1 class="text-3xl md:text-7xl font-bold mb-6 tracking-tight leading-tight">${titulo}</h1>
-            <p class="text-slate-200 text-base md:text-xl mb-12 max-w-2xl mx-auto opacity-90">${subtitulo}</p>
-            <div class="hero-search-container flex flex-col md:flex-row gap-2 max-w-2xl mx-auto">
-                <input type="text" placeholder="Bairro, cidade ou condomínio..." class="flex-1 px-6 py-4 text-slate-900 outline-none rounded-xl">
-                <button class="bg-blue-600 hover:bg-blue-700 text-white px-10 py-4 rounded-xl font-bold transition-all active:scale-95">${ctaTexto}</button>
-            </div>
-        `;
-    }
+    // NOTA: Conforme Step 8, não existe outro código que escreva no hero para evitar flash.
+    // Títulos e inputs são mantidos estáveis pelo script de inicialização imediata.
 
     const heroSection = document.querySelector('header.hero-home');
     if (heroSection) {
@@ -217,28 +229,3 @@ function setupCardEventListeners() {
 
 // EXECUÇÃO IMEDIATA (Módulos são deferred por padrão, DOM já está disponível)
 initSite();
-
-(function mountHeroWhenReady() {
-  const mount = document.getElementById('hero-mount');
-  if (!mount) return;
-
-  mount.innerHTML = `
-    <header class="hero-home py-12 md:py-32 px-4 text-center relative flex items-center justify-center">
-      <div class="hero-content mx-auto w-full max-w-2xl">
-        <h1 class="hero-title">Seu imóvel do jeito certo</h1>
-        <p class="hero-subtitle">Encontre o imóvel ideal para você</p>
-
-        <div class="hero-search-container flex flex-col md:flex-row gap-2">
-          <input class="hero-input" placeholder="Bairro, cidade ou condomínio..." />
-          <button class="hero-button">Buscar Agora</button>
-        </div>
-      </div>
-    </header>
-  `;
-})();
-
-// LIBERAÇÃO FINAL DO RENDER GATE
-requestAnimationFrame(() => {
-  document.documentElement.classList.remove('render-locked');
-  document.documentElement.classList.add('render-ready');
-});
