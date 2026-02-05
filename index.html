@@ -18,7 +18,7 @@
       document.documentElement.setAttribute('data-ui-locked', 'true');
     </script>
 
-    <!-- Script crítico para aplicação do tema via LocalStorage -->
+    <!-- Script crítico para aplicação do tema via LocalStorage (Previne FOUC de cores) -->
     <script>
         (function() {
             try {
@@ -71,14 +71,14 @@
         </div>
     </nav>
 
-    <!-- HERO COM SHELL NEUTRO -->
     <header class="hero-home py-12 md:py-32 px-4 text-center relative flex items-center justify-center">
-        <div class="hero-content mx-auto">
-            <h1 data-shell class="shell-title"></h1>
-            <p data-shell class="shell-subtitle"></p>
-            <div class="hero-search-container shell-search flex flex-col md:flex-row gap-2 max-w-2xl mx-auto">
-                <div class="shell-input"></div>
-                <div class="shell-button"></div>
+        <div class="hero-content mx-auto w-full max-w-2xl">
+            <!-- SKELETONS INICIAIS (SHELL NEUTRO) -->
+            <div class="skeleton skeleton-title mb-6"></div>
+            <div class="skeleton skeleton-subtitle mb-12"></div>
+            <div class="hero-search-container flex flex-col md:flex-row gap-2">
+                <div class="skeleton skeleton-input"></div>
+                <div class="skeleton skeleton-button"></div>
             </div>
         </div>
     </header>
