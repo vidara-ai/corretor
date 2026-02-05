@@ -1,15 +1,3 @@
-/* ===============================
-   RENDER GATE GLOBAL
-   =============================== */
-
-html.render-locked body {
-  visibility: hidden;
-}
-
-html.render-ready body {
-  visibility: visible;
-}
-
 /* Base Mobile-First */
 :root {
     /* Fallback padrão (Ruby Red) */
@@ -36,42 +24,6 @@ body {
 .text-blue-600 { color: var(--color-primary) !important; }
 .border-blue-600 { border-color: var(--color-primary) !important; }
 .ring-blue-100 { --tw-ring-color: var(--color-badge-alt) !important; }
-
-/* === SKELETON — ANTI FLASH DEFINITIVO === */
-.skeleton {
-  background-color: #e5e7eb;
-  border-radius: 8px;
-}
-
-.skeleton-title {
-  width: 80%;
-  height: 56px;
-  margin: 0 auto 24px;
-}
-
-.skeleton-subtitle {
-  width: 60%;
-  height: 24px;
-  margin: 0 auto 48px;
-}
-
-.skeleton-input {
-  flex: 1;
-  height: 60px;
-  border-radius: 12px;
-}
-
-.skeleton-button {
-  width: 180px;
-  height: 60px;
-  border-radius: 12px;
-}
-
-@media (max-width: 768px) {
-  .skeleton-title { height: 40px; }
-  .skeleton-subtitle { height: 18px; width: 80%; }
-  .skeleton-button { width: 100%; }
-}
 
 /* HERO SECTION CUSTOM */
 .hero-home {
