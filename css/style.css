@@ -5,6 +5,60 @@ body {
     font-family: 'Inter', sans-serif;
 }
 
+/* HERO SECTION CUSTOM */
+.hero-home {
+  position: relative;
+  min-height: 70vh;
+  background-image: url("https://urcrpzbxxomluvyxucvj.supabase.co/storage/v1/object/public/assets/generated_image_cf578668-7316-485c-9227-35f04a281c5d.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  overflow: hidden;
+}
+
+/* OVERLAY DE TRANSPARÊNCIA */
+.hero-home::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(5, 15, 35, 0.65);
+  z-index: 1;
+}
+
+/* GARANTIR CONTEÚDO ACIMA DO OVERLAY */
+.hero-home > div {
+  position: relative;
+  z-index: 2;
+}
+
+/* SOMBRA NA HEADLINE (EFEITO FLUTUANTE) */
+.hero-home h1 {
+  color: #ffffff;
+  text-shadow: 0 6px 20px rgba(0, 0, 0, 0.55);
+}
+
+/* SOMBRA NA SUB-HEADLINE */
+.hero-home p {
+  color: #e5e7eb;
+  text-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+}
+
+/* CAMPO DE BUSCA COM EFEITO DE SUSPENSÃO */
+.hero-search-container {
+    background: transparent; /* Container transparente para destacar sombras internas */
+}
+
+.hero-home input {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 12px;
+  border: none;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+}
+
+.hero-home button {
+  box-shadow: 0 14px 35px rgba(0, 0, 0, 0.35);
+}
+
 /* GRID DE IMÓVEIS */
 #lista-imoveis {
     display: grid;
