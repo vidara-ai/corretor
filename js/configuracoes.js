@@ -1,213 +1,191 @@
 import { supabase } from './supabase.js';
-import { COLOR_SCHEMES } from './theme/schemes.js';
-import { resolveColorScheme, applyColorScheme } from './theme/engine.js';
 
 /**
- * @typedef {import('./theme/schemes.js').ColorScheme} ColorScheme
+ * Estado Local
  */
-
-/** @type {string | null} */
-let configuracaoId = null;
-/** @type {string | null} */
 let currentHeroBgUrl = null;
-/** @type {File | null} */
 let pendingFile = null;
+let configuracaoId = null; // Armazena o UUID real da linha de configurações
 
 /**
- * Persiste apenas o esquema de cores no Supabase de forma imediata.
- * @param {string} schemeId 
- */
-async function persistColorScheme(schemeId) {
-  if (!configuracaoId || !schemeId) return;
-
-  try {
-    const { error } = await supabase
-      .from('configuracoes_site')
-      .update({ color_scheme: schemeId })
-      .eq('id', configuracaoId);
-
-    if (error) throw error;
-    console.debug(`Esquema '${schemeId}' persistido com sucesso.`);
-  } catch (err) {
-    console.error('Erro ao persistir esquema:', err);
-    alert('Erro ao salvar o esquema de cores.');
-  }
-}
-
-/**
- * Inicializa o select de esquemas de cores.
- */
-function initColorSchemeSelect() {
-  const select = document.getElementById('color_scheme_id');
-  if (!select) return;
-
-  // Popula opções dinamicamente a partir de COLOR_SCHEMES
-  select.innerHTML = COLOR_SCHEMES.map(s => 
-    `<option value="${s.id}">${s.label}</option>`
-  ).join('');
-
-  // Salvamento imediato ao alterar o select
-  select.addEventListener('change', async (e) => {
-    const target = e.target;
-    const schemeId = target.value;
-    if (!schemeId) return;
-
-    // Feedback visual instantâneo aplicando o tema ao painel admin
-    applyColorScheme(resolveColorScheme(schemeId));
-    
-    // Persistência no banco (Coluna color_scheme)
-    await persistColorScheme(schemeId);
-  });
-}
-
-/**
- * Carrega as configurações globais do Supabase.
+ * Carrega as configurações atuais do banco
  */
 async function loadConfig() {
-  try {
-    initColorSchemeSelect();
+    try {
+        // Busca a linha única de configurações sem assumir ID numérico
+        const { data, error } = await supabase
+            .from('configuracoes_site')
+            .select('*')
+            .limit(1)
+            .maybeSingle();
 
-    const { data, error } = await supabase
-      .from('configuracoes_site')
-      .select('*')
-      .limit(1)
-      .maybeSingle();
+        if (error) {
+            console.error('Erro ao buscar configurações:', error);
+            return;
+        }
 
-    if (error) throw error;
+        if (data) {
+            // Guarda o UUID real para os updates posteriores
+            configuracaoId = data.id;
 
-    if (data) {
-      configuracaoId = data.id;
+            // Preenche campos de Identidade
+            document.getElementById('c-site-name').value = data.header_nome_site || '';
+            document.getElementById('header_whatsapp').value = data.header_whatsapp || '';
+            
+            // Preenche campos de Hero
+            document.getElementById('c-hero-title').value = data.hero_titulo || '';
+            document.getElementById('c-hero-subtitle').value = data.hero_subtitulo || '';
+            document.getElementById('c-hero-cta-text').value = data.hero_cta_texto || '';
+            document.getElementById('c-hero-cta-link').value = data.hero_cta_link || '';
 
-      // Cabeçalho
-      document.getElementById('c-site-name').value = data.header_nome_site || '';
-      document.getElementById('header_whatsapp').value = data.header_whatsapp || '';
-      
-      // Carregamento inicial do Esquema de Cores (Coluna: color_scheme)
-      if (data.color_scheme) {
-        document.getElementById('color_scheme_id').value = data.color_scheme;
-        applyColorScheme(resolveColorScheme(data.color_scheme));
-      }
+            // Preenche campos de Oportunidades
+            document.getElementById('home_titulo_oportunidades').value = data.home_titulo_oportunidades || '';
+            document.getElementById('home_subtitulo_oportunidades').value = data.home_subtitulo_oportunidades || '';
 
-      // Hero
-      document.getElementById('c-hero-title').value = data.hero_titulo || '';
-      document.getElementById('c-hero-subtitle').value = data.hero_subtitulo || '';
-      document.getElementById('c-hero-cta-text').value = data.hero_cta_texto || '';
-      document.getElementById('c-hero-cta-link').value = data.hero_cta_link || '';
+            // Preenche campos de CTA Imóvel
+            document.getElementById('imovel_cta_texto').value = data.imovel_cta_texto || '';
+            document.getElementById('imovel_cta_whatsapp').value = data.imovel_cta_whatsapp || '';
 
-      // Seções e Rodapé
-      document.getElementById('home_titulo_oportunidades').value = data.home_titulo_oportunidades || '';
-      document.getElementById('home_subtitulo_oportunidades').value = data.home_subtitulo_oportunidades || '';
-      document.getElementById('imovel_cta_texto').value = data.imovel_cta_texto || '';
-      document.getElementById('imovel_cta_whatsapp').value = data.imovel_cta_whatsapp || '';
-      document.getElementById('c-footer-text').value = data.rodape_texto || '';
+            // Preenche campos de Rodapé
+            document.getElementById('c-footer-text').value = data.rodape_texto || '';
 
-      // Imagem Hero
-      currentHeroBgUrl = data.hero_bg_desktop_url;
-      updateHeroPreview(currentHeroBgUrl);
+            // Preview da Imagem
+            currentHeroBgUrl = data.hero_bg_desktop_url;
+            updateHeroPreview(currentHeroBgUrl);
+        }
+
+    } catch (err) {
+        console.error('Erro crítico ao carregar configurações:', err);
     }
-  } catch (err) {
-    console.error('Falha ao carregar configurações:', err);
-  }
 }
 
 /**
- * Atualiza o preview da imagem hero no painel.
- * @param {string | null} url 
+ * Atualiza o preview da imagem no formulário
  */
 function updateHeroPreview(url) {
-  const container = document.getElementById('hero-image-preview-container');
-  const img = document.getElementById('hero-image-preview');
-  if (url && (url.startsWith('http') || url.startsWith('data:'))) {
-    img.src = url;
-    container.classList.remove('hidden');
-  } else {
-    container.classList.add('hidden');
-  }
+    const container = document.getElementById('hero-image-preview-container');
+    const img = document.getElementById('hero-image-preview');
+    if (url && (url.startsWith('http') || url.startsWith('data:'))) {
+        img.src = url;
+        container.classList.remove('hidden');
+    } else {
+        container.classList.add('hidden');
+    }
 }
 
 /**
- * Upload de imagem para o bucket assets do Supabase.
- * @param {File} file 
+ * Lógica de Upload de Asset para o Supabase Storage
  */
 async function uploadHeroImage(file) {
-  const ext = file.name.split('.').pop();
-  const filePath = `hero/bg-${Date.now()}.${ext}`;
+    const ext = file.name.split('.').pop();
+    const fileName = `hero-desktop-${Date.now()}.${ext}`;
+    const filePath = `hero/${fileName}`;
 
-  const { error: uploadError } = await supabase.storage.from('assets').upload(filePath, file);
-  if (uploadError) throw uploadError;
+    const { error: uploadError } = await supabase
+        .storage
+        .from('assets')
+        .upload(filePath, file);
 
-  const { data } = supabase.storage.from('assets').getPublicUrl(filePath);
-  return data.publicUrl;
+    if (uploadError) throw uploadError;
+
+    const { data } = supabase
+        .storage
+        .from('assets')
+        .getPublicUrl(filePath);
+
+    return data.publicUrl;
 }
 
-// Configuração do Dropzone de Imagem para a Hero
+/**
+ * Listeners de Arquivo
+ */
 const dropzone = document.getElementById('hero-bg-dropzone');
 const fileInput = document.getElementById('c-hero-bg-file');
 
-if (dropzone) dropzone.onclick = () => fileInput.click();
-if (fileInput) {
-  fileInput.onchange = (e) => {
-    const target = e.target;
-    const file = target.files ? target.files[0] : null;
-    if (!file) return;
-    pendingFile = file;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      const result = ev.target ? ev.target.result : null;
-      if (typeof result === 'string') updateHeroPreview(result);
-    };
-    reader.readAsDataURL(file);
-  };
+if (dropzone) {
+    dropzone.onclick = () => fileInput.click();
 }
 
-// Handler do envio do formulário completo
-document.getElementById('config-form').onsubmit = async (e) => {
-  e.preventDefault();
-  if (!configuracaoId) return;
+if (fileInput) {
+    fileInput.onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
 
-  const btn = document.getElementById('btn-save-config');
-  const btnText = document.getElementById('btn-text');
-  btn.disabled = true;
-  btnText.innerText = 'Salvando...';
-
-  try {
-    let finalHeroUrl = currentHeroBgUrl;
-    if (pendingFile) finalHeroUrl = await uploadHeroImage(pendingFile);
-
-    const payload = {
-      header_nome_site: document.getElementById('c-site-name').value,
-      header_whatsapp: document.getElementById('header_whatsapp').value || null,
-      color_scheme: document.getElementById('color_scheme_id').value, // Uso correto da coluna color_scheme
-      hero_titulo: document.getElementById('c-hero-title').value,
-      hero_subtitulo: document.getElementById('c-hero-subtitle').value,
-      hero_cta_texto: document.getElementById('c-hero-cta-text').value,
-      hero_cta_link: document.getElementById('c-hero-cta-link').value,
-      hero_bg_desktop_url: finalHeroUrl,
-      home_titulo_oportunidades: document.getElementById('home_titulo_oportunidades').value,
-      home_subtitulo_oportunidades: document.getElementById('home_subtitulo_oportunidades').value,
-      imovel_cta_texto: document.getElementById('imovel_cta_texto').value,
-      imovel_cta_whatsapp: document.getElementById('imovel_cta_whatsapp').value,
-      rodape_texto: document.getElementById('c-footer-text').value,
-      updated_at: new Date().toISOString()
+        pendingFile = file;
+        
+        // Preview Instantâneo (Local)
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            updateHeroPreview(event.target.result);
+        };
+        reader.readAsDataURL(file);
     };
+}
 
-    const { error } = await supabase
-      .from('configuracoes_site')
-      .update(payload)
-      .eq('id', configuracaoId);
+/**
+ * Salva as alterações
+ */
+document.getElementById('config-form').onsubmit = async (e) => {
+    e.preventDefault();
 
-    if (error) throw error;
+    if (!configuracaoId) {
+        alert('Erro: ID de configuração não localizado. Tente atualizar a página.');
+        return;
+    }
 
-    pendingFile = null;
-    currentHeroBgUrl = finalHeroUrl;
-    alert('Configurações salvas com sucesso!');
-  } catch (err) {
-    console.error('Erro ao salvar:', err);
-    alert('Falha ao salvar: ' + err.message);
-  } finally {
-    btn.disabled = false;
-    btnText.innerText = 'Salvar Alterações';
-  }
+    const btn = document.getElementById('btn-save-config');
+    const btnText = document.getElementById('btn-text');
+    
+    btn.disabled = true;
+    btnText.innerText = 'Salvando...';
+
+    try {
+        let finalHeroUrl = currentHeroBgUrl;
+
+        // 1. Se houver novo arquivo, faz upload primeiro
+        if (pendingFile) {
+            finalHeroUrl = await uploadHeroImage(pendingFile);
+        }
+
+        // 2. Prepara o payload de atualização incluindo o WhatsApp do Header
+        const payload = {
+            header_nome_site: document.getElementById('c-site-name').value,
+            header_whatsapp: document.getElementById('header_whatsapp').value || null,
+            hero_titulo: document.getElementById('c-hero-title').value,
+            hero_subtitulo: document.getElementById('c-hero-subtitle').value,
+            hero_cta_texto: document.getElementById('c-hero-cta-text').value,
+            hero_cta_link: document.getElementById('c-hero-cta-link').value,
+            hero_bg_desktop_url: finalHeroUrl,
+            home_titulo_oportunidades: document.getElementById('home_titulo_oportunidades').value,
+            home_subtitulo_oportunidades: document.getElementById('home_subtitulo_oportunidades').value,
+            imovel_cta_texto: document.getElementById('imovel_cta_texto').value,
+            imovel_cta_whatsapp: document.getElementById('imovel_cta_whatsapp').value,
+            rodape_texto: document.getElementById('c-footer-text').value,
+            updated_at: new Date().toISOString()
+        };
+
+        // 3. Executa o UPDATE no registro usando o UUID capturado no load
+        const { error } = await supabase
+            .from('configuracoes_site')
+            .update(payload)
+            .eq('id', configuracaoId);
+
+        if (error) throw error;
+
+        // 4. Limpeza e Feedback
+        pendingFile = null;
+        currentHeroBgUrl = finalHeroUrl;
+        
+        alert('✅ Configurações salvas com sucesso!');
+        
+    } catch (err) {
+        console.error('Erro ao salvar configurações:', err);
+        alert('❌ Erro ao salvar: ' + (err.message || 'Verifique sua conexão e tente novamente.'));
+    } finally {
+        btn.disabled = false;
+        btnText.innerText = 'Salvar Alterações';
+    }
 };
 
+// Inicializa a página
 document.addEventListener('DOMContentLoaded', loadConfig);
