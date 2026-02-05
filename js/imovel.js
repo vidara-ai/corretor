@@ -32,10 +32,7 @@ async function iniciarPaginaImovel() {
     const params = new URLSearchParams(window.location.search);
     const imovelId = params.get('id');
 
-    console.log('ID do imóvel detectado:', imovelId);
-
     if (!imovelId) {
-        console.error('ID do imóvel não informado na URL');
         mostrarErro('Código do imóvel inválido ou não informado.');
         return;
     }
@@ -49,13 +46,12 @@ async function iniciarPaginaImovel() {
             .single();
 
         if (imovelError || !imovel) {
-            console.error('Erro ao buscar imóvel:', imovelError);
             mostrarErro('Não conseguimos localizar este imóvel em nossa base de dados.');
             return;
         }
 
         // 3. Fetch Photos
-        const { data: fotos, error: fotosError } = await supabase
+        const { data: fotos } = await supabase
             .from('imoveis_fotos')
             .select('*')
             .eq('imovel_id', imovelId)
@@ -65,13 +61,20 @@ async function iniciarPaginaImovel() {
         currentPhotos = fotos || [];
         currentIndex = 0;
 
-        // 4. Render Data
-        renderizarImovel(imovel);
+        // 4. Fetch Site Configurations (for CTA)
+        const { data: config } = await supabase
+            .from('configuracoes_site')
+            .select('imovel_cta_texto, imovel_cta_whatsapp')
+            .eq('id', 1)
+            .single();
 
-        // 5. Setup Gallery Listeners
+        // 5. Render Data
+        renderizarImovel(imovel, config || {});
+
+        // 6. Setup Gallery Listeners
         setupGalleryEvents();
 
-        // 6. Cleanup UI State
+        // 7. Cleanup UI State
         finalizarLoading();
 
     } catch (err) {
@@ -83,12 +86,20 @@ async function iniciarPaginaImovel() {
 /**
  * Renders the property HTML into the container
  */
-function renderizarImovel(p) {
+function renderizarImovel(p, config) {
     const container = document.getElementById('content-container');
     if (!container) return;
 
     const mainPhotoUrl = currentPhotos.length > 0 ? currentPhotos[0].url : 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=600';
     const precoFormatado = formatarBRL(obterValorImovel(p));
+
+    // Lógica do CTA WhatsApp
+    const whatsappNum = config.imovel_cta_whatsapp || '5500000000000';
+    const ctaTexto = config.imovel_cta_texto || 'Quero Agendar uma Visita';
+    const referencia = p.referencia || p.id;
+    
+    const msgText = `Olá! 👋\nTenho interesse em agendar uma visita para o imóvel\n📌 Referência: ${referencia}\n\nPode me passar mais informações?`;
+    const whatsappLink = `https://wa.me/${whatsappNum.replace(/\D/g, '')}?text=${encodeURIComponent(msgText)}`;
 
     container.innerHTML = `
         <div class="animate-in fade-in duration-700">
@@ -190,13 +201,13 @@ function renderizarImovel(p) {
                         <div class="space-y-3 pt-4">
                             <p class="text-sm font-bold text-slate-400 uppercase tracking-widest">Localização</p>
                             <p class="text-slate-700 font-medium">${p.bairro || ''}, ${p.cidade || ''} - ${p.uf || ''}</p>
-                            <p class="text-xs text-slate-400">Referência: ${p.referencia || 'N/I'}</p>
+                            <p class="text-xs text-slate-400">Referência: ${referencia}</p>
                         </div>
 
-                        <a href="https://wa.me/5500000000000?text=Olá, tenho interesse no imóvel Ref ${p.referencia || p.id}: ${p.titulo}" 
+                        <a href="${whatsappLink}" 
                            target="_blank" 
                            class="block w-full text-center bg-emerald-500 text-white py-5 rounded-[2rem] font-bold text-lg hover:bg-emerald-600 transition-all shadow-xl shadow-emerald-100 active:scale-95">
-                            Tenho Interesse via WhatsApp
+                            ${ctaTexto}
                         </a>
                     </div>
                 </div>
