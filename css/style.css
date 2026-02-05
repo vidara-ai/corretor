@@ -9,7 +9,8 @@ body {
 .hero-home {
   position: relative;
   min-height: 520px;
-  background-image: url("https://urcrpzbxxomluvyxucvj.supabase.co/storage/v1/object/public/assets/fotor-202602050732.jpg");
+  /* Background dinâmico via JS */
+  background-image: var(--hero-bg-desktop);
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -30,6 +31,56 @@ body {
     rgba(5, 10, 25, 0.75)
   );
   z-index: 1;
+}
+
+/* SKELETON UI FOR HERO */
+.hero-loading .hero-content {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.hero-loaded .hero-skeleton {
+  display: none;
+}
+
+.hero-loaded .hero-content {
+  opacity: 1;
+  pointer-events: auto;
+  transition: opacity 0.5s ease;
+}
+
+.skeleton-title,
+.skeleton-subtitle,
+.skeleton-search {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.08) 25%,
+    rgba(255, 255, 255, 0.15) 37%,
+    rgba(255, 255, 255, 0.08) 63%
+  );
+  background-size: 400% 100%;
+  animation: skeleton-loading 1.4s ease infinite;
+  border-radius: 12px;
+}
+
+.skeleton-title {
+  height: 60px;
+  width: 85%;
+}
+
+.skeleton-subtitle {
+  height: 24px;
+  width: 60%;
+}
+
+.skeleton-search {
+  height: 60px;
+  width: 100%;
+}
+
+@keyframes skeleton-loading {
+  0% { background-position: 100% 50%; }
+  100% { background-position: 0 50%; }
 }
 
 /* CONTAINER COM GLASSMORPHISM */
@@ -68,7 +119,7 @@ body {
 @media (max-width: 768px) {
   .hero-home {
     min-height: 460px;
-    background-image: url("https://urcrpzbxxomluvyxucvj.supabase.co/storage/v1/object/public/assets/generated_image_7f5b0795-5a95-49c6-83d2-677e786232b7.png");
+    background-image: var(--hero-bg-mobile, var(--hero-bg-desktop));
     background-position: center top;
   }
 
@@ -76,6 +127,10 @@ body {
     padding: 28px 22px;
     border-radius: 16px;
   }
+
+  .skeleton-title { height: 40px; }
+  .skeleton-subtitle { height: 20px; }
+  .skeleton-search { height: 50px; }
 }
 
 /* CAMPO DE BUSCA COM EFEITO DE SUSPENSÃO */
@@ -331,6 +386,10 @@ body {
     display: flex;
     align-items: center;
     gap: 6px;
+}
+
+.imovel-info-icons span i {
+  font-style: normal;
 }
 
 .imovel-ref-area {
