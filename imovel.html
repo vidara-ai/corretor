@@ -6,22 +6,6 @@
     <title>Detalhes do Imóvel - ImobiMaster</title>
     <meta name="description" content="Veja todos os detalhes deste imóvel exclusivo na ImobiMaster.">
     
-    <!-- Script crítico para evitar FOUC -->
-    <script>
-        (function() {
-            try {
-                const theme = localStorage.getItem('imobimaster_theme_tokens');
-                if (theme) {
-                    const tokens = JSON.parse(theme);
-                    const root = document.documentElement;
-                    Object.entries(tokens).forEach(([key, value]) => {
-                        root.style.setProperty(key, value);
-                    });
-                }
-            } catch (e) {}
-        })();
-    </script>
-
     <!-- Open Graph -->
     <meta property="og:type" content="website">
     <meta property="og:title" content="Imóvel em Destaque - ImobiMaster">
@@ -61,6 +45,7 @@
     </nav>
 
     <main id="property-detail" class="max-w-7xl mx-auto px-4 py-8">
+        <!-- Loading State -->
         <div id="loading-container" class="loading-state">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start opacity-50">
                 <div class="space-y-4">
@@ -88,7 +73,10 @@
             </div>
         </div>
 
-        <div id="content-container" class="content-state"></div>
+        <!-- Rendered Content -->
+        <div id="content-container" class="content-state">
+            <!-- Renderizado via JS -->
+        </div>
     </main>
 
     <footer class="bg-white border-t border-slate-200 py-12 mt-20">
@@ -97,6 +85,7 @@
         </div>
     </footer>
 
+    <!-- Script específico da página de detalhes (Corrigindo carregamento) -->
     <script type="module" src="js/imovel.js"></script>
 </body>
 </html>

@@ -1,73 +1,18 @@
 <!DOCTYPE html>
-<html lang="pt-br" class="render-locked">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ImobiMaster - Encontre seu novo lar</title>
     <meta name="description" content="Encontre os melhores imóveis em localizações exclusivas com a ImobiMaster.">
     
-    <style>
-      html.render-locked body {
-        visibility: hidden;
-      }
-    </style>
-
-    <!-- Script crítico para aplicação do tema via LocalStorage (Previne FOUC de cores) -->
-    <script>
-        (function() {
-            try {
-                const theme = localStorage.getItem('imobimaster_theme_tokens');
-                if (theme) {
-                    const tokens = JSON.parse(theme);
-                    const root = document.documentElement;
-                    Object.entries(tokens).forEach(([key, value]) => {
-                        root.style.setProperty(key, value);
-                    });
-                }
-            } catch (e) {}
-        })();
-    </script>
-
-    <script>
-    (function () {
-      const heroHTML = `
-        <div class="hero-content mx-auto w-full max-w-2xl text-center">
-          <h1 class="text-4xl md:text-5xl font-bold text-white mb-4">
-            Seu imóvel do jeito certo
-          </h1>
-          <p class="text-slate-200 mb-8">
-            Encontre o imóvel ideal para você
-          </p>
-          <div class="hero-search-container flex flex-col md:flex-row gap-2">
-            <input
-              type="text"
-              placeholder="Bairro, cidade ou condomínio..."
-              class="flex-1 rounded-lg px-4 py-3"
-            />
-            <button class="bg-emerald-500 text-white px-6 py-3 rounded-lg font-bold">
-              Buscar Agora
-            </button>
-          </div>
-        </div>
-      `;
-
-      // Garante a injeção assim que o elemento hero-home estiver disponível no DOM
-      document.addEventListener('DOMContentLoaded', function() {
-        const hero = document.querySelector('.hero-home');
-        if (hero && !hero.innerHTML.trim()) {
-          hero.innerHTML = heroHTML;
-        }
-      });
-    })();
-    </script>
-
     <!-- Open Graph -->
     <meta property="og:type" content="website">
     <meta property="og:title" content="ImobiMaster - Gestão Imobiliária">
     <meta property="og:description" content="Os melhores imóveis em localizações exclusivas com consultoria especializada.">
     <meta property="og:image" content="https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=1200">
     
-    <link rel="stylesheet" href="css/tailwind.css">
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 
@@ -98,36 +43,35 @@
         </div>
     </nav>
 
-    <header class="hero-home">
-        <!-- Estrutura básica hardcoded para evitar hero vazio no primeiro paint -->
-        <div class="hero-content mx-auto w-full max-w-2xl text-center">
-          <h1 class="text-4xl md:text-5xl font-bold text-white mb-4">
-            Seu imóvel do jeito certo
-          </h1>
-          <p class="text-slate-200 mb-8">
-            Encontre o imóvel ideal para você
-          </p>
-          <div class="hero-search-container flex flex-col md:flex-row gap-2">
-            <input
-              type="text"
-              placeholder="Bairro, cidade ou condomínio..."
-              class="flex-1 rounded-lg px-4 py-3"
-            />
-            <button class="bg-emerald-500 text-white px-8 py-3 rounded-lg font-bold hover:bg-emerald-600 transition-colors whitespace-nowrap">
-              Buscar Agora
-            </button>
-          </div>
+    <header class="hero-home hero-loading py-12 md:py-32 px-4 text-center relative flex items-center justify-center">
+        <!-- Skeleton UI (Placeholder) -->
+        <div class="hero-skeleton w-full max-w-2xl mx-auto px-4 z-10 absolute pointer-events-none">
+            <div class="skeleton-title mx-auto mb-6"></div>
+            <div class="skeleton-subtitle mx-auto mb-12"></div>
+            <div class="skeleton-search mx-auto"></div>
+        </div>
+
+        <div class="hero-content mx-auto animate-in fade-in duration-1000">
+            <h1 class="text-3xl md:text-7xl font-bold mb-6 tracking-tight leading-tight">Encontre o imóvel que combina com sua vida</h1>
+            <p class="text-slate-200 text-base md:text-xl mb-12 max-w-2xl mx-auto opacity-90">Os melhores imóveis em localizações exclusivas com consultoria especializada.</p>
+            <div class="hero-search-container flex flex-col md:flex-row gap-2 max-w-2xl mx-auto">
+                <input type="text" placeholder="Bairro, cidade ou condomínio..." class="flex-1 px-6 py-4 text-slate-900 outline-none rounded-xl">
+                <button class="bg-blue-600 hover:bg-blue-700 text-white px-10 py-4 rounded-xl font-bold transition-all active:scale-95">Buscar Agora</button>
+            </div>
         </div>
     </header>
 
     <main class="max-w-7xl mx-auto px-4 py-12 md:py-20">
+        <!-- Seção Regular: Grid Tradicional -->
         <section id="regular-section">
             <div class="mb-10">
                 <h2 class="text-2xl md:text-3xl font-bold text-slate-900">Últimas Oportunidades</h2>
                 <p class="text-slate-500">Explorar catálogo completo</p>
             </div>
             
+            <!-- Container onde os imóveis são renderizados -->
             <div id="lista-imoveis" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Preenchido via JS (site-publico.js) -->
                 <div class="col-span-full py-20 text-center animate-pulse text-slate-400">Carregando imóveis...</div>
             </div>
         </section>
@@ -145,6 +89,7 @@
         </div>
     </footer>
 
+    <!-- Script principal como módulo JS puro -->
     <script type="module" src="js/site-publico.js"></script>
 <script type="module" src="/index.tsx"></script>
 </body>
