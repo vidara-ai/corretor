@@ -7,7 +7,7 @@ let currentHeroBgUrl = null;
 let pendingFile = null;
 
 /**
- * Carrega as configurações atuais do banco (Singleton ID=1)
+ * Carrega as configurações atuais do banco (ID=1)
  */
 async function loadConfig() {
     try {
@@ -23,7 +23,7 @@ async function loadConfig() {
         }
 
         // Preenche campos de Identidade
-        document.getElementById('c-site-name').value = data.header_nome_site || data.titulo_header || '';
+        document.getElementById('c-site-name').value = data.header_nome_site || '';
         
         // Preenche campos de Hero
         document.getElementById('c-hero-title').value = data.hero_titulo || '';
@@ -31,11 +31,15 @@ async function loadConfig() {
         document.getElementById('c-hero-cta-text').value = data.hero_cta_texto || '';
         document.getElementById('c-hero-cta-link').value = data.hero_cta_link || '';
 
+        // Preenche campos de Oportunidades
+        document.getElementById('home_titulo_oportunidades').value = data.home_titulo_oportunidades || '';
+        document.getElementById('home_subtitulo_oportunidades').value = data.home_subtitulo_oportunidades || '';
+
         // Preenche campos de Rodapé
         document.getElementById('c-footer-text').value = data.rodape_texto || '';
 
         // Preview da Imagem
-        currentHeroBgUrl = data.hero_bg_desktop_url || data.hero_imagem_url;
+        currentHeroBgUrl = data.hero_bg_desktop_url;
         updateHeroPreview(currentHeroBgUrl);
 
     } catch (err) {
@@ -49,7 +53,7 @@ async function loadConfig() {
 function updateHeroPreview(url) {
     const container = document.getElementById('hero-image-preview-container');
     const img = document.getElementById('hero-image-preview');
-    if (url && url.startsWith('http')) {
+    if (url && (url.startsWith('http') || url.startsWith('data:'))) {
         img.src = url;
         container.classList.remove('hidden');
     } else {
@@ -128,29 +132,22 @@ document.getElementById('config-form').onsubmit = async (e) => {
         // 2. Prepara o payload de atualização
         const payload = {
             header_nome_site: document.getElementById('c-site-name').value,
-            titulo_header: document.getElementById('c-site-name').value, // Compatibilidade
             hero_titulo: document.getElementById('c-hero-title').value,
             hero_subtitulo: document.getElementById('c-hero-subtitle').value,
             hero_cta_texto: document.getElementById('c-hero-cta-text').value,
             hero_cta_link: document.getElementById('c-hero-cta-link').value,
             hero_bg_desktop_url: finalHeroUrl,
-            hero_bg_mobile_url: finalHeroUrl, // Compatibilidade
+            home_titulo_oportunidades: document.getElementById('home_titulo_oportunidades').value,
+            home_subtitulo_oportunidades: document.getElementById('home_subtitulo_oportunidades').value,
             rodape_texto: document.getElementById('c-footer-text').value,
             updated_at: new Date().toISOString()
         };
 
-        // 3. Executa o UPDATE no registro Singleton (ID=1)
+        // 3. Executa o UPDATE no registro (ID=1)
         const { error } = await supabase
-  .from('configuracoes_site')
-  .update({
-    hero_titulo,
-    hero_subtitulo,
-    hero_cta_texto,
-    hero_cta_link,
-    hero_bg_desktop_url,
-    hero_bg_mobile_url
-  })
-  .eq('id', configuracaoId);
+            .from('configuracoes_site')
+            .update(payload)
+            .eq('id', 1);
 
         if (error) throw error;
 
