@@ -1,21 +1,14 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-br" class="render-locked">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ImobiMaster - Encontre seu novo lar</title>
     <meta name="description" content="Encontre os melhores imóveis em localizações exclusivas com a ImobiMaster.">
     
-    <!-- PASSO 1: RENDER GATE (Bloqueio do Primeiro Paint) -->
-    <style>
-      html[data-ui-locked="true"],
-      html[data-ui-locked="true"] body {
-        visibility: hidden !important;
-      }
-      html { background: #ffffff; }
-    </style>
+    <!-- PASSO 1.2: RENDER GATE SCRIPT INLINE (Execução imediata) -->
     <script>
-      document.documentElement.setAttribute('data-ui-locked', 'true');
+      document.documentElement.classList.add('render-locked');
     </script>
 
     <!-- Script crítico para aplicação do tema via LocalStorage (Previne FOUC de cores) -->
