@@ -33,22 +33,10 @@ function obterValorImovel(imovel) {
 }
 
 /**
- * Liberação Visual Imediata (Render Gate Global)
- */
-function unlockUI() {
-    if (typeof window.releaseRenderGate === 'function') {
-        window.releaseRenderGate();
-    }
-}
-
-/**
- * Inicialização do Site
+ * Inicialização do Site - Execução Síncrona para Preparação da UI
  */
 function initSite() {
-    // 1. LIBERAÇÃO DA ESTRUTURA GLOBAL (Garante que o body seja visível)
-    document.documentElement.removeAttribute('data-ui-locked');
-
-    // Suporte para transição de estados de loading/content (conforme imovel.html)
+    // Sincronização de containers (Fallback para páginas com loaders estruturais)
     const loader = document.getElementById('loading-container');
     const content = document.getElementById('content-container');
     if (loader) loader.style.display = 'none';
@@ -56,12 +44,12 @@ function initSite() {
 
     initTheme();
 
-    // 2. CARREGAMENTO EM BACKGROUND
+    // Dispara carregamento assíncrono em background sem bloquear a UI principal
     startDataLoading();
 }
 
 /**
- * Processamento assíncrono em background
+ * Processamento assíncrono em background (Não bloqueante)
  */
 async function startDataLoading() {
     try {
@@ -73,31 +61,22 @@ async function startDataLoading() {
 
         if (configError) {
             console.warn('Falha ao carregar configurações:', configError.message);
-            removeHeroShells();
+            // Se houver erro, hidratamos com valores padrão para remover o skeleton
+            applySiteSettings({});
         } else if (config) {
             applySiteSettings(config);
         } else {
-            removeHeroShells();
+            applySiteSettings({});
         }
     } catch (err) {
         console.warn('Erro ao processar configurações:', err);
-        removeHeroShells();
+        applySiteSettings({});
     }
 
     const isDetailPage = window.location.pathname.includes('imovel.html');
     if (!isDetailPage) {
         loadHomeProperties();
     }
-}
-
-/**
- * Remove os atributos de shell e limpa classes CSS de shell
- */
-function removeHeroShells() {
-    document.querySelectorAll('[data-shell]').forEach(el => {
-        el.removeAttribute('data-shell');
-        el.classList.remove('shell-title', 'shell-subtitle');
-    });
 }
 
 function applySiteSettings(config) {
@@ -110,23 +89,21 @@ function applySiteSettings(config) {
     const logoText = document.getElementById('site-logo-text');
     if (logoText) logoText.innerText = config.header_nome_site || 'ImobiMaster';
     
-    // HIDRATAÇÃO DO HERO
-    const heroTitle = document.querySelector('header h1');
-    if (heroTitle) heroTitle.innerText = config.hero_titulo || 'Encontre o imóvel que combina com sua vida';
+    // HIDRATAÇÃO DO HERO (Substitui os Skeletons)
+    const heroContent = document.querySelector('.hero-content');
+    if (heroContent) {
+        const titulo = config.hero_titulo || 'Encontre o imóvel que combina com sua vida';
+        const subtitulo = config.hero_subtitulo || 'Os melhores imóveis em localizações exclusivas com consultoria especializada.';
+        const ctaTexto = config.hero_cta_texto || 'Buscar Agora';
 
-    const heroSub = document.querySelector('header p');
-    if (heroSub) heroSub.innerText = config.hero_subtitulo || 'Os melhores imóveis em localizações exclusivas com consultoria especializada.';
-
-    // Hidratação da Busca
-    const searchContainer = document.querySelector('.hero-search-container');
-    if (searchContainer) {
-        searchContainer.innerHTML = `
-            <input type="text" placeholder="Bairro, cidade ou condomínio..." class="flex-1 px-6 py-4 text-slate-900 outline-none rounded-xl">
-            <button class="bg-blue-600 hover:bg-blue-700 text-white px-10 py-4 rounded-xl font-bold transition-all active:scale-95">
-                ${config.hero_cta_texto || 'Buscar Agora'}
-            </button>
+        heroContent.innerHTML = `
+            <h1 class="text-3xl md:text-7xl font-bold mb-6 tracking-tight leading-tight">${titulo}</h1>
+            <p class="text-slate-200 text-base md:text-xl mb-12 max-w-2xl mx-auto opacity-90">${subtitulo}</p>
+            <div class="hero-search-container flex flex-col md:flex-row gap-2 max-w-2xl mx-auto">
+                <input type="text" placeholder="Bairro, cidade ou condomínio..." class="flex-1 px-6 py-4 text-slate-900 outline-none rounded-xl">
+                <button class="bg-blue-600 hover:bg-blue-700 text-white px-10 py-4 rounded-xl font-bold transition-all active:scale-95">${ctaTexto}</button>
+            </div>
         `;
-        searchContainer.classList.remove('shell-search');
     }
 
     const heroSection = document.querySelector('header.hero-home');
@@ -134,9 +111,6 @@ function applySiteSettings(config) {
         if (config.hero_bg_desktop_url) heroSection.style.setProperty('--hero-bg-desktop', `url('${config.hero_bg_desktop_url}')`);
         if (config.hero_bg_mobile_url) heroSection.style.setProperty('--hero-bg-mobile', `url('${config.hero_bg_mobile_url}')`);
     }
-
-    // REMOVER SHELLS
-    removeHeroShells();
 
     const sectionTitle = document.querySelector('#regular-section h2');
     if (sectionTitle && config.home_titulo_oportunidades) sectionTitle.innerText = config.home_titulo_oportunidades;
@@ -241,5 +215,8 @@ function setupCardEventListeners() {
     });
 }
 
-// EXECUÇÃO IMEDIATA
+// EXECUÇÃO IMEDIATA (Módulos são deferred por padrão, DOM já está disponível)
 initSite();
+
+// PASSO FINAL: Unlocking do Render Gate (Garante zero flash visual global)
+document.documentElement.removeAttribute('data-ui-locked');
