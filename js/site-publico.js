@@ -32,9 +32,33 @@ function obterValorImovel(imovel) {
     return imovel.valor_venda;
 }
 
-async function initSite() {
+/**
+ * Inicialização do Site - Padrão Render Gate (Non-blocking)
+ */
+function initSite() {
+    // 1. LIBERAÇÃO VISUAL IMEDIATA
+    // Remove o bloqueio de opacidade (Render Gate) do index.html instantaneamente
+    if (typeof window.releaseRenderGate === 'function') {
+        window.releaseRenderGate();
+    }
+
+    // Suporte para transição de estados de loading/content (conforme imovel.html)
+    const loader = document.getElementById('loading-container');
+    const content = document.getElementById('content-container');
+    if (loader) loader.style.display = 'none';
+    if (content) content.style.display = 'block';
+
     initTheme();
 
+    // 2. CARREGAMENTO EM BACKGROUND (Paralelo)
+    // Dispara as consultas ao Supabase sem travar a renderização inicial da UI
+    startDataLoading();
+}
+
+/**
+ * Processamento assíncrono isolado do fluxo principal de renderização
+ */
+async function startDataLoading() {
     try {
         const { data: config, error: configError } = await supabase
             .from('configuracoes_site')
@@ -52,7 +76,9 @@ async function initSite() {
     }
 
     const isDetailPage = window.location.pathname.includes('imovel.html');
-    if (!isDetailPage) loadHomeProperties();
+    if (!isDetailPage) {
+        loadHomeProperties();
+    }
 }
 
 function applySiteSettings(config) {
