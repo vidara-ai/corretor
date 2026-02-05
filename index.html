@@ -6,7 +6,25 @@
     <title>ImobiMaster - Encontre seu novo lar</title>
     <meta name="description" content="Encontre os melhores imóveis em localizações exclusivas com a ImobiMaster.">
     
-    <!-- Script crítico para evitar FOUC (Flash of Unstyled Content) -->
+    <!-- RENDER GATE CSS: Bloqueia o render inicial para evitar flashes de conteúdo -->
+    <style id="render-gate-css">
+        html { opacity: 0 !important; visibility: hidden !important; pointer-events: none !important; background-color: #f8fafc; }
+        html.ui-ready { opacity: 1 !important; visibility: visible !important; pointer-events: auto !important; transition: opacity 0.4s ease-out; }
+    </style>
+
+    <!-- RENDER GATE JS: Controle de liberação e Fallback -->
+    <script id="render-gate-js">
+        (function() {
+            const root = document.documentElement;
+            window.releaseRenderGate = function() {
+                root.classList.add('ui-ready');
+            };
+            // Fallback de segurança: Libera a UI em 4s se houver erro crítico no JS
+            setTimeout(window.releaseRenderGate, 4000);
+        })();
+    </script>
+
+    <!-- Script crítico para evitar FOUC de cores (Tokens do LocalStorage) -->
     <script>
         (function() {
             try {
