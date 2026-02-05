@@ -99,18 +99,9 @@ function removeHeroLoading() {
  * Aplica as configurações visuais ao site
  */
 function applySiteSettings(config) {
-    // Logo Dinâmico (Sem Fallback)
-    const logoImg = document.getElementById('header-logo-img');
-    if (logoImg) {
-        if (config.header_logo_url) {
-            logoImg.src = config.header_logo_url;
-            logoImg.classList.remove('hidden');
-        } else {
-            logoImg.classList.add('hidden');
-        }
-    }
+    const logoText = document.getElementById('site-logo-text');
+    if (logoText) logoText.innerText = config.header_nome_site || 'ImobiMaster';
     
-    // Configurações do Hero
     const heroTitle = document.querySelector('header h1');
     if (heroTitle && config.hero_titulo) heroTitle.innerText = config.hero_titulo;
 
@@ -144,7 +135,7 @@ function applySiteSettings(config) {
     const footerText = document.getElementById('footer-copyright-text');
     if (footerText) footerText.innerText = config.rodape_texto || '© ImobiMaster';
 
-    // CTA do Header (WhatsApp) - Ativado para Desktop e Mobile
+    // CTA do Header (Entre em contato)
     const headerCta = document.getElementById('header-cta-contato');
     if (headerCta) {
         if (config.header_whatsapp) {
@@ -158,19 +149,12 @@ function applySiteSettings(config) {
         }
     }
 
-    // Botão flutuante WhatsApp
-    const waButton = document.getElementById('wa-button');
-    if (waButton && config.header_whatsapp) {
-        const num = config.header_whatsapp.replace(/\D/g, '');
-        waButton.href = `https://wa.me/${num}`;
-    }
-
     // Finaliza o carregamento do Hero após aplicar tudo
     removeHeroLoading();
 }
 
 /**
- * Carrega a lista de imóveis na Home com performance otimizada
+ * Carrega a lista de imóveis na Home
  */
 async function loadHomeProperties() {
     const container = document.getElementById('lista-imoveis');
@@ -191,22 +175,10 @@ async function loadHomeProperties() {
           return;
         }
 
-        if (!imoveis || imoveis.length === 0) {
-            container.innerHTML = '<p class="col-span-full text-center text-slate-400 py-10">Nenhum imóvel disponível no momento.</p>';
-            return;
-        }
-
-        // PERFORMANCE: Busca SOMENTE as capas dos imóveis que serão exibidos
-        const imovelIds = imoveis.map(i => i.id);
-        const { data: fotos, error: fotosError } = await supabase
+        const { data: fotos } = await supabase
           .from('imoveis_fotos')
           .select('*')
-          .in('imovel_id', imovelIds)
           .eq('is_capa', true);
-
-        if (fotosError) {
-          console.warn('Aviso: Erro ao buscar fotos de capa específicas:', fotosError.message);
-        }
 
         const imoveisComFoto = imoveis.map(imovel => {
           const fotoCapa = (fotos || []).find(f => f.imovel_id === imovel.id);
@@ -215,6 +187,11 @@ async function loadHomeProperties() {
             foto_url: fotoCapa ? fotoCapa.url : null
           };
         });
+
+        if (imoveisComFoto.length === 0) {
+            container.innerHTML = '<p class="col-span-full text-center text-slate-400 py-10">Nenhum imóvel disponível no momento.</p>';
+            return;
+        }
 
         container.innerHTML = imoveisComFoto.map(imovel => {
             const precoFormatado = formatarBRL(obterValorImovel(imovel));
