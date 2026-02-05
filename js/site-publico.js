@@ -33,14 +33,21 @@ function obterValorImovel(imovel) {
 }
 
 /**
- * Inicialização do Site - Padrão Render Gate (Non-blocking)
+ * Liberação Visual Imediata (Render Gate Global)
  */
-function initSite() {
-    // 1. LIBERAÇÃO VISUAL IMEDIATA DA ESTRUTURA
-    // Remove o bloqueio de opacidade global (html) instantaneamente
+function unlockUI() {
     if (typeof window.releaseRenderGate === 'function') {
         window.releaseRenderGate();
     }
+}
+
+/**
+ * Inicialização do Site
+ */
+function initSite() {
+    // 1. LIBERAÇÃO DA ESTRUTURA GLOBAL
+    // Mostra o layout básico instantaneamente
+    unlockUI();
 
     // Suporte para transição de estados de loading/content (conforme imovel.html)
     const loader = document.getElementById('loading-container');
@@ -50,13 +57,12 @@ function initSite() {
 
     initTheme();
 
-    // 2. CARREGAMENTO EM BACKGROUND (Paralelo)
-    // Dispara as consultas ao Supabase sem travar a renderização inicial da UI
+    // 2. CARREGAMENTO EM BACKGROUND
     startDataLoading();
 }
 
 /**
- * Processamento assíncrono isolado do fluxo principal de renderização
+ * Processamento assíncrono em background
  */
 async function startDataLoading() {
     try {
@@ -68,17 +74,15 @@ async function startDataLoading() {
 
         if (configError) {
             console.warn('Falha ao carregar configurações:', configError.message);
-            // Libera o Hero mesmo com erro para exibir fallback
-            document.querySelector('header.hero-home')?.classList.add('hero-ready');
+            unlockHero(); // Libera hero mesmo em caso de falha
         } else if (config) {
             applySiteSettings(config);
         } else {
-            // Caso não haja config, libera o Hero
-            document.querySelector('header.hero-home')?.classList.add('hero-ready');
+            unlockHero();
         }
     } catch (err) {
         console.warn('Erro ao processar configurações:', err);
-        document.querySelector('header.hero-home')?.classList.add('hero-ready');
+        unlockHero();
     }
 
     const isDetailPage = window.location.pathname.includes('imovel.html');
@@ -87,8 +91,18 @@ async function startDataLoading() {
     }
 }
 
+/**
+ * Liberação local do HERO
+ */
+function unlockHero() {
+    const hero = document.querySelector('header.hero-home');
+    if (hero) {
+        hero.classList.add('hero-ready');
+    }
+}
+
 function applySiteSettings(config) {
-    // Aplica o tema (Coluna: color_scheme)
+    // Aplica o tema
     if (config.color_scheme) {
         const scheme = resolveColorScheme(config.color_scheme);
         applyColorScheme(scheme);
@@ -111,11 +125,11 @@ function applySiteSettings(config) {
     if (heroSection) {
         if (config.hero_bg_desktop_url) heroSection.style.setProperty('--hero-bg-desktop', `url('${config.hero_bg_desktop_url}')`);
         if (config.hero_bg_mobile_url) heroSection.style.setProperty('--hero-bg-mobile', `url('${config.hero_bg_mobile_url}')`);
-        
-        // 3. LIBERAÇÃO VISUAL DO HERO (Gate Local)
-        // Adiciona a classe que dispara a opacidade apenas após injetar os textos do banco
-        heroSection.classList.add('hero-ready');
     }
+
+    // 3. LIBERAÇÃO VISUAL DO HERO (Gate Local)
+    // Chamado apenas após a injeção final dos dados dinâmicos
+    unlockHero();
 
     const sectionTitle = document.querySelector('#regular-section h2');
     if (sectionTitle && config.home_titulo_oportunidades) sectionTitle.innerText = config.home_titulo_oportunidades;
