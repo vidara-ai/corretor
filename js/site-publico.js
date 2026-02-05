@@ -96,9 +96,14 @@ function applySiteSettings(config) {
     const heroCtaBtn = document.querySelector('header button');
     if (heroCtaBtn && config.hero_cta_texto) heroCtaBtn.innerText = config.hero_cta_texto;
 
-    const heroSection = document.querySelector('header');
-    if (heroSection && config.hero_bg_desktop_url) {
-        heroSection.style.setProperty('--hero-bg-desktop', `url('${config.hero_bg_desktop_url}')`);
+    const heroSection = document.querySelector('header.hero-home');
+    if (heroSection) {
+        if (config.hero_bg_desktop_url) {
+            heroSection.style.setProperty('--hero-bg-desktop', `url('${config.hero_bg_desktop_url}')`);
+        }
+        if (config.hero_bg_mobile_url) {
+            heroSection.style.setProperty('--hero-bg-mobile', `url('${config.hero_bg_mobile_url}')`);
+        }
     }
 
     // Configurações da Seção "Oportunidades"
