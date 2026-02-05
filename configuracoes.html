@@ -3,17 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <title>Configurações do Site - ImobiMaster</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="css/style.css">
     <script type="module" src="js/auth-guard.js"></script>
 </head>
-<body class="bg-slate-50 flex">
-    <aside class="w-64 bg-slate-900 min-h-screen text-white p-6 sticky top-0 hidden md:block">
-        <h2 class="text-xl font-bold mb-10 flex items-center gap-2">
-            <span class="bg-blue-600 p-1 rounded text-white font-serif text-sm">I</span>
-            Admin Panel
-        </h2>
-        <nav class="space-y-2">
+<body class="bg-slate-50 flex flex-col md:flex-row min-h-screen">
+    <aside class="w-full md:w-64 bg-slate-900 md:min-h-screen text-white p-6 sticky top-0 z-50">
+        <div class="flex items-center justify-between md:block">
+            <h2 class="text-xl font-bold md:mb-10 flex items-center gap-2">
+                <span class="bg-blue-600 p-1 rounded text-white font-serif text-sm">I</span>
+                Admin Panel
+            </h2>
+            <button class="md:hidden text-slate-400" onclick="document.getElementById('mobile-nav-config').classList.toggle('hidden')">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+            </button>
+        </div>
+        <nav id="mobile-nav-config" class="hidden md:block space-y-2 mt-6 md:mt-0">
             <a href="dashboard.html" class="block p-3 hover:bg-slate-800 rounded-lg transition">Visão Geral</a>
             <a href="leads.html" class="block p-3 hover:bg-slate-800 rounded-lg transition">Leads</a>
             <a href="imoveis.html" class="block p-3 hover:bg-slate-800 rounded-lg transition">Imóveis</a>
@@ -22,25 +28,99 @@
         </nav>
     </aside>
 
-    <main class="flex-1 p-6 md:p-10 max-w-5xl mx-auto">
+    <main class="flex-1 p-6 md:p-10 max-w-5xl mx-auto w-full">
         <header class="mb-10">
             <h1 class="text-3xl font-bold text-slate-900">Configurações do Site</h1>
             <p class="text-slate-500">Personalize o conteúdo público do seu portal imobiliário.</p>
         </header>
 
         <form id="config-form" class="space-y-8">
+            <!-- SEÇÃO 1: Cabeçalho e Identidade -->
             <section class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
-                <h3 class="text-lg font-bold mb-6 text-slate-800 flex items-center gap-2">Cabeçalho e Identidade</h3>
+                <h3 class="text-lg font-bold mb-6 text-slate-800 flex items-center gap-2">
+                    <span class="w-8 h-8 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center text-sm">1</span>
+                    Cabeçalho e Identidade
+                </h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label class="block text-sm font-semibold mb-2">Nome da Imobiliária</label>
-                        <input id="c-site-name" type="text" class="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
+                        <label class="block text-sm font-semibold mb-2 text-slate-700">Nome da Imobiliária</label>
+                        <input id="c-site-name" type="text" placeholder="Ex: ImobiMaster" class="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                 </div>
             </section>
-            <div class="flex justify-end pt-4">
-                <button type="submit" id="btn-save-config" class="bg-blue-600 text-white px-10 py-4 rounded-2xl font-bold hover:bg-blue-700 shadow-xl shadow-blue-200 transition-all flex items-center gap-2">
-                    <span>Salvar Alterações</span>
+
+            <!-- SEÇÃO 2: Hero / Destaque Principal -->
+            <section class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
+                <h3 class="text-lg font-bold mb-6 text-slate-800 flex items-center gap-2">
+                    <span class="w-8 h-8 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center text-sm">2</span>
+                    Hero / Destaque Principal
+                </h3>
+                <div class="grid grid-cols-1 gap-6">
+                    <div>
+                        <label class="block text-sm font-semibold mb-2 text-slate-700">Título Principal</label>
+                        <input id="c-hero-title" type="text" placeholder="Ex: Seu imóvel do jeito certo" class="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-2 text-slate-700">Subtítulo</label>
+                        <textarea id="c-hero-subtitle" rows="3" placeholder="Ex: Encontre o imóvel ideal para você" class="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 leading-relaxed"></textarea>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-semibold mb-2 text-slate-700">Texto do Botão (CTA)</label>
+                            <input id="c-hero-cta-text" type="text" placeholder="Ex: Buscar Agora" class="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold mb-2 text-slate-700">Link do Botão (CTA)</label>
+                            <input id="c-hero-cta-link" type="text" placeholder="Ex: /imoveis" class="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SEÇÃO 3: Background da Hero (IMAGEM) -->
+            <section class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
+                <h3 class="text-lg font-bold mb-6 text-slate-800 flex items-center gap-2">
+                    <span class="w-8 h-8 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center text-sm">3</span>
+                    Background da Hero (IMAGEM)
+                </h3>
+                <div class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-semibold mb-2 text-slate-700">Imagem de Background (Desktop)</label>
+                        <div id="hero-bg-dropzone" class="border-2 border-dashed border-slate-200 rounded-2xl p-8 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50/30 transition-all mb-4">
+                            <input type="file" id="c-hero-bg-file" accept="image/jpeg,image/png,image/webp" class="hidden">
+                            <div class="flex flex-col items-center gap-2 text-slate-400">
+                                <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                <p class="font-semibold text-slate-600">Selecione a imagem de fundo</p>
+                            </div>
+                        </div>
+                        <p class="text-[11px] text-slate-400 leading-relaxed italic">
+                            Tamanho recomendado: 1324px × 1080px (Proporção 16:9). <br>
+                            Imagens muito menores podem perder qualidade ou sofrer cortes em telas grandes.
+                        </p>
+                    </div>
+
+                    <!-- Preview da Imagem Atual -->
+                    <div id="hero-image-preview-container" class="hidden">
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Preview Atual:</p>
+                        <div class="relative rounded-xl overflow-hidden aspect-video border border-slate-100 shadow-inner bg-slate-50">
+                            <img id="hero-image-preview" src="" class="w-full h-full object-cover">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Rodapé e Extras -->
+            <section class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
+                <h3 class="text-lg font-bold mb-6 text-slate-800 flex items-center gap-2">Conteúdo do Rodapé</h3>
+                <div>
+                    <label class="block text-sm font-semibold mb-2">Texto de Copyright</label>
+                    <input id="c-footer-text" type="text" placeholder="Ex: © 2024 ImobiMaster - Gestão Imobiliária Profissional" class="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+            </section>
+
+            <div class="flex justify-end pt-4 pb-12">
+                <button type="submit" id="btn-save-config" class="w-full md:w-auto bg-blue-600 text-white px-12 py-5 rounded-2xl font-bold hover:bg-blue-700 shadow-xl shadow-blue-200 transition-all flex items-center justify-center gap-2 active:scale-[0.98]">
+                    <span id="btn-text">Salvar Alterações</span>
                 </button>
             </div>
         </form>
