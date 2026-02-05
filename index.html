@@ -1,11 +1,17 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-br" class="render-locked">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ImobiMaster - Encontre seu novo lar</title>
     <meta name="description" content="Encontre os melhores imóveis em localizações exclusivas com a ImobiMaster.">
     
+    <style>
+      html.render-locked body {
+        visibility: hidden;
+      }
+    </style>
+
     <!-- Script crítico para aplicação do tema via LocalStorage (Previne FOUC de cores) -->
     <script>
         (function() {
@@ -48,7 +54,7 @@
       // Garante a injeção assim que o elemento hero-home estiver disponível no DOM
       document.addEventListener('DOMContentLoaded', function() {
         const hero = document.querySelector('.hero-home');
-        if (hero) {
+        if (hero && !hero.innerHTML.trim()) {
           hero.innerHTML = heroHTML;
         }
       });
@@ -92,7 +98,27 @@
         </div>
     </nav>
 
-    <header class="hero-home"></header>
+    <header class="hero-home">
+        <!-- Estrutura básica hardcoded para evitar hero vazio no primeiro paint -->
+        <div class="hero-content mx-auto w-full max-w-2xl text-center">
+          <h1 class="text-4xl md:text-5xl font-bold text-white mb-4">
+            Seu imóvel do jeito certo
+          </h1>
+          <p class="text-slate-200 mb-8">
+            Encontre o imóvel ideal para você
+          </p>
+          <div class="hero-search-container flex flex-col md:flex-row gap-2">
+            <input
+              type="text"
+              placeholder="Bairro, cidade ou condomínio..."
+              class="flex-1 rounded-lg px-4 py-3"
+            />
+            <button class="bg-emerald-500 text-white px-8 py-3 rounded-lg font-bold hover:bg-emerald-600 transition-colors whitespace-nowrap">
+              Buscar Agora
+            </button>
+          </div>
+        </div>
+    </header>
 
     <main class="max-w-7xl mx-auto px-4 py-12 md:py-20">
         <section id="regular-section">
