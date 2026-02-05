@@ -18,7 +18,7 @@
       document.documentElement.setAttribute('data-ui-locked', 'true');
     </script>
 
-    <!-- Script crítico para aplicação do tema via LocalStorage (Previne FOUC de cores) -->
+    <!-- Script crítico para aplicação do tema via LocalStorage -->
     <script>
         (function() {
             try {
@@ -71,13 +71,14 @@
         </div>
     </nav>
 
+    <!-- HERO COM SHELL NEUTRO -->
     <header class="hero-home py-12 md:py-32 px-4 text-center relative flex items-center justify-center">
         <div class="hero-content mx-auto">
-            <h1 class="text-3xl md:text-7xl font-bold mb-6 tracking-tight leading-tight">Encontre o imóvel que combina com sua vida</h1>
-            <p class="text-slate-200 text-base md:text-xl mb-12 max-w-2xl mx-auto opacity-90">Os melhores imóveis em localizações exclusivas com consultoria especializada.</p>
-            <div class="hero-search-container flex flex-col md:flex-row gap-2 max-w-2xl mx-auto">
-                <input type="text" placeholder="Bairro, cidade ou condomínio..." class="flex-1 px-6 py-4 text-slate-900 outline-none rounded-xl">
-                <button class="bg-blue-600 hover:bg-blue-700 text-white px-10 py-4 rounded-xl font-bold transition-all active:scale-95">Buscar Agora</button>
+            <h1 data-shell class="shell-title"></h1>
+            <p data-shell class="shell-subtitle"></p>
+            <div class="hero-search-container shell-search flex flex-col md:flex-row gap-2 max-w-2xl mx-auto">
+                <div class="shell-input"></div>
+                <div class="shell-button"></div>
             </div>
         </div>
     </header>
