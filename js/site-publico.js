@@ -67,16 +67,31 @@ async function initSite() {
 
         if (configError) {
             console.warn('Aviso: Não foi possível carregar as configurações do site:', configError.message);
+            removeHeroLoading();
         } else if (config) {
             applySiteSettings(config);
+        } else {
+            removeHeroLoading();
         }
     } catch (err) {
         console.warn('Erro silencioso ao processar configurações:', err);
+        removeHeroLoading();
     }
 
     // Carregar Conteúdo (Home ou Detalhe)
     if (!isDetailPage) {
         loadHomeProperties();
+    }
+}
+
+/**
+ * Helper para remover o estado de loading do Hero
+ */
+function removeHeroLoading() {
+    const heroSection = document.querySelector('header.hero-home');
+    if (heroSection) {
+        heroSection.classList.remove('hero-loading');
+        heroSection.classList.add('hero-loaded');
     }
 }
 
@@ -133,6 +148,9 @@ function applySiteSettings(config) {
             headerCta.classList.add('hidden');
         }
     }
+
+    // Finaliza o carregamento do Hero após aplicar tudo
+    removeHeroLoading();
 }
 
 /**
