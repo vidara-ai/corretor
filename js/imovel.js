@@ -21,7 +21,7 @@ async function iniciarPaginaImovel() {
     const params = new URLSearchParams(window.location.search);
     const imovelId = params.get('id');
     if (!imovelId) {
-        mostrarErro('Código do imóvel inválido ou não informado.');
+        mostrarErro('Código do imóvel inválido.');
         return;
     }
 
@@ -52,9 +52,9 @@ async function iniciarPaginaImovel() {
             .limit(1)
             .maybeSingle();
 
-        // Aplica o tema
-        if (config && config.color_scheme_id) {
-            const scheme = resolveColorScheme(config.color_scheme_id);
+        // Aplica o tema (Coluna correta: color_scheme)
+        if (config && config.color_scheme) {
+            const scheme = resolveColorScheme(config.color_scheme);
             applyColorScheme(scheme);
         }
 
@@ -62,7 +62,7 @@ async function iniciarPaginaImovel() {
         setupGalleryEvents();
         finalizarLoading();
     } catch (err) {
-        mostrarErro('Erro ao processar dados.');
+        mostrarErro('Erro ao carregar dados.');
     }
 }
 

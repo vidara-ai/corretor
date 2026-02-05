@@ -33,8 +33,6 @@ function obterValorImovel(imovel) {
 }
 
 async function initSite() {
-    const params = new URLSearchParams(window.location.search);
-    const isDetailPage = window.location.pathname.includes('imovel.html');
     initTheme();
 
     try {
@@ -45,21 +43,22 @@ async function initSite() {
             .maybeSingle();
 
         if (configError) {
-            console.warn('Aviso: Não foi possível carregar as configurações do site:', configError.message);
+            console.warn('Falha ao carregar configurações:', configError.message);
         } else if (config) {
             applySiteSettings(config);
         }
     } catch (err) {
-        console.warn('Erro silencioso ao processar configurações:', err);
+        console.warn('Erro ao processar configurações:', err);
     }
 
+    const isDetailPage = window.location.pathname.includes('imovel.html');
     if (!isDetailPage) loadHomeProperties();
 }
 
 function applySiteSettings(config) {
-    // Aplica o tema
-    if (config.color_scheme_id) {
-        const scheme = resolveColorScheme(config.color_scheme_id);
+    // Aplica o tema (Coluna: color_scheme)
+    if (config.color_scheme) {
+        const scheme = resolveColorScheme(config.color_scheme);
         applyColorScheme(scheme);
     }
 
