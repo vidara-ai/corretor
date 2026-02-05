@@ -36,8 +36,8 @@ function obterValorImovel(imovel) {
  * Inicialização do Site - Padrão Render Gate (Non-blocking)
  */
 function initSite() {
-    // 1. LIBERAÇÃO VISUAL IMEDIATA
-    // Remove o bloqueio de opacidade (Render Gate) do index.html instantaneamente
+    // 1. LIBERAÇÃO VISUAL IMEDIATA DA ESTRUTURA
+    // Remove o bloqueio de opacidade global (html) instantaneamente
     if (typeof window.releaseRenderGate === 'function') {
         window.releaseRenderGate();
     }
@@ -68,11 +68,17 @@ async function startDataLoading() {
 
         if (configError) {
             console.warn('Falha ao carregar configurações:', configError.message);
+            // Libera o Hero mesmo com erro para exibir fallback
+            document.querySelector('header.hero-home')?.classList.add('hero-ready');
         } else if (config) {
             applySiteSettings(config);
+        } else {
+            // Caso não haja config, libera o Hero
+            document.querySelector('header.hero-home')?.classList.add('hero-ready');
         }
     } catch (err) {
         console.warn('Erro ao processar configurações:', err);
+        document.querySelector('header.hero-home')?.classList.add('hero-ready');
     }
 
     const isDetailPage = window.location.pathname.includes('imovel.html');
@@ -91,6 +97,7 @@ function applySiteSettings(config) {
     const logoText = document.getElementById('site-logo-text');
     if (logoText) logoText.innerText = config.header_nome_site || 'ImobiMaster';
     
+    // Injeção de dados no HERO
     const heroTitle = document.querySelector('header h1');
     if (heroTitle && config.hero_titulo) heroTitle.innerText = config.hero_titulo;
 
@@ -104,6 +111,10 @@ function applySiteSettings(config) {
     if (heroSection) {
         if (config.hero_bg_desktop_url) heroSection.style.setProperty('--hero-bg-desktop', `url('${config.hero_bg_desktop_url}')`);
         if (config.hero_bg_mobile_url) heroSection.style.setProperty('--hero-bg-mobile', `url('${config.hero_bg_mobile_url}')`);
+        
+        // 3. LIBERAÇÃO VISUAL DO HERO (Gate Local)
+        // Adiciona a classe que dispara a opacidade apenas após injetar os textos do banco
+        heroSection.classList.add('hero-ready');
     }
 
     const sectionTitle = document.querySelector('#regular-section h2');
