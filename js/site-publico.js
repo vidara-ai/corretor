@@ -33,23 +33,10 @@ function obterValorImovel(imovel) {
 }
 
 /**
- * Liberação Visual Imediata (Render Gate Global)
- */
-function unlockUI() {
-    if (typeof window.releaseRenderGate === 'function') {
-        window.releaseRenderGate();
-    }
-}
-
-/**
- * Inicialização do Site
+ * Inicialização do Site - Execução Síncrona para Preparação da UI
  */
 function initSite() {
-    // 1. LIBERAÇÃO DA ESTRUTURA GLOBAL
-    // Mostra o layout básico instantaneamente
-    unlockUI();
-
-    // Suporte para transição de estados de loading/content (conforme imovel.html)
+    // Sincronização de containers (Fallback para páginas com loaders estruturais)
     const loader = document.getElementById('loading-container');
     const content = document.getElementById('content-container');
     if (loader) loader.style.display = 'none';
@@ -57,12 +44,12 @@ function initSite() {
 
     initTheme();
 
-    // 2. CARREGAMENTO EM BACKGROUND
+    // Dispara carregamento assíncrono em background sem bloquear a UI principal
     startDataLoading();
 }
 
 /**
- * Processamento assíncrono em background
+ * Processamento assíncrono em background (Não bloqueante)
  */
 async function startDataLoading() {
     try {
@@ -74,30 +61,16 @@ async function startDataLoading() {
 
         if (configError) {
             console.warn('Falha ao carregar configurações:', configError.message);
-            unlockHero(); // Libera hero mesmo em caso de falha
         } else if (config) {
             applySiteSettings(config);
-        } else {
-            unlockHero();
         }
     } catch (err) {
         console.warn('Erro ao processar configurações:', err);
-        unlockHero();
     }
 
     const isDetailPage = window.location.pathname.includes('imovel.html');
     if (!isDetailPage) {
         loadHomeProperties();
-    }
-}
-
-/**
- * Liberação local do HERO
- */
-function unlockHero() {
-    const hero = document.querySelector('header.hero-home');
-    if (hero) {
-        hero.classList.add('hero-ready');
     }
 }
 
@@ -126,10 +99,6 @@ function applySiteSettings(config) {
         if (config.hero_bg_desktop_url) heroSection.style.setProperty('--hero-bg-desktop', `url('${config.hero_bg_desktop_url}')`);
         if (config.hero_bg_mobile_url) heroSection.style.setProperty('--hero-bg-mobile', `url('${config.hero_bg_mobile_url}')`);
     }
-
-    // 3. LIBERAÇÃO VISUAL DO HERO (Gate Local)
-    // Chamado apenas após a injeção final dos dados dinâmicos
-    unlockHero();
 
     const sectionTitle = document.querySelector('#regular-section h2');
     if (sectionTitle && config.home_titulo_oportunidades) sectionTitle.innerText = config.home_titulo_oportunidades;
@@ -234,4 +203,8 @@ function setupCardEventListeners() {
     });
 }
 
-document.addEventListener('DOMContentLoaded', initSite);
+// EXECUÇÃO IMEDIATA (Módulos são deferred por padrão, DOM já está disponível)
+initSite();
+
+// PASSO FINAL: Unlocking do Render Gate (Garante zero flash visual)
+document.documentElement.removeAttribute('data-ui-locked');
