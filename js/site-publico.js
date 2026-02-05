@@ -1,32 +1,5 @@
 import { supabase } from './supabase.js';
 
-// ETAPA 6: Inicialização imediata do Hero via JavaScript (sem skeletons, sem duplicidade)
-(function createHero() {
-    const hero = document.querySelector('.hero-home');
-    if (!hero) return;
-
-    hero.innerHTML = `
-      <div class="hero-content mx-auto w-full max-w-2xl text-center">
-        <h1 class="text-4xl md:text-5xl font-bold text-white mb-4">
-          Seu imóvel do jeito certo
-        </h1>
-        <p class="text-slate-200 mb-8">
-          Encontre o imóvel ideal para você
-        </p>
-        <div class="hero-search-container flex flex-col md:flex-row gap-2 max-w-2xl mx-auto">
-          <input
-            type="text"
-            placeholder="Bairro, cidade ou condomínio..."
-            class="flex-1 rounded-lg px-4 py-3 text-slate-900 outline-none"
-          />
-          <button class="bg-emerald-500 text-white px-6 py-3 rounded-lg font-bold hover:bg-emerald-600 transition-colors">
-            Buscar Agora
-          </button>
-        </div>
-      </div>
-    `;
-})();
-
 // Estado global para a galeria da página de detalhes
 let currentPhotos = [];
 let currentIndex = 0;
@@ -104,30 +77,61 @@ async function startDataLoading() {
     }
 }
 
+/**
+ * Aplica as configurações do site e constrói o Hero exclusivamente via JS
+ */
 function applySiteSettings(config) {
-    // O tema NÃO é reaplicado aqui para evitar flash visual (FOUC).
-    // Ele é aplicado exclusivamente pelo script inline no <head> via localStorage.
-
+    // 1. Identidade Visual (Textos Globais)
     const logoText = document.getElementById('site-logo-text');
     if (logoText) logoText.innerText = config.header_nome_site || 'ImobiMaster';
-    
-    // NOTA: Conforme Step 8, não existe outro código que escreva no hero para evitar flash.
-    // Títulos e inputs são mantidos estáveis pelo script de inicialização imediata.
 
+    const footerText = document.getElementById('footer-copyright-text');
+    if (footerText) footerText.innerText = config.rodape_texto || '© ImobiMaster';
+
+    // 2. Construção ÚNICA do Hero (Garante que o fundo e o texto apareçam juntos)
     const heroSection = document.querySelector('header.hero-home');
     if (heroSection) {
-        if (config.hero_bg_desktop_url) heroSection.style.setProperty('--hero-bg-desktop', `url('${config.hero_bg_desktop_url}')`);
-        if (config.hero_bg_mobile_url) heroSection.style.setProperty('--hero-bg-mobile', `url('${config.hero_bg_mobile_url}')`);
+        // Define as variáveis de background antes de injetar o HTML
+        if (config.hero_bg_desktop_url) {
+            heroSection.style.setProperty('--hero-bg-desktop', `url('${config.hero_bg_desktop_url}')`);
+        }
+        if (config.hero_bg_mobile_url) {
+            heroSection.style.setProperty('--hero-bg-mobile', `url('${config.hero_bg_mobile_url}')`);
+        }
+
+        const titulo = config.hero_titulo || 'Seu imóvel do jeito certo';
+        const subtitulo = config.hero_subtitulo || 'Encontre o imóvel ideal para você';
+        const ctaTexto = config.hero_cta_texto || 'Buscar Agora';
+
+        // Injeta o HTML completo apenas após as variáveis de estilo estarem prontas
+        heroSection.innerHTML = `
+          <div class="hero-content mx-auto w-full max-w-2xl text-center">
+            <h1 class="text-4xl md:text-5xl font-bold text-white mb-4">
+              ${titulo}
+            </h1>
+            <p class="text-slate-200 mb-8">
+              ${subtitulo}
+            </p>
+            <div class="hero-search-container flex flex-col md:flex-row gap-2 max-w-xl mx-auto">
+              <input
+                type="text"
+                placeholder="Bairro, cidade ou condomínio..."
+                class="flex-1 rounded-lg px-4 py-3 text-slate-900 outline-none"
+              />
+              <button class="bg-emerald-500 text-white px-8 py-3 rounded-lg font-bold hover:bg-emerald-600 transition-colors whitespace-nowrap">
+                ${ctaTexto}
+              </button>
+            </div>
+          </div>
+        `;
     }
 
+    // 3. Outras Seções
     const sectionTitle = document.querySelector('#regular-section h2');
     if (sectionTitle && config.home_titulo_oportunidades) sectionTitle.innerText = config.home_titulo_oportunidades;
 
     const sectionSub = document.querySelector('#regular-section p');
     if (sectionSub && config.home_subtitulo_oportunidades) sectionSub.innerText = config.home_subtitulo_oportunidades;
-
-    const footerText = document.getElementById('footer-copyright-text');
-    if (footerText) footerText.innerText = config.rodape_texto || '© ImobiMaster';
 
     const headerCta = document.getElementById('header-cta-contato');
     if (headerCta) {
@@ -223,5 +227,5 @@ function setupCardEventListeners() {
     });
 }
 
-// EXECUÇÃO IMEDIATA (Módulos são deferred por padrão, DOM já está disponível)
+// EXECUÇÃO INICIAL
 initSite();
