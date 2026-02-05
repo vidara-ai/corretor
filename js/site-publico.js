@@ -67,11 +67,15 @@ async function initSite() {
 
         if (configError) {
             console.warn('Aviso: Não foi possível carregar as configurações do site:', configError.message);
+            removeHeroLoading();
         } else if (config) {
             applySiteSettings(config);
+        } else {
+            removeHeroLoading();
         }
     } catch (err) {
         console.warn('Erro silencioso ao processar configurações:', err);
+        removeHeroLoading();
     }
 
     // Carregar Conteúdo (Home ou Detalhe)
@@ -81,12 +85,32 @@ async function initSite() {
 }
 
 /**
+ * Helper para remover o estado de loading do Hero
+ */
+function removeHeroLoading() {
+    const heroSection = document.querySelector('header.hero-home');
+    if (heroSection) {
+        heroSection.classList.remove('hero-loading');
+        heroSection.classList.add('hero-loaded');
+    }
+}
+
+/**
  * Aplica as configurações visuais ao site
  */
 function applySiteSettings(config) {
-    const logoText = document.getElementById('site-logo-text');
-    if (logoText) logoText.innerText = config.header_nome_site || 'ImobiMaster';
+    // Logo Dinâmico (Sem Fallback)
+    const logoImg = document.getElementById('header-logo-img');
+    if (logoImg) {
+        if (config.header_logo_url) {
+            logoImg.src = config.header_logo_url;
+            logoImg.classList.remove('hidden');
+        } else {
+            logoImg.classList.add('hidden');
+        }
+    }
     
+    // Configurações do Hero
     const heroTitle = document.querySelector('header h1');
     if (heroTitle && config.hero_titulo) heroTitle.innerText = config.hero_titulo;
 
@@ -96,9 +120,14 @@ function applySiteSettings(config) {
     const heroCtaBtn = document.querySelector('header button');
     if (heroCtaBtn && config.hero_cta_texto) heroCtaBtn.innerText = config.hero_cta_texto;
 
-    const heroSection = document.querySelector('header');
-    if (heroSection && config.hero_bg_desktop_url) {
-        heroSection.style.setProperty('--hero-bg-desktop', `url('${config.hero_bg_desktop_url}')`);
+    const heroSection = document.querySelector('header.hero-home');
+    if (heroSection) {
+        if (config.hero_bg_desktop_url) {
+            heroSection.style.setProperty('--hero-bg-desktop', `url('${config.hero_bg_desktop_url}')`);
+        }
+        if (config.hero_bg_mobile_url) {
+            heroSection.style.setProperty('--hero-bg-mobile', `url('${config.hero_bg_mobile_url}')`);
+        }
     }
 
     // Configurações da Seção "Oportunidades"
@@ -115,7 +144,7 @@ function applySiteSettings(config) {
     const footerText = document.getElementById('footer-copyright-text');
     if (footerText) footerText.innerText = config.rodape_texto || '© ImobiMaster';
 
-    // CTA do Header (Entre em contato)
+    // CTA do Header (WhatsApp) - Ativado para Desktop e Mobile
     const headerCta = document.getElementById('header-cta-contato');
     if (headerCta) {
         if (config.header_whatsapp) {
@@ -128,6 +157,16 @@ function applySiteSettings(config) {
             headerCta.classList.add('hidden');
         }
     }
+
+    // Botão flutuante WhatsApp (se houver número no header ou em outro lugar relevante)
+    const waButton = document.getElementById('wa-button');
+    if (waButton && config.header_whatsapp) {
+        const num = config.header_whatsapp.replace(/\D/g, '');
+        waButton.href = `https://wa.me/${num}`;
+    }
+
+    // Finaliza o carregamento do Hero após aplicar tudo
+    removeHeroLoading();
 }
 
 /**
