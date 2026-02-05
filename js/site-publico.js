@@ -88,7 +88,7 @@ function applySiteSettings(config) {
     const footerText = document.getElementById('footer-copyright-text');
     if (footerText) footerText.innerText = config.rodape_texto || '© ImobiMaster';
 
-    // 2. Atualização do Hero (O esqueleto já foi injetado pelo script inline no index.html)
+    // 2. Atualização do Hero (O esqueleto já foi injetado via HTML estático ou script inline)
     const heroSection = document.querySelector('header.hero-home');
     if (heroSection) {
         // Define as variáveis de background
@@ -99,8 +99,7 @@ function applySiteSettings(config) {
             heroSection.style.setProperty('--hero-bg-mobile', `url('${config.hero_bg_mobile_url}')`);
         }
 
-        // Atualiza apenas os textos dinâmicos se houver configuração no banco,
-        // preservando a estrutura para evitar flashes de layout (CLS).
+        // Atualiza apenas os textos dinâmicos sem sobrescrever o HTML completo (evita flashes de layout)
         const h1 = heroSection.querySelector('h1');
         const p = heroSection.querySelector('p');
         const btn = heroSection.querySelector('button');
@@ -213,3 +212,10 @@ function setupCardEventListeners() {
 
 // EXECUÇÃO INICIAL
 initSite();
+
+// Liberação FINAL do render — após DOM, CSS e tema estarem prontos
+requestAnimationFrame(() => {
+  requestAnimationFrame(() => {
+    document.documentElement.classList.remove('render-locked');
+  });
+});
