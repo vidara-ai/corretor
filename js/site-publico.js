@@ -218,5 +218,6 @@ function setupCardEventListeners() {
 // EXECUÇÃO IMEDIATA (Módulos são deferred por padrão, DOM já está disponível)
 initSite();
 
-// PASSO FINAL: Unlocking do Render Gate (Garante zero flash visual global)
-document.documentElement.removeAttribute('data-ui-locked');
+// PASSO FINAL: Liberação do Render Gate Global
+document.documentElement.classList.remove('render-locked');
+document.documentElement.classList.add('render-ready');
