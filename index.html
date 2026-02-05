@@ -22,6 +22,39 @@
         })();
     </script>
 
+    <script>
+    (function () {
+      const heroHTML = `
+        <div class="hero-content mx-auto w-full max-w-2xl text-center">
+          <h1 class="text-4xl md:text-5xl font-bold text-white mb-4">
+            Seu imóvel do jeito certo
+          </h1>
+          <p class="text-slate-200 mb-8">
+            Encontre o imóvel ideal para você
+          </p>
+          <div class="hero-search-container flex flex-col md:flex-row gap-2">
+            <input
+              type="text"
+              placeholder="Bairro, cidade ou condomínio..."
+              class="flex-1 rounded-lg px-4 py-3"
+            />
+            <button class="bg-emerald-500 text-white px-6 py-3 rounded-lg font-bold">
+              Buscar Agora
+            </button>
+          </div>
+        </div>
+      `;
+
+      // Garante a injeção assim que o elemento hero-home estiver disponível no DOM
+      document.addEventListener('DOMContentLoaded', function() {
+        const hero = document.querySelector('.hero-home');
+        if (hero) {
+          hero.innerHTML = heroHTML;
+        }
+      });
+    })();
+    </script>
+
     <!-- Open Graph -->
     <meta property="og:type" content="website">
     <meta property="og:title" content="ImobiMaster - Gestão Imobiliária">
