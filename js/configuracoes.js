@@ -74,6 +74,11 @@ async function loadConfig() {
       document.getElementById('footer_bio').value = data.footer_bio || '';
       document.getElementById('footer_creci').value = data.footer_creci || '';
       document.getElementById('footer_telefone').value = data.footer_telefone || '';
+      
+      // Novos campos do formulário
+      document.getElementById('titulo_formulario_footer').value = data.titulo_formulario_footer || '';
+      document.getElementById('subtitulo_formulario_footer').value = data.subtitulo_formulario_footer || '';
+
       document.getElementById('footer_instagram_url').value = data.footer_instagram_url || '';
       document.getElementById('footer_tiktok_url').value = data.footer_tiktok_url || '';
       document.getElementById('footer_x_url').value = data.footer_x_url || '';
@@ -102,11 +107,16 @@ document.getElementById('config-form').onsubmit = async (e) => {
       hero_titulo: document.getElementById('c-hero-title').value,
       hero_subtitulo: document.getElementById('c-hero-subtitle').value,
       
-      // New Footer Columns mapping
+      // Footer Columns mapping
       footer_titulo: document.getElementById('footer_titulo').value || null,
       footer_bio: document.getElementById('footer_bio').value || null,
       footer_creci: document.getElementById('footer_creci').value || null,
       footer_telefone: document.getElementById('footer_telefone').value || null,
+
+      // Novos campos do formulário do footer
+      titulo_formulario_footer: document.getElementById('titulo_formulario_footer').value || null,
+      subtitulo_formulario_footer: document.getElementById('subtitulo_formulario_footer').value || null,
+
       footer_instagram_url: document.getElementById('footer_instagram_url').value || null,
       footer_tiktok_url: document.getElementById('footer_tiktok_url').value || null,
       footer_x_url: document.getElementById('footer_x_url').value || null,
