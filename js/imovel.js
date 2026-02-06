@@ -169,6 +169,20 @@ async function iniciarPaginaImovel() {
                     footerCopy.style.display = 'none';
                 }
             }
+
+            // Ajuste do Botão Flutuante de WhatsApp
+            const waButton = document.getElementById('wa-button');
+            if (waButton) {
+                const whatsappValue = config.header_whatsapp || config.whatsapp_header;
+                const whatsappNumber = whatsappValue ? whatsappValue.replace(/\D/g, '') : '';
+                
+                if (whatsappNumber) {
+                    waButton.href = `https://wa.me/${whatsappNumber}`;
+                    waButton.style.display = 'flex';
+                } else {
+                    waButton.style.display = 'none';
+                }
+            }
         }
 
         renderizarImovel(imovel, config || {});
@@ -190,7 +204,7 @@ function renderizarImovel(p, config) {
     const finalidadeLower = (p.finalidade || '').toLowerCase();
     const isAluguel = finalidadeLower === 'aluguel';
 
-    const whatsappNum = config.header_whatsapp || '5500000000000';
+    const whatsappNum = config.header_whatsapp || config.whatsapp_header || '5500000000000';
     const msgText = `Olá! Vi o imóvel "${p.titulo}" (Ref: ${p.referencia || p.id}) no site e gostaria de agendar uma visita.`;
     const whatsappLink = `https://wa.me/${whatsappNum.replace(/\D/g, '')}?text=${encodeURIComponent(msgText)}`;
 
@@ -345,4 +359,70 @@ function renderizarImovel(p, config) {
 
                         <div class="space-y-4">
                             <a href="${whatsappLink}" target="_blank" class="flex items-center justify-center gap-3 w-full bg-emerald-500 text-white py-6 rounded-[2rem] font-black text-lg hover:bg-emerald-600 transition-all shadow-xl shadow-emerald-100 active:scale-95">
-                                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.417-.003 6.557-5.338 11.892-11.893 11.892-1.997-.001-3.951-.5-5.688-1.448l-6.305 1.652zm6.599-3.835c1.405.836 2.755 1.28 4.301 1.281 5.177 0 9.389-4.213 9.391-9.391 0-2.512-.975-4.87-2.747-6.645
+                                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.417-.003 6.557-5.338 11.892-11.893 11.892-1.997-.001-3.951-.5-5.688-1.448l-6.305 1.652zm6.599-3.835c1.405.836 2.755 1.28 4.301 1.281 5.177 0 9.389-4.213 9.391-9.391 0-2.512-.975-4.87-2.747-6.645s-4.131-2.744-6.641-2.745c-5.181 0-9.392 4.213-9.395 9.393 0 1.608.434 3.182 1.258 4.587l-.937 3.421 3.49-.916zm11.22-7.259c.302-.15.302-.501.05-.651-.251-.151-1.488-.732-1.714-.813-.226-.082-.389-.121-.55.121s-.622.772-.763.933c-.14.161-.282.181-.582.031s-1.266-.467-2.411-1.487c-.891-.793-1.492-1.773-1.667-2.074-.176-.301-.019-.464.131-.614.135-.135.301-.351.452-.527.151-.176.201-.292.301-.482.1-.191.05-.361-.026-.511-.076-.151-.55-1.328-.753-1.817-.197-.474-.4-.41-.55-.418s-.311-.008-.477-.008-.437.061-.664.311c-.226.251-.865.842-.865 2.05s.879 2.373 1.005 2.541c.125.168 1.733 2.646 4.197 3.711.586.254 1.044.405 1.401.518.589.187 1.125.161 1.549.098.473-.07 1.488-.607 1.701-1.192.214-.584.214-1.085.15-1.192-.063-.107-.226-.171-.528-.221z"/></svg>
+                                Agendar uma visita
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function setupGalleryEvents() {
+    const mainImg = document.getElementById('galeria-foto-principal');
+    if (!mainImg) return;
+
+    mainImg.onclick = () => openLightbox(currentIndex);
+
+    const btnNext = document.getElementById('btn-next');
+    const btnPrev = document.getElementById('btn-prev');
+
+    if (btnNext) btnNext.onclick = (e) => { e.stopPropagation(); navigateGallery(1); };
+    if (btnPrev) btnPrev.onclick = (e) => { e.stopPropagation(); navigateGallery(-1); };
+
+    document.querySelectorAll('.miniatura-item').forEach(thumb => {
+        thumb.onclick = (e) => {
+            e.stopPropagation();
+            currentIndex = parseInt(thumb.dataset.index);
+            atualizarExibicaoGaleria();
+        };
+    });
+}
+
+function navigateGallery(dir) {
+    currentIndex = (currentIndex + dir + currentPhotos.length) % currentPhotos.length;
+    atualizarExibicaoGaleria();
+}
+
+function atualizarExibicaoGaleria() {
+    const mainImg = document.getElementById('galeria-foto-principal');
+    const thumbnails = document.querySelectorAll('.miniatura-item');
+    if (mainImg && currentPhotos[currentIndex]) {
+        mainImg.src = currentPhotos[currentIndex].url;
+    }
+    thumbnails.forEach((thumb, idx) => {
+        if (idx === currentIndex) {
+            thumb.classList.add('ring-4', 'ring-blue-600', 'scale-95', 'opacity-100', 'border-2', 'border-white');
+            thumb.classList.remove('opacity-40');
+        } else {
+            thumb.classList.remove('ring-4', 'ring-blue-600', 'scale-95', 'opacity-100', 'border-2', 'border-white');
+            thumb.classList.add('opacity-40');
+        }
+    });
+}
+
+function finalizarLoading() {
+    const loader = document.getElementById('loading-container');
+    const content = document.getElementById('content-container');
+    if (loader) loader.style.display = 'none';
+    if (content) content.style.display = 'block';
+}
+
+function mostrarErro(msg) {
+    const container = document.getElementById('property-detail');
+    if (container) container.innerHTML = `<div class="text-center py-20 bg-white rounded-[2.5rem] shadow-sm border border-slate-100"><p class="text-slate-500 font-black text-xl">${msg}</p><a href="index.html" class="mt-4 inline-block text-blue-600 font-bold hover:underline">Voltar para a página inicial</a></div>`;
+}
+
+document.addEventListener('DOMContentLoaded', iniciarPaginaImovel);

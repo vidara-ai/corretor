@@ -501,8 +501,21 @@ function applySiteSettings(config) {
     if (heroSub && config.hero_subtitulo) heroSub.innerText = config.hero_subtitulo;
     const footerCopy = document.getElementById('footer-copyright-text');
     if (footerCopy) { footerCopy.innerText = config.footer_copyright || config.rodape_texto || `© ${new Date().getFullYear()} ${config.header_nome_site || 'ImobiMaster'}`; }
+    
+    // Ajuste do Botão Flutuante de WhatsApp
     const waButton = document.getElementById('wa-button');
-    if (waButton && config.header_whatsapp) { waButton.href = `https://wa.me/${config.header_whatsapp.replace(/\D/g, '')}`; }
+    if (waButton) {
+        const whatsappValue = config.header_whatsapp || config.whatsapp_header;
+        const whatsappNumber = whatsappValue ? whatsappValue.replace(/\D/g, '') : '';
+        
+        if (whatsappNumber) {
+            waButton.href = `https://wa.me/${whatsappNumber}`;
+            waButton.style.display = 'flex';
+        } else {
+            waButton.style.display = 'none';
+        }
+    }
+    
     const heroSection = document.querySelector('header.hero-home');
     if (heroSection && config.hero_bg_desktop_url) { heroSection.style.setProperty('--hero-bg-desktop', `url('${config.hero_bg_desktop_url}')`); }
 }
