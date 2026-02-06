@@ -1,6 +1,9 @@
 
 import { supabase } from './supabase.js';
 
+let allLeads = [];
+let filteredLeads = [];
+
 /**
  * Carrega os leads do banco de dados
  */
@@ -12,12 +15,75 @@ async function loadLeads() {
             .order('created_at', { ascending: false });
 
         if (error) throw error;
-        renderLeads(leads || []);
+        
+        allLeads = leads || [];
+        filteredLeads = [...allLeads];
+        
+        renderLeads(filteredLeads);
+        setupFilters();
     } catch (err) {
         console.error('Erro ao carregar leads:', err.message);
         const feedback = `<div class="col-span-full p-10 text-center text-red-500 font-bold">Erro ao acessar o banco de dados.</div>`;
         document.getElementById('leads-container').innerHTML = feedback;
     }
+}
+
+/**
+ * Configura os listeners dos filtros
+ */
+function setupFilters() {
+    const originFilter = document.getElementById('filter-origin');
+    const interestFilter = document.getElementById('filter-interest');
+    const dateStartFilter = document.getElementById('filter-date-start');
+    const dateEndFilter = document.getElementById('filter-date-end');
+    const clearBtn = document.getElementById('btn-clear-filters');
+    const exportBtn = document.getElementById('btn-export-csv');
+
+    const apply = () => {
+        const origin = originFilter.value;
+        const interest = interestFilter.value.toLowerCase();
+        const start = dateStartFilter.value;
+        const end = dateEndFilter.value;
+
+        filteredLeads = allLeads.filter(l => {
+            const matchesOrigin = !origin || l.origem === origin;
+            const matchesInterest = !interest || (l.imovel_interesse || '').toLowerCase().includes(interest);
+            
+            // Lógica de Data
+            let matchesDate = true;
+            if (start || end) {
+                const leadDate = new Date(l.created_at).toISOString().split('T')[0];
+                if (start && leadDate < start) matchesDate = false;
+                if (end && leadDate > end) matchesDate = false;
+            }
+
+            return matchesOrigin && matchesInterest && matchesDate;
+        });
+
+        renderLeads(filteredLeads);
+    };
+
+    originFilter.addEventListener('change', apply);
+    interestFilter.addEventListener('input', apply);
+    dateStartFilter.addEventListener('change', apply);
+    dateEndFilter.addEventListener('change', apply);
+
+    clearBtn.addEventListener('click', () => {
+        originFilter.value = '';
+        interestFilter.value = '';
+        dateStartFilter.value = '';
+        dateEndFilter.value = '';
+        filteredLeads = [...allLeads];
+        renderLeads(filteredLeads);
+    });
+
+    exportBtn.addEventListener('click', () => {
+        if (filteredLeads.length === 0) {
+            alert('Não há leads para exportar com os filtros atuais.');
+            return;
+        }
+        exportLeadsToCSV(filteredLeads);
+    });
 }
 
 /**
@@ -28,7 +94,7 @@ function renderLeads(leads) {
     if (!container) return;
 
     if (leads.length === 0) {
-        container.innerHTML = `<div class="col-span-full p-20 text-center text-slate-400 font-medium">Nenhum lead recebido até o momento.</div>`;
+        container.innerHTML = `<div class="col-span-full p-20 text-center text-slate-400 font-medium">Nenhum lead encontrado para os filtros aplicados.</div>`;
         return;
     }
 
@@ -40,7 +106,6 @@ function renderLeads(leads) {
             minute: '2-digit' 
         });
 
-        // Lógica do link de WhatsApp personalizado
         const cleanPhone = (l.telefone || '').replace(/\D/g, '');
         const nomeCliente = l.nome ? l.nome.split(' ')[0] : 'cliente';
         const imovel = l.imovel_interesse || 'interesse geral';
@@ -72,12 +137,6 @@ function renderLeads(leads) {
                             <span class="opacity-50">📞</span>
                             <span class="font-semibold">${l.telefone || 'Não informado'}</span>
                         </div>
-                        ${l.email ? `
-                            <div class="flex items-center gap-2 text-slate-600 text-xs">
-                                <span class="opacity-50">✉️</span>
-                                <span>${l.email}</span>
-                            </div>
-                        ` : ''}
                         <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 mt-2">
                             <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Interesse</p>
                             <p class="text-xs font-bold text-slate-700 truncate">${l.imovel_interesse || 'Geral'}</p>
@@ -102,8 +161,46 @@ function renderLeads(leads) {
 }
 
 /**
+ * Função de Exportação para CSV
+ */
+function exportLeadsToCSV(leads) {
+    const headers = ['Nome', 'Telefone', 'Origem', 'Imóvel / Interesse', 'Data'];
+    
+    const rows = leads.map(l => {
+        const date = new Date(l.created_at).toLocaleDateString('pt-BR', {
+            day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
+        });
+        
+        // Escape de aspas e ponto e vírgula para evitar quebra do CSV
+        const escape = (text) => `"${(text || '').toString().replace(/"/g, '""')}"`;
+
+        return [
+            escape(l.nome),
+            escape(l.telefone),
+            escape(l.origem),
+            escape(l.imovel_interesse),
+            escape(date)
+        ].join(';');
+    });
+
+    const csvContent = [headers.join(';'), ...rows].join('\n');
+    
+    // Blob com UTF-8 BOM para garantir acentos no Excel
+    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'Leads_data.csv');
+    link.style.visibility = 'hidden';
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+/**
  * Exclui um lead do banco de dados e remove o card da tela
- * @param {string} id 
  */
 window.deleteLead = async (id) => {
     if (!confirm('Deseja excluir este lead permanentemente?')) return;
@@ -116,13 +213,15 @@ window.deleteLead = async (id) => {
 
         if (error) throw error;
 
-        // Feedback visual imediato: remove o card com animação
         const card = document.getElementById(`lead-card-${id}`);
         if (card) {
             card.style.opacity = '0';
             card.style.transform = 'scale(0.9)';
             setTimeout(() => card.remove(), 300);
         }
+        
+        // Atualiza a lista em memória
+        allLeads = allLeads.filter(l => l.id !== id);
     } catch (err) {
         console.error('Erro ao excluir lead:', err.message);
         alert('Não foi possível excluir o lead no momento.');
