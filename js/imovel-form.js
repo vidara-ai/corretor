@@ -15,8 +15,8 @@ let garantiasLocacao = [];
 // Listas de Características (Mantidas na UI para experiência do usuário)
 const LISTA_IMOVEL = [
     "Ar condicionado", "Área de serviço", "Armário na cozinha", "Armário no quarto", 
-    "Armários projetados", "Box no banheiro", "Caixa d’água", "Cisterna", "Mobiliado"
-    "Dependência de empregada", "Quarto de empregada", "WC serviço", "Sala de estar", "Semi Mobiliado"
+    "Armários projetados", "Box no banheiro", "Caixa d’água", "Cisterna", 
+    "Dependência de empregada", "Quarto de empregada", "WC serviço", "Sala de estar", 
     "Sala de jantar", "Sala de visita", "Varanda", "Varanda na sala", "Tela na varanda", 
     "Nascente", "Rua asfaltada", "Piscina privativa", "Churrasqueira", "Jardim", 
     "Quintal", "Escritório / Home office", "Closet", "Lavabo", "Pé-direito alto", "Energia solar"
