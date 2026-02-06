@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -53,7 +54,6 @@
                     <div class="md:col-span-2">
                         <label class="block text-sm font-semibold mb-2 text-slate-700">Esquema de cores</label>
                         <select id="color_scheme_id" class="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
-                            <!-- Opções carregadas via JS de schemes.js -->
                         </select>
                         <p class="mt-2 text-xs text-slate-400">Define a paleta visual dos botões, badges, valores e destaques do site.</p>
                     </div>
@@ -75,76 +75,57 @@
                         <label class="block text-sm font-semibold mb-2 text-slate-700">Subtítulo</label>
                         <textarea id="c-hero-subtitle" rows="3" placeholder="Ex: Encontre o imóvel ideal para você" class="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 leading-relaxed"></textarea>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-sm font-semibold mb-2 text-slate-700">Texto do Botão (CTA Hero)</label>
-                            <input id="c-hero-cta-text" type="text" placeholder="Ex: Buscar Agora" class="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-semibold mb-2 text-slate-700">Link do Botão (CTA Hero)</label>
-                            <input id="c-hero-cta-link" type="text" placeholder="Ex: /imoveis" class="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
-                        </div>
-                    </div>
-
-                    <div class="pt-6 border-t border-slate-50 grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-sm font-semibold mb-2 text-slate-700">Título "Oportunidades"</label>
-                            <input id="home_titulo_oportunidades" type="text" placeholder="Ex: Últimas Oportunidades" class="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-semibold mb-2 text-slate-700">Subtítulo "Oportunidades"</label>
-                            <input id="home_subtitulo_oportunidades" type="text" placeholder="Ex: Explorar catálogo completo" class="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
-                        </div>
-                    </div>
-
-                    <div class="pt-6 border-t border-slate-50 grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-sm font-semibold mb-2 text-slate-700">Texto do botão (detalhe do imóvel)</label>
-                            <input id="imovel_cta_texto" type="text" placeholder="Ex: Tenho Interesse via WhatsApp" class="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-semibold mb-2 text-slate-700">WhatsApp para agendamento de visita</label>
-                            <input id="imovel_cta_whatsapp" type="text" placeholder="Ex: 5511999999999" class="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
-                        </div>
-                    </div>
                 </div>
             </section>
 
-            <!-- SEÇÃO 3: Background da Hero (IMAGEM) -->
+            <!-- SEÇÃO 4: Footer do Site -->
             <section class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
                 <h3 class="text-lg font-bold mb-6 text-slate-800 flex items-center gap-2">
-                    <span class="w-8 h-8 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center text-sm">3</span>
-                    Background da Hero (IMAGEM)
+                    <span class="w-8 h-8 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center text-sm">4</span>
+                    Conteúdo do Rodapé
                 </h3>
-                <div class="space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label class="block text-sm font-semibold mb-2 text-slate-700">Imagem de Background (Desktop)</label>
-                        <div id="hero-bg-dropzone" class="border-2 border-dashed border-slate-200 rounded-2xl p-8 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50/30 transition-all mb-4">
-                            <input type="file" id="c-hero-bg-file" accept="image/jpeg,image/png,image/webp" class="hidden">
-                            <div class="flex flex-col items-center gap-2 text-slate-400">
-                                <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                                <p class="font-semibold text-slate-600">Selecione a imagem de fundo</p>
-                            </div>
-                        </div>
-                        <p class="text-[11px] text-slate-400 leading-relaxed italic">
-                            Tamanho recomendado: 1324px × 1080px (Proporção 16:9). <br>
-                            Imagens muito menores podem perder qualidade ou sofrer cortes em telas grandes.
-                        </p>
+                        <label class="block text-sm font-semibold mb-2 text-slate-700">Título do Footer</label>
+                        <input id="footer_titulo" type="text" placeholder="Ex: Marlon Sales." class="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-2 text-slate-700">Telefone para Exibição</label>
+                        <input id="footer_telefone" type="text" placeholder="Ex: (83) 99999-9999" class="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-semibold mb-2 text-slate-700">Bio / Descrição Curta</label>
+                        <textarea id="footer_bio" rows="3" placeholder="Especialistas em encontrar o lar dos seus sonhos..." class="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 leading-relaxed"></textarea>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-semibold mb-2 text-slate-700">Texto do CRECI</label>
+                        <input id="footer_creci" type="text" placeholder="Ex: MARLON SALES – CORRETOR DE IMÓVEIS – CRECI: 11111111" class="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
 
-                    <div id="hero-image-preview-container" class="hidden">
-                        <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Preview Atual:</p>
-                        <div class="relative rounded-xl overflow-hidden aspect-video border border-slate-100 shadow-inner bg-slate-50">
-                            <img id="hero-image-preview" src="" class="w-full h-full object-cover">
+                <div class="mt-8 pt-8 border-t border-slate-50">
+                    <h4 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-6">Redes Sociais (Links completos)</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-semibold mb-2 text-slate-700">Instagram URL</label>
+                            <input id="footer_instagram" type="url" placeholder="https://instagram.com/..." class="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold mb-2 text-slate-700">TikTok URL</label>
+                            <input id="footer_tiktok" type="url" placeholder="https://tiktok.com/@..." class="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold mb-2 text-slate-700">X (Twitter) URL</label>
+                            <input id="footer_x" type="url" placeholder="https://x.com/..." class="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold mb-2 text-slate-700">LinkedIn URL</label>
+                            <input id="footer_linkedin" type="url" placeholder="https://linkedin.com/in/..." class="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
                     </div>
                 </div>
-            </section>
-
-            <section class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
-                <h3 class="text-lg font-bold mb-6 text-slate-800 flex items-center gap-2">Conteúdo do Rodapé</h3>
-                <div>
-                    <label class="block text-sm font-semibold mb-2">Texto de Copyright</label>
+                <div class="mt-8 pt-8 border-t border-slate-50">
+                    <label class="block text-sm font-semibold mb-2 text-slate-700">Texto de Copyright (Final)</label>
                     <input id="c-footer-text" type="text" placeholder="Ex: © 2024 ImobiMaster - Gestão Imobiliária Profissional" class="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
             </section>

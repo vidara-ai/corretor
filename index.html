@@ -4,8 +4,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <!-- CSS CRÍTICO INLINE -->
     <style>
       #boot-screen {
         position: fixed !important;
@@ -19,10 +17,8 @@
       body { visibility: hidden !important; }
       body.ready { visibility: visible !important; }
     </style>
-
     <title>&nbsp;</title>
     <meta name="description" content="Encontre os melhores imóveis em localizações exclusivas com a ImobiMaster.">
-    
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -45,7 +41,6 @@
         </div>
     </nav>
 
-    <!-- Hero Section Refinado com Glassmorphism -->
     <header class="hero-home py-12 md:py-24 px-4 text-center relative flex items-center justify-center min-h-[650px]">
         <div class="hero-content mx-auto w-full max-w-3xl bg-white/10 backdrop-blur-xl border border-white/20 rounded-[2.5rem] p-8 md:p-16 shadow-2xl relative z-10 transition-all">
             <h1 class="text-4xl sm:text-5xl lg:text-7xl font-black mb-6 tracking-tighter leading-[1.1] text-white break-words">&nbsp;</h1>
@@ -66,7 +61,6 @@
         </section>
     </main>
 
-    <!-- Modal de Captura com Blur e Overlay Profundo -->
     <div id="lead-modal" class="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-md opacity-0 pointer-events-none transition-all duration-500">
         <div class="bg-white w-full max-w-md rounded-[2.5rem] shadow-[0_35px_60px_-15px_rgba(0,0,0,0.3)] overflow-hidden transform scale-90 opacity-0 transition-all duration-500 ease-out" id="lead-modal-content">
             <div class="p-8 md:p-12">
@@ -79,85 +73,61 @@
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
                 </div>
-
                 <form id="lead-capture-form" class="space-y-6">
-                    <div id="lead-success-msg" class="hidden bg-emerald-50 text-emerald-700 p-6 rounded-3xl text-center font-bold animate-in fade-in zoom-in border border-emerald-100">
-                        <div class="mb-2 text-2xl">✅</div>
-                        Enviado com sucesso! Entraremos em contato.
+                    <div id="lead-success-msg" class="hidden bg-emerald-50 text-emerald-700 p-6 rounded-3xl text-center font-bold border border-emerald-100">
+                        Enviado com sucesso!
                     </div>
-
                     <div id="lead-form-fields" class="space-y-5">
-                        <div class="group">
-                            <label class="block text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3 ml-2 group-focus-within:text-blue-600 transition-colors">Nome Completo</label>
-                            <input type="text" id="lead-nome" required placeholder="Como podemos te chamar?" 
-                                class="w-full p-5 bg-slate-50 border border-slate-100 rounded-[1.25rem] outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all text-slate-900 font-medium">
-                        </div>
-                        <div class="group">
-                            <label class="block text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3 ml-2 group-focus-within:text-blue-600 transition-colors">WhatsApp / Telefone</label>
-                            <input type="tel" id="lead-telefone" required placeholder="(00) 00000-0000" 
-                                class="w-full p-5 bg-slate-50 border border-slate-100 rounded-[1.25rem] outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all text-slate-900 font-medium">
-                        </div>
-                        <button type="submit" id="btn-submit-lead" class="w-full bg-blue-600 text-white py-5 rounded-[1.5rem] font-black text-lg hover:bg-blue-700 shadow-2xl shadow-blue-500/30 transition-all active:scale-[0.97] flex items-center justify-center gap-3">
-                            Quero Atendimento
-                        </button>
+                        <input type="text" id="lead-nome" required placeholder="Nome Completo" class="w-full p-5 bg-slate-50 border border-slate-100 rounded-[1.25rem] outline-none">
+                        <input type="tel" id="lead-telefone" required placeholder="WhatsApp" class="w-full p-5 bg-slate-50 border border-slate-100 rounded-[1.25rem] outline-none">
+                        <button type="submit" class="w-full bg-blue-600 text-white py-5 rounded-[1.5rem] font-black">Quero Atendimento</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 
-    <!-- WhatsApp Moderno Flutuante -->
     <div class="wa-float fixed bottom-8 right-8 z-[100] flex items-center">
-        <span class="absolute inset-0 rounded-full bg-emerald-500 animate-pulse-soft opacity-20 scale-150"></span>
-        <a id="wa-button" href="#" target="_blank" class="relative flex items-center gap-3 bg-emerald-500 text-white px-5 py-5 md:px-7 md:py-5 rounded-full shadow-2xl shadow-emerald-500/40 hover:bg-emerald-600 hover:-translate-y-2 transition-all active:scale-95 group overflow-hidden">
-            <div class="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            <svg class="w-7 h-7 md:w-8 md:h-8 shrink-0" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.417-.003 6.557-5.338 11.892-11.893 11.892-1.997-.001-3.951-.5-5.688-1.448l-6.305 1.652zm6.599-3.835c1.405.836 2.755 1.28 4.301 1.281 5.177 0 9.389-4.213 9.391-9.391 0-2.512-.975-4.87-2.747-6.645s-4.131-2.744-6.641-2.745c-5.181 0-9.392 4.213-9.395 9.393 0 1.608.434 3.182 1.258 4.587l-.937 3.421 3.49-.916zm11.22-7.259c.302-.15.302-.501.05-.651-.251-.151-1.488-.732-1.714-.813-.226-.082-.389-.121-.55.121s-.622.772-.763.933c-.14.161-.282.181-.582.031s-1.266-.467-2.411-1.487c-.891-.793-1.492-1.773-1.667-2.074-.176-.301-.019-.464.131-.614.135-.135.301-.351.452-.527.151-.176.201-.292.301-.482.1-.191.05-.361-.026-.511-.076-.151-.55-1.328-.753-1.817-.197-.474-.4-.41-.55-.418s-.311-.008-.477-.008-.437.061-.664.311c-.226.251-.865.842-.865 2.05s.879 2.373 1.005 2.541c.125.168 1.733 2.646 4.197 3.711.586.254 1.044.405 1.401.518.589.187 1.125.161 1.549.098.473-.07 1.488-.607 1.701-1.192.214-.584.214-1.085.15-1.192-.063-.107-.226-.171-.528-.221z"/>
-            </svg>
-            <span class="hidden md:block font-black text-lg tracking-tight whitespace-nowrap">WhatsApp</span>
+        <a id="wa-button" href="#" target="_blank" class="relative flex items-center gap-3 bg-emerald-500 text-white px-5 py-5 rounded-full shadow-2xl hover:bg-emerald-600 transition-all">
+            <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.417-.003 6.557-5.338 11.892-11.893 11.892-1.997-.001-3.951-.5-5.688-1.448l-6.305 1.652zm6.599-3.835c1.405.836 2.755 1.28 4.301 1.281 5.177 0 9.389-4.213 9.391-9.391 0-2.512-.975-4.87-2.747-6.645s-4.131-2.744-6.641-2.745c-5.181 0-9.392 4.213-9.395 9.393 0 1.608.434 3.182 1.258 4.587l-.937 3.421 3.49-.916zm11.22-7.259c.302-.15.302-.501.05-.651-.251-.151-1.488-.732-1.714-.813-.226-.082-.389-.121-.55.121s-.622.772-.763.933c-.14.161-.282.181-.582.031s-1.266-.467-2.411-1.487c-.891-.793-1.492-1.773-1.667-2.074-.176-.301-.019-.464.131-.614.135-.135.301-.351.452-.527.151-.176.201-.292.301-.482.1-.191.05-.361-.026-.511-.076-.151-.55-1.328-.753-1.817-.197-.474-.4-.41-.55-.418s-.311-.008-.477-.008-.437.061-.664.311c-.226.251-.865.842-.865 2.05s.879 2.373 1.005 2.541c.125.168 1.733 2.646 4.197 3.711.586.254 1.044.405 1.401.518.589.187 1.125.161 1.549.098.473-.07 1.488-.607 1.701-1.192.214-.584.214-1.085.15-1.192-.063-.107-.226-.171-.528-.221z"/></svg>
+            <span class="hidden md:block font-black text-lg tracking-tight">WhatsApp</span>
         </a>
     </div>
 
-    <!-- Footer com Captação Especializada -->
+    <!-- Footer Gerenciável -->
     <footer class="bg-white border-t border-slate-100 pt-20 pb-10 mt-12">
         <div class="max-w-7xl mx-auto px-4">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
-                <!-- Esquerda: Info e Copyright -->
-                <div class="text-center lg:text-left">
-                    <h2 class="text-2xl font-bold text-slate-900 mb-4" id="footer-logo-text-bottom">ImobiMaster</h2>
-                    <p class="text-slate-500 max-w-sm mx-auto lg:mx-0 mb-12 font-medium leading-relaxed">
-                        Especialistas em encontrar o lar dos seus sonhos nas localizações mais exclusivas e desejadas.
-                    </p>
-                    <p id="footer-copyright-text" class="text-slate-400 text-sm font-medium">&nbsp;</p>
+                <div class="text-center lg:text-left space-y-6">
+                    <h2 class="text-3xl font-black text-slate-900 tracking-tighter" id="footer-logo-text-bottom">&nbsp;</h2>
+                    <p class="text-slate-500 max-w-sm mx-auto lg:mx-0 font-medium leading-relaxed" id="footer-bio-text">&nbsp;</p>
+                    
+                    <div id="footer-extra-info" class="space-y-1">
+                        <p class="text-xs font-black text-slate-400 uppercase tracking-widest" id="footer-creci-text">&nbsp;</p>
+                        <p class="text-lg font-bold text-slate-900" id="footer-phone-display">&nbsp;</p>
+                    </div>
+
+                    <!-- Redes Sociais Dinâmicas -->
+                    <div id="footer-social-links" class="flex items-center justify-center lg:justify-start gap-4">
+                        <!-- Gerado via JS -->
+                    </div>
+
+                    <p id="footer-copyright-text" class="text-slate-400 text-sm font-medium pt-4">&nbsp;</p>
                 </div>
 
-                <!-- Direita: Formulário de Lead do Footer -->
                 <div class="bg-slate-50 p-8 md:p-10 rounded-[2.5rem] border border-slate-100 shadow-inner">
                     <h3 class="text-xl font-black text-slate-900 mb-2">Não encontrou seu imóvel?</h3>
-                    <p class="text-slate-500 text-sm mb-8 leading-relaxed font-medium">
-                        Deixe-nos uma mensagem com detalhes do seu imóvel desejado. Vamos encontrar a melhor opção para você.
-                    </p>
-                    
+                    <p class="text-slate-500 text-sm mb-8 leading-relaxed font-medium">Deixe-nos uma mensagem e vamos encontrar a melhor opção para você.</p>
                     <form id="footer-lead-form" class="space-y-4">
-                        <div id="footer-success-msg" class="hidden bg-emerald-50 text-emerald-700 p-6 rounded-2xl text-center text-sm font-bold border border-emerald-100 mb-6 animate-in fade-in zoom-in">
-                            Mensagem enviada com sucesso! Em breve entraremos em contato.
-                        </div>
-
+                        <div id="footer-success-msg" class="hidden bg-emerald-50 text-emerald-700 p-6 rounded-2xl text-center text-sm font-bold border border-emerald-100 mb-6">Mensagem enviada com sucesso!</div>
                         <div id="footer-form-fields" class="space-y-4">
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <input type="text" id="footer-nome" required placeholder="Nome completo" 
-                                    class="w-full p-4 bg-white border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all text-sm font-medium text-slate-900">
-                                <input type="email" id="footer-email" required placeholder="Seu e-mail" 
-                                    class="w-full p-4 bg-white border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all text-sm font-medium text-slate-900">
+                                <input type="text" id="footer-nome" required placeholder="Nome completo" class="w-full p-4 bg-white border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-blue-500/10 text-sm font-medium">
+                                <input type="email" id="footer-email" required placeholder="Seu e-mail" class="w-full p-4 bg-white border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-blue-500/10 text-sm font-medium">
                             </div>
-                            <input type="tel" id="footer-telefone" required placeholder="WhatsApp (00) 00000-0000" 
-                                class="w-full p-4 bg-white border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all text-sm font-medium text-slate-900">
-                            <textarea id="footer-mensagem" required rows="3" placeholder="Como seria seu imóvel ideal? (Bairro, quartos, valor aproximado...)" 
-                                class="w-full p-4 bg-white border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all text-sm font-medium text-slate-900 resize-none"></textarea>
-                            
-                            <button type="submit" id="btn-footer-submit" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black text-sm hover:bg-slate-800 transition-all active:scale-[0.98] shadow-xl shadow-slate-200">
-                                Enviar Mensagem
-                            </button>
+                            <input type="tel" id="footer-telefone" required placeholder="WhatsApp (00) 00000-0000" class="w-full p-4 bg-white border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-blue-500/10 text-sm font-medium">
+                            <textarea id="footer-mensagem" required rows="3" placeholder="Como seria seu imóvel ideal?" class="w-full p-4 bg-white border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-blue-500/10 text-sm font-medium resize-none"></textarea>
+                            <button type="submit" id="btn-footer-submit" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black text-sm hover:bg-slate-800 transition-all">Enviar Mensagem</button>
                         </div>
                     </form>
                 </div>
