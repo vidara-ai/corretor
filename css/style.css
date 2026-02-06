@@ -76,6 +76,26 @@ body {
     transform: translateY(-2px);
 }
 
+/* WhatsApp Floating Pulse */
+@keyframes wa-pulse {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-primary), transparent 40%); }
+  70% { box-shadow: 0 0 0 20px color-mix(in srgb, var(--color-primary), transparent 100%); }
+  100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-primary), transparent 100%); }
+}
+
+.wa-button-active {
+    background-color: var(--color-primary) !important;
+    color: var(--color-text-on-primary) !important;
+    animation: wa-pulse 2s infinite;
+    transition: all 0.3s ease;
+}
+
+.wa-button-active:hover {
+    background-color: var(--color-primary-hover) !important;
+    transform: scale(1.05);
+    animation: none;
+}
+
 /* HERO SECTION CUSTOM */
 .hero-home {
   position: relative;
