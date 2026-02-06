@@ -92,11 +92,11 @@ body {
 }
 
 .whatsapp-btn-native img {
-    width: 78%;
-    height: 78%;
+    width: 120%;
+    height: 120%;
     object-fit: contain;
     border-radius: 50%;
-    margin: 11%;
+    margin: 5%;
 }
 
 .whatsapp-btn-native:hover {
