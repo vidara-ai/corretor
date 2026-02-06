@@ -222,9 +222,18 @@ function renderCardList(imoveis, fotos) {
                         ${specs.join('')}
                     </div>
 
-                    <div class="border-t border-slate-100 py-6 mt-auto">
-                        <p class="text-[11px] font-black text-blue-600/60 uppercase tracking-[0.2em] mb-1">${finalidade}</p>
-                        <p class="text-3xl font-black text-blue-600 tracking-tighter">${preco}</p>
+                    <div class="border-t border-slate-100 py-6 mt-auto flex flex-col gap-5">
+                        <div>
+                            <p class="text-[11px] font-black text-blue-600/60 uppercase tracking-[0.2em] mb-1">${finalidade}</p>
+                            <p class="text-3xl font-black text-blue-600 tracking-tighter">${preco}</p>
+                        </div>
+                        
+                        <!-- Ação Principal: Ver Detalhes -->
+                        <div class="pt-2">
+                             <span class="inline-flex items-center justify-center w-full bg-blue-600 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-700 transition-all active:scale-95 shadow-lg shadow-blue-100/50">
+                                Ver detalhes
+                             </span>
+                        </div>
                     </div>
                 </div>
             </div>`;
