@@ -1,4 +1,3 @@
-
 import { supabase } from './supabase.js';
 import { COLOR_SCHEMES } from './theme/schemes.js';
 import { resolveColorScheme, applyColorScheme } from './theme/engine.js';
@@ -9,6 +8,46 @@ import { resolveColorScheme, applyColorScheme } from './theme/engine.js';
 
 /** @type {string | null} */
 let configuracaoId = null;
+
+/** @type {File | null} */
+let pendingHeroImage = null;
+
+/**
+ * Converte imagem para WebP no client-side com hardening.
+ */
+async function convertToWebP(file) {
+  if (file.type === 'image/webp') return file;
+  if (!file.type.startsWith('image/')) throw new Error('Arquivo inválido. Apenas imagens são permitidas.');
+
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        
+        canvas.toBlob((blob) => {
+          // Limpeza de memória do Canvas
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          canvas.width = canvas.height = 0;
+
+          if (!blob) return reject(new Error('Erro ao converter imagem.'));
+          
+          const fileName = file.name.replace(/\.[^/.]+$/, "") + ".webp";
+          resolve(new File([blob], fileName, { type: 'image/webp' }));
+        }, 'image/webp', 0.8);
+      };
+      img.onerror = reject;
+      img.src = event.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
 
 async function persistColorScheme(schemeId) {
   if (!configuracaoId || !schemeId) return;
@@ -43,9 +82,39 @@ function initColorSchemeSelect() {
   });
 }
 
+function setupHeroUpload() {
+    const input = document.getElementById('hero-image-input');
+    const previewImg = document.getElementById('hero-preview-img');
+    const placeholder = document.getElementById('hero-preview-placeholder');
+
+    if (!input) return;
+
+    input.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        if (!file.type.startsWith('image/')) {
+            alert('Por favor, selecione uma imagem válida.');
+            return;
+        }
+
+        pendingHeroImage = file;
+
+        // Preview local
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            previewImg.src = event.target.result;
+            previewImg.classList.remove('hidden');
+            placeholder.classList.add('hidden');
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
 async function loadConfig() {
   try {
     initColorSchemeSelect();
+    setupHeroUpload();
 
     const { data, error } = await supabase
       .from('configuracoes_site')
@@ -68,6 +137,17 @@ async function loadConfig() {
 
       document.getElementById('c-hero-title').value = data.hero_titulo || '';
       document.getElementById('c-hero-subtitle').value = data.hero_subtitulo || '';
+
+      // Hero Image Preview
+      if (data.hero_bg_desktop_url) {
+          const previewImg = document.getElementById('hero-preview-img');
+          const placeholder = document.getElementById('hero-preview-placeholder');
+          if (previewImg) {
+              previewImg.src = data.hero_bg_desktop_url;
+              previewImg.classList.remove('hidden');
+              placeholder.classList.add('hidden');
+          }
+      }
 
       // Footer Fields - Mapped to Database Columns
       document.getElementById('footer_titulo').value = data.footer_titulo || '';
@@ -126,12 +206,33 @@ document.getElementById('config-form').onsubmit = async (e) => {
       updated_at: new Date().toISOString()
     };
 
+    // Processamento de Imagem da Hero (se houver alteração)
+    if (pendingHeroImage) {
+        const webpFile = await convertToWebP(pendingHeroImage);
+        const baseUuid = crypto.randomUUID();
+        
+        // Caminhos Storage
+        const originalPath = `assets/hero_raw_${baseUuid}.${pendingHeroImage.name.split('.').pop()}`;
+        const webpPath = `assets/hero_${baseUuid}.webp`;
+
+        // Upload Original
+        await supabase.storage.from('imoveis').upload(originalPath, pendingHeroImage, { upsert: false, contentType: pendingHeroImage.type });
+        
+        // Upload WebP
+        await supabase.storage.from('imoveis').upload(webpPath, webpFile, { upsert: false, contentType: 'image/webp' });
+
+        const { data: urlData } = supabase.storage.from('imoveis').getPublicUrl(webpPath);
+        payload.hero_bg_desktop_url = urlData.publicUrl;
+    }
+
     const { error } = await supabase
       .from('configuracoes_site')
       .update(payload)
       .eq('id', configuracaoId);
 
     if (error) throw error;
+    
+    pendingHeroImage = null; // Reseta após sucesso
     alert('Configurações salvas com sucesso!');
   } catch (err) {
     console.error('Erro ao salvar:', err);
