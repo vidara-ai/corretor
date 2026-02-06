@@ -30,6 +30,46 @@ function obterValorImovel(imovel) {
 }
 
 /**
+ * GERA HTML DOS CARDS (Reutilizável)
+ */
+function renderCardList(imoveis, fotos) {
+    return imoveis.map(imovel => {
+        const foto = (fotos || []).find(f => f.imovel_id === imovel.id);
+        const imagem = foto ? foto.url : 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=600';
+        const preco = formatarBRL(obterValorImovel(imovel));
+        
+        return `
+            <div class="card-imovel animate-in fade-in slide-in-from-bottom-4 duration-500" data-id="${imovel.id}">
+                <div class="card-imagem">
+                    <img src="${imagem}" alt="${imovel.titulo}" loading="lazy">
+                    <span class="badge-tipo">${imovel.tipo_imovel || 'Imóvel'}</span>
+                    <span class="badge-local">${imovel.cidade} / ${imovel.uf || ''}</span>
+                    ${imovel.destaque ? '<div class="badge-destaque">DESTAQUE</div>' : ''}
+                </div>
+                <div class="card-imovel-body">
+                    <span class="imovel-bairro">${imovel.bairro}</span>
+                    <h3 class="imovel-titulo font-bold">${imovel.titulo}</h3>
+                    <div class="imovel-ref-area text-xs font-bold text-slate-400 text-center mt-3">
+                        REF: ${imovel.referencia || 'N/I'} — ${imovel.area_m2 || 0}M²
+                    </div>
+                    <div class="divisor-card"></div>
+                    <div class="preco text-center">
+                        <div class="imovel-finalidade text-xs opacity-70">${imovel.finalidade || 'Venda'}</div>
+                        <strong>${preco}</strong>
+                    </div>
+                    <div class="divisor-card"></div>
+                    <div class="imovel-info-icons flex justify-center gap-6 text-sm">
+                        <span>🛏 ${imovel.dormitorios || 0}</span>
+                        <span>🛁 ${imovel.banheiros || 0}</span>
+                        <span>🚗 ${imovel.vagas_garagem || 0}</span>
+                    </div>
+                    <button class="btn-detalhar w-full mt-6 py-3 font-bold uppercase text-xs">Ver Detalhes</button>
+                </div>
+            </div>`;
+    }).join('');
+}
+
+/**
  * PARSER INTELIGENTE DE BUSCA
  */
 function parseSearchQuery(text) {
@@ -130,12 +170,8 @@ function injectSearchIntoHero() {
 
 function applySiteSettings(config) {
     if (config.color_scheme) applyColorScheme(resolveColorScheme(config.color_scheme));
-    
-    // 1. Restaurar Logo e Textos
     const logoText = document.getElementById('site-logo-text');
     if (logoText) logoText.innerText = config.header_nome_site || 'ImobiMaster';
-    
-    // 2. CORREÇÃO: Restaurar Botão CTA do Header
     const headerCta = document.getElementById('header-cta-contato');
     if (headerCta && config.header_whatsapp) {
         headerCta.classList.remove('hidden');
@@ -143,22 +179,16 @@ function applySiteSettings(config) {
         headerCta.href = waLink;
         headerCta.textContent = 'Entre em contato';
     }
-
     const heroTitle = document.querySelector('header h1');
     if (heroTitle && config.hero_titulo) heroTitle.innerText = config.hero_titulo;
-    
     const heroSub = document.querySelector('header p');
     if (heroSub && config.hero_subtitulo) heroSub.innerText = config.hero_subtitulo;
-
     const footerText = document.getElementById('footer-copyright-text');
     if (footerText) footerText.innerText = config.rodape_texto || '© ImobiMaster';
-
-    // WhatsApp Floating Button
     const waButton = document.getElementById('wa-button');
     if (waButton && config.header_whatsapp) {
         waButton.href = `https://wa.me/${config.header_whatsapp.replace(/\D/g, '')}`;
     }
-
     const heroSection = document.querySelector('header.hero-home');
     if (heroSection && config.hero_bg_desktop_url) {
         heroSection.style.setProperty('--hero-bg-desktop', `url('${config.hero_bg_desktop_url}')`);
@@ -166,17 +196,17 @@ function applySiteSettings(config) {
 }
 
 /**
- * CARGA DE IMÓVEIS (Restauração de Referência e Área)
+ * CARGA DE IMÓVEIS (Com Fallback para Destaques)
  */
 async function loadProperties(filters = null) {
     const container = document.getElementById('lista-imoveis');
     if (!container) return;
 
-    container.innerHTML = '<div class="col-span-full py-20 text-center animate-pulse text-slate-400">Buscando imóveis...</div>';
+    container.innerHTML = '<div class="col-span-full py-20 text-center animate-pulse text-slate-400 font-medium">Processando consulta...</div>';
 
     try {
-        // Garantir que todos os campos necessários sejam selecionados
         let query = supabase.from('imoveis').select('*').eq('ativo', true);
+        let isFallback = false;
 
         if (filters) {
             if (filters.referencia) query = query.ilike('referencia', `%${filters.referencia}%`);
@@ -192,64 +222,53 @@ async function loadProperties(filters = null) {
             }
         }
 
-        const { data: imoveis, error } = await query
+        let { data: imoveis, error } = await query
             .order('destaque', { ascending: false })
             .order('created_at', { ascending: false });
 
         if (error) throw error;
 
+        // REGRA DE UX: Fallback para Destaques se busca for vazia
+        let feedbackHtml = '';
+        if (filters && (!imoveis || imoveis.length === 0)) {
+            isFallback = true;
+            feedbackHtml = `
+                <div class="col-span-full py-10 text-center animate-in fade-in slide-in-from-top-4">
+                    <h2 class="text-2xl font-bold text-slate-800 mb-2">Não encontramos o termo procurado...</h2>
+                    <p class="text-slate-500 italic">...mas temos estes imóveis em destaque que podem lhe interessar:</p>
+                </div>
+            `;
+            
+            // Busca apenas os destaques ativos
+            const { data: destaques, error: errorFeat } = await supabase
+                .from('imoveis')
+                .select('*')
+                .eq('ativo', true)
+                .eq('destaque', true)
+                .order('created_at', { ascending: false });
+
+            if (errorFeat) throw errorFeat;
+            imoveis = destaques || [];
+        }
+
         if (!imoveis || imoveis.length === 0) {
-            container.innerHTML = `<div class="col-span-full py-20 text-center"><p class="text-slate-500">Nenhum imóvel encontrado.</p></div>`;
+            container.innerHTML = `<div class="col-span-full py-20 text-center"><p class="text-slate-500">Nenhum imóvel disponível no momento.</p></div>`;
             return;
         }
 
         const { data: fotos } = await supabase.from('imoveis_fotos').select('*').eq('is_capa', true);
         
-        container.innerHTML = imoveis.map(imovel => {
-            const foto = (fotos || []).find(f => f.imovel_id === imovel.id);
-            const imagem = foto ? foto.url : 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=600';
-            const preco = formatarBRL(obterValorImovel(imovel));
-            
-            return `
-                <div class="card-imovel animate-in fade-in slide-in-from-bottom-4 duration-500" data-id="${imovel.id}">
-                    <div class="card-imagem">
-                        <img src="${imagem}" alt="${imovel.titulo}" loading="lazy">
-                        <span class="badge-tipo">${imovel.tipo_imovel || 'Imóvel'}</span>
-                        <span class="badge-local">${imovel.cidade} / ${imovel.uf || ''}</span>
-                        ${imovel.destaque ? '<div class="badge-destaque">DESTAQUE</div>' : ''}
-                    </div>
-                    <div class="card-imovel-body">
-                        <span class="imovel-bairro">${imovel.bairro}</span>
-                        <h3 class="imovel-titulo font-bold">${imovel.titulo}</h3>
-                        
-                        <!-- RESTAURAÇÃO DE REFERÊNCIA E ÁREA -->
-                        <div class="imovel-ref-area text-xs font-bold text-slate-400 text-center mt-3">
-                            REF: ${imovel.referencia || 'N/I'} — ${imovel.area_m2 || 0}M²
-                        </div>
-                        
-                        <div class="divisor-card"></div>
-                        <div class="preco text-center">
-                            <div class="imovel-finalidade text-xs opacity-70">${imovel.finalidade || 'Venda'}</div>
-                            <strong>${preco}</strong>
-                        </div>
-                        <div class="divisor-card"></div>
-                        <div class="imovel-info-icons flex justify-center gap-6 text-sm">
-                            <span>🛏 ${imovel.dormitorios || 0}</span>
-                            <span>🛁 ${imovel.banheiros || 0}</span>
-                            <span>🚗 ${imovel.vagas_garagem || 0}</span>
-                        </div>
-                        <button class="btn-detalhar w-full mt-6 py-3 font-bold uppercase text-xs">Ver Detalhes</button>
-                    </div>
-                </div>`;
-        }).join('');
+        // Renderização Final
+        container.innerHTML = feedbackHtml + renderCardList(imoveis, fotos);
 
+        // Bind de cliques
         document.querySelectorAll('.card-imovel').forEach(card => {
             card.onclick = () => window.location.href = `imovel.html?id=${card.dataset.id}`;
         });
 
     } catch (err) {
-        console.error("Render Error:", err);
-        container.innerHTML = `<p class="col-span-full text-center text-red-500 py-10">Erro ao carregar dados.</p>`;
+        console.error("Critical Load Error:", err);
+        container.innerHTML = `<p class="col-span-full text-center text-red-500 py-10 font-bold">Erro ao processar catálogo. Tente novamente em instantes.</p>`;
     }
 }
 
