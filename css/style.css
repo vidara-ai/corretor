@@ -227,8 +227,8 @@ body {
 
 /* WHATSAPP MODERN PULSE */
 @keyframes pulse-soft {
-  0% { transform: scale(1); opacity: 0.5; }
-  100% { transform: scale(1.6); opacity: 0; }
+  0% { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(1.7); opacity: 0; }
 }
 
 .animate-pulse-soft {
