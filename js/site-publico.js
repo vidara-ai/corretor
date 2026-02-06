@@ -185,10 +185,19 @@ function applySiteSettings(config) {
     if (heroSub && config.hero_subtitulo) heroSub.innerText = config.hero_subtitulo;
     const footerText = document.getElementById('footer-copyright-text');
     if (footerText) footerText.innerText = config.rodape_texto || '© ImobiMaster';
+    
+    // Configurar Botão de WhatsApp Flutuante
     const waButton = document.getElementById('wa-button');
-    if (waButton && config.header_whatsapp) {
-        waButton.href = `https://wa.me/${config.header_whatsapp.replace(/\D/g, '')}`;
+    if (waButton) {
+        if (config.header_whatsapp) {
+            const num = config.header_whatsapp.replace(/\D/g, '');
+            waButton.href = `https://wa.me/${num}?text=${encodeURIComponent("Olá! Gostaria de mais informações sobre os imóveis.")}`;
+            waButton.parentElement.classList.remove('hidden');
+        } else {
+            waButton.parentElement.classList.add('hidden');
+        }
     }
+
     const heroSection = document.querySelector('header.hero-home');
     if (heroSection && config.hero_bg_desktop_url) {
         heroSection.style.setProperty('--hero-bg-desktop', `url('${config.hero_bg_desktop_url}')`);
@@ -196,7 +205,7 @@ function applySiteSettings(config) {
 }
 
 /**
- * CARGA DE IMÓVEIS (Com Fallback para Destaques)
+ * CARGA DE IMÓVEIS (Com Fallback para DestaQUES)
  */
 async function loadProperties(filters = null) {
     const container = document.getElementById('lista-imoveis');
