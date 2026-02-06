@@ -52,33 +52,35 @@ function obterValorImovel(imovel) {
 }
 
 /**
- * FULLSCREEN LIGHTBOX ENGINE
+ * FULLSCREEN LIGHTBOX ENGINE (Refatorado para Carrossel Contínuo)
  */
 function initLightbox() {
     let modal = document.getElementById('lightbox-modal');
     if (!modal) {
         modal = document.createElement('div');
         modal.id = 'lightbox-modal';
-        // z-index altíssimo para sobrepor tudo. Fundo preto quase opaco.
-        modal.className = 'fixed inset-0 z-[1000] bg-black/98 flex flex-col items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300';
+        modal.className = 'fixed inset-0 z-[1000] bg-black/95 flex flex-col items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300 select-none';
         modal.innerHTML = `
-            <!-- Botão Fechar Aprimorado (Mobile Friendly) -->
-            <button id="lb-close" class="absolute top-4 right-4 md:top-8 md:right-8 text-white bg-white/10 hover:bg-white/20 border border-white/20 backdrop-blur-md rounded-full z-[1010] p-4 transition-all hover:scale-110 active:scale-90 flex items-center justify-center shadow-2xl" aria-label="Fechar galeria">
+            <!-- Botão Fechar -->
+            <button id="lb-close" class="absolute top-6 right-6 text-white bg-white/10 hover:bg-white/20 border border-white/10 backdrop-blur-md rounded-full z-[1010] p-4 transition-all hover:scale-110 active:scale-90 flex items-center justify-center shadow-2xl" aria-label="Fechar galeria">
                 <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
             
-            <button id="lb-prev" class="absolute left-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white transition p-4 z-[1010] hidden md:block">
-                <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+            <!-- Navegação Lateral (Visível em Mobile e Desktop) -->
+            <button id="lb-prev" class="absolute left-2 md:left-6 top-1/2 -translate-y-1/2 text-white bg-white/5 hover:bg-white/20 p-4 rounded-full z-[1010] transition-all active:scale-90 shadow-xl border border-white/5">
+                <svg class="w-8 h-8 md:w-10 md:h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
             </button>
-            <button id="lb-next" class="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white transition p-4 z-[1010] hidden md:block">
-                <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+            <button id="lb-next" class="absolute right-2 md:right-6 top-1/2 -translate-y-1/2 text-white bg-white/5 hover:bg-white/20 p-4 rounded-full z-[1010] transition-all active:scale-90 shadow-xl border border-white/5">
+                <svg class="w-8 h-8 md:w-10 md:h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
             </button>
             
-            <div class="w-full h-full flex items-center justify-center p-4">
-                <img id="lb-img" src="" class="max-w-full max-h-[85vh] object-contain shadow-2xl transition-all duration-300 select-none">
+            <!-- Área da Imagem -->
+            <div class="w-full h-full flex items-center justify-center p-4 md:p-12 overflow-hidden">
+                <img id="lb-img" src="" class="max-w-full max-h-[85vh] object-contain shadow-[0_0_50px_rgba(0,0,0,0.5)] transition-all duration-300 opacity-0 transform scale-95" alt="Visualização expandida">
             </div>
             
-            <div id="lb-counter" class="absolute bottom-10 text-white/60 font-black text-xs tracking-[0.3em] uppercase"></div>
+            <!-- Contador -->
+            <div id="lb-counter" class="absolute bottom-8 md:bottom-12 text-white/50 font-black text-[10px] tracking-[0.4em] uppercase bg-black/20 backdrop-blur px-4 py-1.5 rounded-full"></div>
         `;
         document.body.appendChild(modal);
 
@@ -88,25 +90,27 @@ function initLightbox() {
         };
 
         const navigate = (dir) => {
-            currentIndex = (currentIndex + dir + currentPhotos.length) % currentPhotos.length;
-            updateLightboxContent();
-            atualizarExibicaoGaleria();
+            const imgEl = document.getElementById('lb-img');
+            imgEl.classList.add('opacity-0', 'scale-95'); // Efeito de transição
+            
+            setTimeout(() => {
+                currentIndex = (currentIndex + dir + currentPhotos.length) % currentPhotos.length;
+                updateLightboxContent();
+                atualizarExibicaoGaleria(); // Sincroniza a galeria da página
+                imgEl.classList.remove('opacity-0', 'scale-95');
+            }, 150);
         };
 
-        modal.querySelector('#lb-close').onclick = (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            close();
-        };
-        
+        modal.querySelector('#lb-close').onclick = (e) => { e.stopPropagation(); close(); };
         modal.querySelector('#lb-prev').onclick = (e) => { e.stopPropagation(); navigate(-1); };
         modal.querySelector('#lb-next').onclick = (e) => { e.stopPropagation(); navigate(1); };
         
-        // Fechar ao clicar fora da imagem
+        // Fechar ao clicar fora da imagem ou no fundo
         modal.onclick = (e) => { 
             if(e.target.id === 'lightbox-modal' || e.target.tagName === 'DIV') close(); 
         };
 
+        // Teclado
         document.addEventListener('keydown', (e) => {
             if (modal.classList.contains('pointer-events-none')) return;
             if (e.key === 'Escape') close();
@@ -119,7 +123,11 @@ function initLightbox() {
 function openLightbox(index) {
     const modal = document.getElementById('lightbox-modal');
     if (!modal) return;
+    
     currentIndex = index;
+    const imgEl = document.getElementById('lb-img');
+    imgEl.classList.remove('opacity-0', 'scale-95');
+    
     updateLightboxContent();
     modal.classList.remove('opacity-0', 'pointer-events-none');
     document.body.style.overflow = 'hidden';
@@ -182,7 +190,7 @@ function renderizarImovel(p, config) {
     const negopay = ensureArray(p.opcoes_pagamento);
     const garantiasArray = ensureArray(p.garantias_locacao);
     
-    // Suporte a campos booleanos explícitos (fiador, deposito_caucao) se existirem no schema
+    // Suporte a campos booleanos explícitos
     if (p.fiador && !garantiasArray.includes('fiador')) garantiasArray.push('fiador');
     if (p.deposito_caucao && !garantiasArray.includes('caucao')) garantiasArray.push('caucao');
 
@@ -215,7 +223,7 @@ function renderizarImovel(p, config) {
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-12 items-start">
                 <div class="lg:col-span-2 space-y-12">
                     <!-- CARROSSEL PRINCIPAL -->
-                    <div class="galeria-imovel group relative shadow-2xl rounded-[2rem] overflow-hidden bg-slate-100 aspect-video">
+                    <div class="galeria-imovel group relative shadow-2xl rounded-[2.5rem] overflow-hidden bg-slate-100 aspect-video">
                         <button id="btn-prev" class="absolute left-6 top-1/2 -translate-y-1/2 bg-white/95 hover:bg-white text-slate-900 w-12 h-12 rounded-full flex items-center justify-center shadow-xl z-20 md:opacity-0 group-hover:opacity-100 transition-all hover:scale-110 active:scale-95">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7"/></svg>
                         </button>
@@ -223,7 +231,7 @@ function renderizarImovel(p, config) {
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 5l7 7-7 7"/></svg>
                         </button>
                         
-                        <img id="galeria-foto-principal" src="${mainPhotoUrl}" class="cursor-zoom-in w-full h-full object-cover transition-all duration-700 hover:scale-105" alt="Foto principal do imóvel">
+                        <img id="galeria-foto-principal" src="${mainPhotoUrl}" class="cursor-zoom-in w-full h-full object-cover transition-all duration-700 hover:scale-105" alt="Foto principal">
                         
                         <div class="absolute bottom-6 right-6 bg-slate-900/80 backdrop-blur text-white px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest z-20">
                             Clique para ampliar
@@ -347,7 +355,6 @@ function setupGalleryEvents() {
     const mainImg = document.getElementById('galeria-foto-principal');
     if (!mainImg) return;
 
-    // Abrir Lightbox ao clicar na imagem principal
     mainImg.onclick = () => openLightbox(currentIndex);
 
     const btnNext = document.getElementById('btn-next');
@@ -356,7 +363,6 @@ function setupGalleryEvents() {
     if (btnNext) btnNext.onclick = (e) => { e.stopPropagation(); navigateGallery(1); };
     if (btnPrev) btnPrev.onclick = (e) => { e.stopPropagation(); navigateGallery(-1); };
 
-    // Clique nas miniaturas
     document.querySelectorAll('.miniatura-item').forEach(thumb => {
         thumb.onclick = (e) => {
             e.stopPropagation();
