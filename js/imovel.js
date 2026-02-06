@@ -284,12 +284,6 @@ function renderizarImovel(p, config) {
                             <p class="text-center text-slate-400 text-[10px] font-bold uppercase tracking-widest px-6 leading-relaxed">Resposta rápida em horário comercial</p>
                         </div>
                     </div>
-
-                    <div class="bg-blue-600 p-8 rounded-[3rem] text-white shadow-xl space-y-4">
-                        <p class="font-black text-lg">Precisa de ajuda com o financiamento?</p>
-                        <p class="text-blue-100 text-sm font-medium">Nossos corretores são especialistas em aprovação de crédito imobiliário.</p>
-                        <button onclick="window.scrollTo({top: 0, behavior: 'smooth'})" class="text-white border-b-2 border-white/30 hover:border-white font-bold text-sm py-1 transition-all">Falar com consultor</button>
-                    </div>
                 </div>
             </div>
         </div>
