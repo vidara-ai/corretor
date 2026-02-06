@@ -5,6 +5,44 @@ let allLeads = [];
 let filteredLeads = [];
 
 /**
+ * Formata as labels de origem para exibição amigável
+ */
+function formatOriginLabel(origin) {
+    if (!origin) return "N/A";
+    const lower = origin.toLowerCase();
+    
+    // Fallbacks para termos comuns
+    if (lower === 'whatsapp') return 'WhatsApp';
+    if (lower === 'pagina') return 'Página Principal';
+    
+    // Formatação amigável para outros termos (ex: FOOTER - IMÓVEL DESEJADO -> Footer - Imóvel Desejado)
+    return origin.split(' ').map(word => {
+        if (word === '-' || word === '–') return word;
+        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+    }).join(' ');
+}
+
+/**
+ * Popula o select de origens com base nos dados reais do banco
+ */
+function populateOriginFilter(leads) {
+    const originFilter = document.getElementById('filter-origin');
+    if (!originFilter) return;
+
+    // Obtém origens únicas e remove valores vazios
+    const uniqueOrigins = [...new Set(leads.map(l => l.origem).filter(Boolean))].sort();
+    
+    // Preserva a opção padrão
+    let html = '<option value="">Todas as Origens</option>';
+    
+    uniqueOrigins.forEach(origin => {
+        html += `<option value="${origin}">${formatOriginLabel(origin)}</option>`;
+    });
+
+    originFilter.innerHTML = html;
+}
+
+/**
  * Carrega os leads do banco de dados
  */
 async function loadLeads() {
@@ -19,6 +57,8 @@ async function loadLeads() {
         allLeads = leads || [];
         filteredLeads = [...allLeads];
         
+        // Popula os filtros dinamicamente antes de renderizar
+        populateOriginFilter(allLeads);
         renderLeads(filteredLeads);
         setupFilters();
     } catch (err) {
@@ -112,7 +152,16 @@ function renderLeads(leads) {
         const message = `Olá ${nomeCliente}! Recebemos seu contato pelo site sobre o imóvel "${imovel}" e gostaria de te ajudar.`;
         const waLink = `https://wa.me/55${cleanPhone}?text=${encodeURIComponent(message)}`;
 
-        const originClass = l.origem === 'whatsapp' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700';
+        const lowerOrigin = (l.origem || '').toLowerCase();
+        let originClass = 'bg-slate-100 text-slate-700';
+        
+        if (lowerOrigin === 'whatsapp') {
+            originClass = 'bg-emerald-100 text-emerald-700';
+        } else if (lowerOrigin === 'pagina') {
+            originClass = 'bg-blue-100 text-blue-700';
+        } else if (lowerOrigin.includes('footer')) {
+            originClass = 'bg-indigo-100 text-indigo-700';
+        }
 
         return `
             <div class="bg-white p-6 rounded-[1.5rem] shadow-sm border border-slate-100 flex flex-col justify-between hover:shadow-md transition-shadow group animate-in fade-in slide-in-from-bottom-2 duration-300" id="lead-card-${l.id}">
@@ -127,8 +176,8 @@ function renderLeads(leads) {
                                 <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">${date}</p>
                             </div>
                         </div>
-                        <span class="px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-tighter ${originClass}">
-                            ${l.origem || 'Site'}
+                        <span class="px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-tighter ${originClass} whitespace-nowrap">
+                            ${formatOriginLabel(l.origem)}
                         </span>
                     </div>
 
