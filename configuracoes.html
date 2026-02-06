@@ -47,14 +47,76 @@
                         <input id="c-site-name" type="text" placeholder="Ex: ImobiMaster" class="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div>
-                        <label class="block text-sm font-semibold mb-2 text-slate-700">WhatsApp do Header</label>
-                        <input id="header_whatsapp" type="text" placeholder="Ex: 5583999999999" class="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
-                    <div class="md:col-span-2">
                         <label class="block text-sm font-semibold mb-2 text-slate-700">Esquema de cores</label>
                         <select id="color_scheme_id" class="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
                         </select>
-                        <p class="mt-2 text-xs text-slate-400">Define a paleta visual dos botões, badges, valores e destaques do site.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SEÇÃO NOVA: WhatsApp – Mensagens e Números -->
+            <section class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
+                <h3 class="text-lg font-bold mb-6 text-slate-800 flex items-center gap-2">
+                    <span class="w-8 h-8 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center text-sm">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.417-.003 6.557-5.338 11.892-11.893 11.892-1.997-.001-3.951-.5-5.688-1.448l-6.305 1.652zm6.599-3.835c1.405.836 2.755 1.28 4.301 1.281 5.177 0 9.389-4.213 9.391-9.391 0-2.512-.975-4.87-2.747-6.645s-4.131-2.744-6.641-2.745c-5.181 0-9.392 4.213-9.395 9.393 0 1.608.434 3.182 1.258 4.587l-.937 3.421 3.49-.916zm11.22-7.259c.302-.15.302-.501.05-.651-.251-.151-1.488-.732-1.714-.813-.226-.082-.389-.121-.55.121s-.622.772-.763.933c-.14.161-.282.181-.582.031s-1.266-.467-2.411-1.487c-.891-.793-1.492-1.773-1.667-2.074-.176-.301-.019-.464.131-.614.135-.135.301-.351.452-.527.151-.176.201-.292.301-.482.1-.191.05-.361-.026-.511-.076-.151-.55-1.328-.753-1.817-.197-.474-.4-.41-.55-.418s-.311-.008-.477-.008-.437.061-.664.311c-.226.251-.865.842-.865 2.05s.879 2.373 1.005 2.541c.125.168 1.733 2.646 4.197 3.711.586.254 1.044.405 1.401.518.589.187 1.125.161 1.549.098.473-.07 1.488-.607 1.701-1.192.214-.584.214-1.085.15-1.192-.063-.107-.226-.171-.528-.221z"/></svg>
+                    </span>
+                    WhatsApp – Mensagens e Números
+                </h3>
+                
+                <div class="space-y-10">
+                    <!-- WhatsApp Header -->
+                    <div class="p-6 bg-slate-50/50 rounded-2xl border border-slate-100">
+                        <h4 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                            <span class="w-2 h-2 bg-blue-500 rounded-full"></span>
+                            📍 Botão WhatsApp do Header
+                        </h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-semibold mb-2 text-slate-700">Número WhatsApp Header</label>
+                                <input id="c-wa-header-num" type="text" placeholder="Ex: 5583999999999" class="w-full p-4 bg-white border border-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold mb-2 text-slate-700">Mensagem WhatsApp Header</label>
+                                <textarea id="c-wa-header-msg" rows="2" placeholder="Ex: Olá! Vim pelo seu site e gostaria de mais informações." class="w-full p-4 bg-white border border-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 text-sm"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- WhatsApp Floating -->
+                    <div class="p-6 bg-slate-50/50 rounded-2xl border border-slate-100">
+                        <h4 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                            <span class="w-2 h-2 bg-emerald-500 rounded-full"></span>
+                            📍 Botão WhatsApp Flutuante
+                        </h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-semibold mb-2 text-slate-700">Número WhatsApp Botão Flutuante</label>
+                                <input id="c-wa-floating-num" type="text" placeholder="Ex: 5583999999999" class="w-full p-4 bg-white border border-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold mb-2 text-slate-700">Mensagem WhatsApp Botão Flutuante</label>
+                                <textarea id="c-wa-floating-msg" rows="2" placeholder="Ex: Olá! Quero falar com um corretor agora." class="w-full p-4 bg-white border border-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 text-sm"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- WhatsApp Imovel -->
+                    <div class="p-6 bg-slate-50/50 rounded-2xl border border-slate-100">
+                        <h4 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                            <span class="w-2 h-2 bg-amber-500 rounded-full"></span>
+                            📍 Botão WhatsApp da Página do Imóvel
+                        </h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-semibold mb-2 text-slate-700">Número WhatsApp Página do Imóvel</label>
+                                <input id="c-wa-imovel-num" type="text" placeholder="Ex: 5583999999999" class="w-full p-4 bg-white border border-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold mb-2 text-slate-700">Mensagem WhatsApp Página do Imóvel</label>
+                                <textarea id="c-wa-imovel-msg" rows="2" placeholder="Ex: Olá! Vi o imóvel {{titulo}} - {{referencia}} na sua vitrine digital e gostaria de agendar uma visita." class="w-full p-4 bg-white border border-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 text-sm"></textarea>
+                                <p class="mt-2 text-[10px] text-slate-400 font-medium">Use <span class="text-blue-600">{{titulo}}</span>, <span class="text-blue-600">{{referencia}}</span>, <span class="text-blue-600">{{bairro}}</span> ou <span class="text-blue-600">{{cidade}}</span> para dados dinâmicos.</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -62,7 +124,7 @@
             <!-- SEÇÃO 2: Hero / Destaque Principal -->
             <section class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
                 <h3 class="text-lg font-bold mb-6 text-slate-800 flex items-center gap-2">
-                    <span class="w-8 h-8 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center text-sm">2</span>
+                    <span class="w-8 h-8 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center text-sm">3</span>
                     Hero / Destaque Principal
                 </h3>
                 <div class="grid grid-cols-1 gap-6">
@@ -74,7 +136,6 @@
                         <label class="block text-sm font-semibold mb-2 text-slate-700">Subtítulo</label>
                         <textarea id="c-hero-subtitle" rows="3" placeholder="Ex: Encontre o imóvel ideal para você" class="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 leading-relaxed"></textarea>
                     </div>
-                    <!-- Campo de Upload da Imagem da Hero -->
                     <div>
                         <label class="block text-sm font-semibold mb-4 text-slate-700">Imagem de Fundo (Hero)</label>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
@@ -91,17 +152,17 @@
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
                                     Alterar Imagem
                                 </button>
-                                <p class="text-[10px] text-slate-400 font-medium leading-relaxed">Formatos: JPG, PNG ou WebP. Recomendado: 1920x1080px. A imagem será otimizada automaticamente.</p>
+                                <p class="text-[10px] text-slate-400 font-medium leading-relaxed">Formatos: JPG, PNG ou WebP. Recomendado: 1920x1080px.</p>
                             </div>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <!-- SEÇÃO 4: Footer do Site -->
+            <!-- SEÇÃO 3: Footer do Site -->
             <section class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
                 <h3 class="text-lg font-bold mb-6 text-slate-800 flex items-center gap-2">
-                    <span class="w-8 h-8 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center text-sm">3</span>
+                    <span class="w-8 h-8 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center text-sm">4</span>
                     Footer do Site
                 </h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -117,8 +178,6 @@
                         <label class="block text-sm font-semibold mb-2 text-slate-700">Bio / Descrição Curta</label>
                         <textarea id="footer_bio" rows="3" placeholder="Especialistas em encontrar o lar dos seus sonhos..." class="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 leading-relaxed"></textarea>
                     </div>
-                    
-                    <!-- NOVOS CAMPOS DO FORMULÁRIO DO FOOTER -->
                     <div>
                         <label class="block text-sm font-semibold mb-2 text-slate-700">Título Formulário Footer</label>
                         <input id="titulo_formulario_footer" type="text" placeholder="Ex: Não encontrou seu imóvel?" class="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
@@ -127,13 +186,11 @@
                         <label class="block text-sm font-semibold mb-2 text-slate-700">Subtítulo Formulário Footer</label>
                         <input id="subtitulo_formulario_footer" type="text" placeholder="Ex: Deixe-nos uma mensagem." class="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
-
                     <div class="md:col-span-2">
                         <label class="block text-sm font-semibold mb-2 text-slate-700">Texto do CRECI</label>
-                        <input id="footer_creci" type="text" placeholder="Ex: MARLON SALES – CORRETOR DE IMÓVEIS – CRECI: 11111111" class="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
+                        <input id="footer_creci" type="text" placeholder="Ex: MARLON SALES – CRECI: 1111" class="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                 </div>
-
                 <div class="mt-8 pt-8 border-t border-slate-50">
                     <h4 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-6">Redes Sociais (Links completos)</h4>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -157,7 +214,7 @@
                 </div>
                 <div class="mt-8 pt-8 border-t border-slate-50">
                     <label class="block text-sm font-semibold mb-2 text-slate-700">Texto de Copyright (Final)</label>
-                    <input id="footer_copyright" type="text" placeholder="Ex: © 2024 ImobiMaster - Gestão Imobiliária Profissional" class="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
+                    <input id="footer_copyright" type="text" placeholder="Ex: © 2024 ImobiMaster" class="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
             </section>
 
