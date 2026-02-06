@@ -30,7 +30,7 @@ function obterValorImovel(imovel) {
 }
 
 /**
- * PARSER INTELIGENTE DE BUSCA (Versão Estável)
+ * PARSER INTELIGENTE DE BUSCA
  */
 function parseSearchQuery(text) {
     const raw = text.toLowerCase().trim();
@@ -43,7 +43,6 @@ function parseSearchQuery(text) {
         tokens: []
     };
 
-    // Regex para referências: XX-000 ou XX000
     const refMatch = raw.match(/([a-z]{1,}-?\d+)/i);
     if (refMatch) {
         filters.referencia = refMatch[0].toUpperCase();
@@ -63,24 +62,16 @@ function parseSearchQuery(text) {
     };
 
     words.forEach(word => {
-        // Pula se for a referência detectada
         if (filters.referencia && word.toUpperCase() === filters.referencia) return;
-
         let isKeyword = false;
-        
-        // Check Finalidade
         for (const [key, aliases] of Object.entries(keywordsFinalidade)) {
             if (aliases.includes(word)) { filters.finalidade = key; isKeyword = true; break; }
         }
-        
-        // Check Tipo
         if (!isKeyword) {
             for (const [key, aliases] of Object.entries(keywordsTipo)) {
                 if (aliases.includes(word)) { filters.tipo_imovel = key; isKeyword = true; break; }
             }
         }
-        
-        // Se não for keyword e tiver mais que 1 caractere (permite "PB", "RJ"), vira token
         if (!isKeyword && word.length >= 2) {
             filters.tokens.push(word);
         }
@@ -139,51 +130,61 @@ function injectSearchIntoHero() {
 
 function applySiteSettings(config) {
     if (config.color_scheme) applyColorScheme(resolveColorScheme(config.color_scheme));
+    
+    // 1. Restaurar Logo e Textos
     const logoText = document.getElementById('site-logo-text');
     if (logoText) logoText.innerText = config.header_nome_site || 'ImobiMaster';
+    
+    // 2. CORREÇÃO: Restaurar Botão CTA do Header
+    const headerCta = document.getElementById('header-cta-contato');
+    if (headerCta && config.header_whatsapp) {
+        headerCta.classList.remove('hidden');
+        const waLink = `https://wa.me/${config.header_whatsapp.replace(/\D/g, '')}`;
+        headerCta.href = waLink;
+        headerCta.textContent = 'Entre em contato';
+    }
+
     const heroTitle = document.querySelector('header h1');
     if (heroTitle && config.hero_titulo) heroTitle.innerText = config.hero_titulo;
+    
     const heroSub = document.querySelector('header p');
     if (heroSub && config.hero_subtitulo) heroSub.innerText = config.hero_subtitulo;
+
     const footerText = document.getElementById('footer-copyright-text');
     if (footerText) footerText.innerText = config.rodape_texto || '© ImobiMaster';
+
+    // WhatsApp Floating Button
+    const waButton = document.getElementById('wa-button');
+    if (waButton && config.header_whatsapp) {
+        waButton.href = `https://wa.me/${config.header_whatsapp.replace(/\D/g, '')}`;
+    }
+
     const heroSection = document.querySelector('header.hero-home');
-    if (heroSection) {
-        if (config.hero_bg_desktop_url) heroSection.style.setProperty('--hero-bg-desktop', `url('${config.hero_bg_desktop_url}')`);
+    if (heroSection && config.hero_bg_desktop_url) {
+        heroSection.style.setProperty('--hero-bg-desktop', `url('${config.hero_bg_desktop_url}')`);
     }
 }
 
 /**
- * CARGA DE IMÓVEIS (Correção para Incidentes de Busca Vazia e Erro 42703)
+ * CARGA DE IMÓVEIS (Restauração de Referência e Área)
  */
 async function loadProperties(filters = null) {
     const container = document.getElementById('lista-imoveis');
     if (!container) return;
 
-    container.innerHTML = '<div class="col-span-full py-20 text-center animate-pulse text-slate-400">Processando consulta...</div>';
+    container.innerHTML = '<div class="col-span-full py-20 text-center animate-pulse text-slate-400">Buscando imóveis...</div>';
 
     try {
-        console.debug("🔍 Iniciando query com filtros:", filters);
-
+        // Garantir que todos os campos necessários sejam selecionados
         let query = supabase.from('imoveis').select('*').eq('ativo', true);
 
         if (filters) {
-            // 1. Busca por Referência Direta
-            if (filters.referencia) {
-                query = query.ilike('referencia', `%${filters.referencia}%`);
-            }
-
-            // 2. Filtros de Categorias
+            if (filters.referencia) query = query.ilike('referencia', `%${filters.referencia}%`);
             if (filters.finalidade) query = query.ilike('finalidade', filters.finalidade);
             if (filters.tipo_imovel) query = query.ilike('tipo_imovel', filters.tipo_imovel);
 
-            // 3. Busca de Texto Livre (Tokens) em múltiplas colunas
             if (filters.tokens.length > 0) {
                 filters.tokens.forEach(token => {
-                    /**
-                     * CORREÇÃO ERRO 42703: 
-                     * Mudança de 'estado' para 'uf' conforme o schema real da tabela.
-                     */
                     const searchFields = ['titulo', 'bairro', 'cidade', 'uf'];
                     const orStr = searchFields.map(field => `${field}.ilike.%${token}%`).join(',');
                     query = query.or(orStr);
@@ -191,21 +192,14 @@ async function loadProperties(filters = null) {
             }
         }
 
-        const { data: imoveis, error, status } = await query
+        const { data: imoveis, error } = await query
             .order('destaque', { ascending: false })
             .order('created_at', { ascending: false });
 
-        if (error) {
-            console.error(`❌ Falha na Query (Status ${status}):`, error.message);
-            throw error;
-        }
+        if (error) throw error;
 
         if (!imoveis || imoveis.length === 0) {
-            container.innerHTML = `
-                <div class="col-span-full py-20 text-center">
-                    <p class="text-slate-500 text-lg">Nenhum imóvel corresponde aos critérios.</p>
-                    <button onclick="window.location.reload()" class="mt-4 text-blue-600 font-bold hover:underline">Ver todos os imóveis</button>
-                </div>`;
+            container.innerHTML = `<div class="col-span-full py-20 text-center"><p class="text-slate-500">Nenhum imóvel encontrado.</p></div>`;
             return;
         }
 
@@ -227,9 +221,15 @@ async function loadProperties(filters = null) {
                     <div class="card-imovel-body">
                         <span class="imovel-bairro">${imovel.bairro}</span>
                         <h3 class="imovel-titulo font-bold">${imovel.titulo}</h3>
+                        
+                        <!-- RESTAURAÇÃO DE REFERÊNCIA E ÁREA -->
+                        <div class="imovel-ref-area text-xs font-bold text-slate-400 text-center mt-3">
+                            REF: ${imovel.referencia || 'N/I'} — ${imovel.area_m2 || 0}M²
+                        </div>
+                        
                         <div class="divisor-card"></div>
                         <div class="preco text-center">
-                            <div class="imovel-finalidade text-xs opacity-70">${imovel.finalidade}</div>
+                            <div class="imovel-finalidade text-xs opacity-70">${imovel.finalidade || 'Venda'}</div>
                             <strong>${preco}</strong>
                         </div>
                         <div class="divisor-card"></div>
@@ -248,8 +248,8 @@ async function loadProperties(filters = null) {
         });
 
     } catch (err) {
-        console.error("Critical Render Error:", err);
-        container.innerHTML = `<p class="col-span-full text-center text-red-500 py-10">Erro ao carregar dados. Verifique a estrutura da tabela imoveis.</p>`;
+        console.error("Render Error:", err);
+        container.innerHTML = `<p class="col-span-full text-center text-red-500 py-10">Erro ao carregar dados.</p>`;
     }
 }
 
