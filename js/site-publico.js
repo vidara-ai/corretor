@@ -505,10 +505,10 @@ function applySiteSettings(config) {
     // Ajuste do Botão Flutuante de WhatsApp
     const waButton = document.getElementById('wa-button');
     if (waButton) {
-        const whatsappValue = config.header_whatsapp || config.whatsapp_header;
+        const whatsappValue = config.whatsapp_header || config.header_whatsapp;
         const whatsappNumber = whatsappValue ? whatsappValue.replace(/\D/g, '') : '';
         
-        if (whatsappNumber) {
+        if (whatsappNumber && whatsappNumber.length >= 8) {
             waButton.href = `https://wa.me/${whatsappNumber}`;
             waButton.style.display = 'flex';
         } else {
