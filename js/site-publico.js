@@ -46,12 +46,13 @@ function renderCardList(imoveis, fotos) {
         const localizacao = localParts.join(', ') || 'Localização não informada';
 
         // Ícones e Informações Técnicas (Exibir apenas se > 0)
+        // Tamanho dos ícones aumentado para w-5 h-5 (aprox. 20px) e gap aumentado para gap-2.5
         const specs = [];
-        if (imovel.area_m2 > 0) specs.push(`<div class="flex items-center gap-1.5"><svg class="w-3.5 h-3.5 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg> ${imovel.area_m2}m²</div>`);
-        if (imovel.dormitorios > 0) specs.push(`<div class="flex items-center gap-1.5"><svg class="w-3.5 h-3.5 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg> ${imovel.dormitorios} Qts</div>`);
-        if (imovel.suites > 0) specs.push(`<div class="flex items-center gap-1.5"><svg class="w-3.5 h-3.5 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-7.714 2.143L11 21l-2.286-6.857L1 12l7.714-2.143L11 3z"/></svg> ${imovel.suites} Ste</div>`);
-        if (imovel.banheiros > 0) specs.push(`<div class="flex items-center gap-1.5"><svg class="w-3.5 h-3.5 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg> ${imovel.banheiros} Banh</div>`);
-        if (imovel.vagas_garagem > 0) specs.push(`<div class="flex items-center gap-1.5"><svg class="w-3.5 h-3.5 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg> ${imovel.vagas_garagem} Vag</div>`);
+        if (imovel.area_m2 > 0) specs.push(`<div class="flex items-center gap-2.5"><svg class="w-5 h-5 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg> ${imovel.area_m2}m²</div>`);
+        if (imovel.dormitorios > 0) specs.push(`<div class="flex items-center gap-2.5"><svg class="w-5 h-5 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg> ${imovel.dormitorios} Qts</div>`);
+        if (imovel.suites > 0) specs.push(`<div class="flex items-center gap-2.5"><svg class="w-5 h-5 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-7.714 2.143L11 21l-2.286-6.857L1 12l7.714-2.143L11 3z"/></svg> ${imovel.suites} Ste</div>`);
+        if (imovel.banheiros > 0) specs.push(`<div class="flex items-center gap-2.5"><svg class="w-5 h-5 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg> ${imovel.banheiros} Banh</div>`);
+        if (imovel.vagas_garagem > 0) specs.push(`<div class="flex items-center gap-2.5"><svg class="w-5 h-5 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg> ${imovel.vagas_garagem} Vag</div>`);
 
         return `
             <div class="card-imovel group bg-white border border-slate-100 rounded-[2.5rem] shadow-xl hover:shadow-2xl hover:-translate-y-3 transition-all duration-500 ease-out overflow-hidden flex flex-col h-full cursor-pointer" data-id="${imovel.id}">
@@ -60,9 +61,6 @@ function renderCardList(imoveis, fotos) {
                     <div class="absolute top-5 left-5 flex flex-col gap-2 z-10">
                         <span class="bg-white/95 backdrop-blur text-slate-900 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg">
                             ${imovel.tipo_imovel || 'Imóvel'}
-                        </span>
-                        <span class="bg-blue-600/90 backdrop-blur text-white px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest shadow-lg">
-                            ${finalidade}
                         </span>
                     </div>
                     <span class="absolute top-5 right-5 bg-slate-900/80 backdrop-blur text-white px-3 py-1.5 rounded-lg text-[9px] font-bold tracking-widest uppercase z-10 border border-white/20">
@@ -82,12 +80,12 @@ function renderCardList(imoveis, fotos) {
                         <h3 class="text-xl font-bold text-slate-900 leading-tight group-hover:text-blue-600 transition-colors line-clamp-2 h-14">${imovel.titulo}</h3>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-y-3 gap-x-2 border-t border-slate-100 pt-5 pb-5 text-slate-500 text-[11px] font-bold uppercase tracking-tight">
+                    <div class="grid grid-cols-2 gap-y-4 gap-x-2 border-t border-slate-100 pt-6 pb-6 text-slate-600 text-[12px] font-bold uppercase tracking-tight">
                         ${specs.join('')}
                     </div>
 
-                    <div class="border-t border-slate-100 py-5 mt-auto">
-                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Valor do Investimento</p>
+                    <div class="border-t border-slate-100 py-6 mt-auto">
+                        <p class="text-[11px] font-black text-blue-600/60 uppercase tracking-[0.2em] mb-1">${finalidade}</p>
                         <p class="text-3xl font-black text-blue-600 tracking-tighter">${preco}</p>
                     </div>
                 </div>
