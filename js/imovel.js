@@ -25,6 +25,25 @@ const LABELS_GARANTIAS = {
 };
 
 /**
+ * Função única para geração de links do WhatsApp com suporte a variáveis e fallbacks.
+ */
+function buildWhatsAppLink({ numero, mensagem }, imovel = {}) {
+  if (!numero) return null;
+
+  const cleanNumber = numero.replace(/\D/g, '');
+  if (cleanNumber.length < 8) return null;
+
+  const texto = (mensagem || '')
+    .replace(/{{titulo}}/g, imovel.titulo || '')
+    .replace(/{{referencia}}/g, imovel.referencia || imovel.id || '')
+    .replace(/{{bairro}}/g, imovel.bairro || '')
+    .replace(/{{cidade}}/g, imovel.cidade || '')
+    .replace(/{{valor}}/g, '');
+
+  return `https://wa.me/${cleanNumber}?text=${encodeURIComponent(texto)}`;
+}
+
+/**
  * NORMALIZADOR DE DADOS
  */
 function ensureArray(val) {
@@ -169,16 +188,15 @@ async function iniciarPaginaImovel() {
                 }
             }
 
-            // Atualização do Botão WhatsApp Nativo
+            // Atualização dinâmica do Botão Flutuante do WhatsApp
             const waBtn = document.getElementById('whatsapp-floating-btn');
             if (waBtn) {
-                const whatsappValue = config.whatsapp_header || config.header_whatsapp;
-                if (whatsappValue) {
-                    const cleanNumber = whatsappValue.replace(/\D/g, '');
-                    if (cleanNumber.length >= 8) {
-                        waBtn.href = `https://wa.me/${cleanNumber}`;
-                        waBtn.style.display = 'block';
-                    }
+                const waNum = config.whatsapp_floating || config.whatsapp_header;
+                const waMsg = config.whatsapp_msg_floating || "Olá! Quero falar com um corretor agora.";
+                const link = buildWhatsAppLink({ numero: waNum, mensagem: waMsg });
+                if (link) {
+                    waBtn.href = link;
+                    waBtn.style.display = 'flex';
                 } else {
                     waBtn.style.display = 'none';
                 }
@@ -204,10 +222,10 @@ function renderizarImovel(p, config) {
     const finalidadeLower = (p.finalidade || '').toLowerCase();
     const isAluguel = finalidadeLower === 'aluguel';
 
-    const whatsappNum = config.whatsapp_header || config.header_whatsapp || '5500000000000';
-    const refLabel = p.referencia || p.id;
-    const msgText = `Olá! Vi o imóvel ${p.titulo} - ${refLabel} na sua vitrine digital e gostaria de agendar uma visita.`;
-    const whatsappLink = `https://wa.me/${whatsappNum.replace(/\D/g, '')}?text=${encodeURIComponent(msgText)}`;
+    // Lógica dinâmica para o Botão do Imóvel (CTA)
+    const waNum = config.whatsapp_imovel || config.whatsapp_header;
+    const waMsg = config.whatsapp_msg_imovel || "Olá! Vi o imóvel {{titulo}} - {{referencia}} e gostaria de agendar uma visita.";
+    const whatsappLink = buildWhatsAppLink({ numero: waNum, mensagem: waMsg }, p);
 
     const caracImovel = ensureArray(p.caracteristicas_imovel);
     const caracCondo = ensureArray(p.caracteristicas_condominio);
@@ -359,7 +377,7 @@ function renderizarImovel(p, config) {
                         </div>
 
                         <div class="space-y-4">
-                            <a href="${whatsappLink}" target="_blank" class="flex items-center justify-center w-full bg-blue-600 text-white py-6 rounded-xl font-black text-lg hover:bg-blue-700 transition-all shadow-xl shadow-blue-100 active:scale-95 uppercase tracking-tight">
+                            <a href="${whatsappLink || '#'}" target="_blank" class="flex items-center justify-center w-full bg-blue-600 text-white py-6 rounded-xl font-black text-lg hover:bg-blue-700 transition-all shadow-xl shadow-blue-100 active:scale-95 uppercase tracking-tight ${!whatsappLink ? 'pointer-events-none opacity-50' : ''}">
                                 Agendar visita agora
                             </a>
                         </div>
