@@ -151,6 +151,61 @@ function setupLeadModal() {
 }
 
 /**
+ * GESTÃO DO FORMULÁRIO DE LEADS NO RODAPÉ
+ */
+function setupFooterLeadForm() {
+    const form = document.getElementById('footer-lead-form');
+    const inputTelefone = document.getElementById('footer-telefone');
+    
+    if (!form || !inputTelefone) return;
+
+    inputTelefone.addEventListener('input', (e) => {
+        e.target.value = mascaraTelefone(e.target.value);
+    });
+
+    form.onsubmit = async (e) => {
+        e.preventDefault();
+        
+        const btn = document.getElementById('btn-footer-submit');
+        const fields = document.getElementById('footer-form-fields');
+        const success = document.getElementById('footer-success-msg');
+        
+        const nome = document.getElementById('footer-nome').value;
+        const email = document.getElementById('footer-email').value;
+        const telefone = inputTelefone.value;
+        const mensagem = document.getElementById('footer-mensagem').value;
+
+        btn.disabled = true;
+        const originalText = btn.innerText;
+        btn.innerText = "Enviando...";
+
+        try {
+            const { error } = await supabase.from('leads').insert({
+                nome: nome,
+                email: email,
+                telefone: telefone,
+                mensagem: mensagem,
+                origem: 'Footer - Imóvel desejado',
+                imovel_interesse: 'Busca personalizada (Footer)',
+                created_at: new Date().toISOString()
+            });
+
+            if (error) throw error;
+
+            fields.classList.add('hidden');
+            success.classList.remove('hidden');
+            form.reset();
+
+        } catch (err) {
+            console.error("Footer Lead Error:", err);
+            alert("Não foi possível enviar sua mensagem agora. Tente novamente em instantes.");
+            btn.disabled = false;
+            btn.innerText = originalText;
+        }
+    };
+}
+
+/**
  * PARSER INTELIGENTE DE BUSCA
  */
 function parseSearchQuery(text) {
@@ -175,6 +230,7 @@ function parseSearchQuery(text) {
 async function initSite() {
     initTheme();
     setupLeadModal();
+    setupFooterLeadForm();
     try {
         const { data: config } = await supabase.from('configuracoes_site').select('*').limit(1).maybeSingle();
         if (config) { siteConfig = config; applySiteSettings(config); }
@@ -221,6 +277,11 @@ function applySiteSettings(config) {
     if (config.color_scheme) applyColorScheme(resolveColorScheme(config.color_scheme));
     const logoText = document.getElementById('site-logo-text');
     if (logoText) logoText.innerText = config.header_nome_site || 'ImobiMaster';
+    
+    // Logo rodapé
+    const footerLogo = document.getElementById('footer-logo-text-bottom');
+    if (footerLogo) footerLogo.innerText = config.header_nome_site || 'ImobiMaster';
+
     const headerCta = document.getElementById('header-cta-contato');
     if (headerCta && config.header_whatsapp) {
         headerCta.classList.remove('hidden');
