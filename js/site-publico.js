@@ -8,10 +8,11 @@ let allFotosCache = [];
 let currentFinalidade = 'Aluguel'; // Inicial padrão
 
 /**
- * SMART LEAD POPUP LOGIC
+ * SMART LEAD POPUP LOGIC - REFATORADO
  */
 function initSmartPopup() {
-    if (sessionStorage.getItem('smart_popup_viewed')) return;
+    // Verifica se o lead já enviou o formulário anteriormente (localStorage para persistência longa)
+    if (localStorage.getItem('smart_popup_completed')) return;
 
     const showPopup = () => {
         if (document.getElementById('smart-lead-popup')) return;
@@ -24,6 +25,7 @@ function initSmartPopup() {
         injectPopup();
     };
 
+    // Dispara após 5 segundos ou na primeira interação real
     const timerTrigger = setTimeout(showPopup, 5000);
     document.addEventListener('click', showPopup);
     document.addEventListener('touchstart', showPopup);
@@ -36,36 +38,27 @@ function injectPopup() {
             <div id="popup-backdrop" class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm opacity-0 transition-opacity duration-500 pointer-events-auto"></div>
             
             <!-- Content Card -->
-            <div id="popup-card" class="relative w-full sm:max-w-[450px] bg-white rounded-t-[2.5rem] sm:rounded-[2.5rem] shadow-2xl p-8 md:p-10 transform translate-y-full sm:translate-y-12 sm:opacity-0 transition-all duration-700 ease-out pointer-events-auto">
+            <div id="popup-card" class="relative w-full sm:max-w-[420px] bg-white rounded-t-[2.5rem] sm:rounded-[2.5rem] shadow-2xl p-8 md:p-10 transform translate-y-full sm:translate-y-12 sm:opacity-0 transition-all duration-700 ease-out pointer-events-auto">
                 <button id="close-smart-popup" class="absolute top-6 right-6 text-slate-300 hover:text-slate-900 transition-colors">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
 
-                <div class="mb-8">
-                    <h3 class="text-2xl font-black text-slate-900 leading-tight">Encontramos o melhor para você!</h3>
-                    <p class="text-slate-500 mt-2 font-medium">Deixe seu contato e receba opções exclusivas no seu WhatsApp.</p>
-                </div>
+                <div id="popup-content-wrapper">
+                    <div class="mb-8">
+                        <h3 class="text-xl font-black text-slate-900 leading-tight">Para uma melhor experiência, responda as perguntas:</h3>
+                    </div>
 
-                <form id="smart-popup-form" class="space-y-4">
-                    <div id="popup-success-msg" class="hidden bg-emerald-50 text-emerald-700 p-6 rounded-3xl text-center font-bold border border-emerald-100 animate-in fade-in zoom-in duration-300">
-                        Obrigado! Entraremos em contato em breve.
-                    </div>
-                    
-                    <div id="popup-form-fields" class="space-y-4">
-                        <div class="space-y-1">
-                            <input type="text" id="pop-nome" required placeholder="Seu nome" class="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-blue-500/10 transition-all">
+                    <form id="smart-popup-form" class="space-y-4">
+                        <div class="space-y-4">
+                            <input type="text" id="pop-nome" required placeholder="Qual é seu nome?" class="w-full p-5 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-blue-500/10 transition-all font-medium text-slate-700">
+                            <input type="tel" id="pop-telefone" required placeholder="Qual seu contato?" class="w-full p-5 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-blue-500/10 transition-all font-medium text-slate-700">
+                            
+                            <button type="submit" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-black text-lg shadow-xl shadow-blue-100 hover:scale-[1.02] active:scale-95 transition-all mt-4">
+                                Ver imóveis agora
+                            </button>
                         </div>
-                        <div class="space-y-1">
-                            <input type="tel" id="pop-telefone" required placeholder="Seu WhatsApp" class="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-blue-500/10 transition-all">
-                        </div>
-                        <div class="space-y-1">
-                            <textarea id="pop-interesse" rows="2" placeholder="Qual tipo de imóvel você busca?" class="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-blue-500/10 transition-all resize-none"></textarea>
-                        </div>
-                        <button type="submit" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-black text-lg shadow-xl shadow-blue-100 hover:scale-[1.02] active:scale-95 transition-all">
-                            Quero Atendimento VIP
-                        </button>
-                    </div>
-                </form>
+                    </form>
+                </div>
             </div>
         </div>
     `;
@@ -82,12 +75,15 @@ function injectPopup() {
         card.classList.add('translate-y-0', 'sm:translate-y-0', 'sm:opacity-100');
     });
 
-    // Eventos de Fechar
+    // Função para fechar o popup
     const closePopup = () => {
         backdrop.classList.remove('opacity-100');
         card.classList.add('translate-y-full', 'sm:translate-y-12', 'sm:opacity-0');
-        sessionStorage.setItem('smart_popup_viewed', 'true');
-        setTimeout(() => document.getElementById('smart-lead-popup').remove(), 700);
+        setTimeout(() => {
+            const el = document.getElementById('smart-lead-popup');
+            if (el) el.remove();
+            document.body.style.overflow = ''; // Garante liberação do scroll
+        }, 700);
     };
 
     document.getElementById('close-smart-popup').onclick = closePopup;
@@ -98,32 +94,48 @@ function injectPopup() {
         e.target.value = mascaraTelefone(e.target.value);
     };
 
-    // Submissão
+    // Submissão do Formulário
     document.getElementById('smart-popup-form').onsubmit = async (e) => {
         e.preventDefault();
         const btn = e.target.querySelector('button');
-        const fields = document.getElementById('popup-form-fields');
-        const success = document.getElementById('popup-success-msg');
+        const wrapper = document.getElementById('popup-content-wrapper');
 
         btn.disabled = true;
-        btn.innerText = "Enviando...";
+        btn.innerText = "Processando...";
 
         try {
             const { error } = await supabase.from('leads').insert({
                 nome: document.getElementById('pop-nome').value,
                 telefone: document.getElementById('pop-telefone').value,
-                imovel_interesse: document.getElementById('pop-interesse').value || 'Interesse Geral',
-                origem: 'popup_inteligente',
+                imovel_interesse: 'Interesse via Popup Inteligente',
+                origem: 'popup',
                 created_at: new Date().toISOString()
             });
 
             if (error) throw error;
 
-            fields.classList.add('hidden');
-            success.classList.remove('hidden');
+            // Sucesso: Persiste que o usuário já converteu
+            localStorage.setItem('smart_popup_completed', 'true');
+
+            // Feedback Visual de Sucesso (Premium)
+            wrapper.innerHTML = `
+                <div class="flex flex-col items-center justify-center py-10 text-center animate-in fade-in zoom-in duration-300">
+                    <div class="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mb-6">
+                        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                    </div>
+                    <h3 class="text-2xl font-black text-slate-900 tracking-tight">Experiência Premium Desbloqueada</h3>
+                </div>
+            `;
             
-            setTimeout(closePopup, 3000);
+            // Aguarda 0.8s e executa as ações finais
+            setTimeout(() => {
+                closePopup();
+                // Scroll para a Hero (topo da página)
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }, 800);
+
         } catch (err) {
+            console.error('Erro no popup:', err);
             btn.disabled = false;
             btn.innerText = "Tentar novamente";
         }
@@ -266,7 +278,6 @@ function mascaraTelefone(valor) {
 }
 
 function setupLeadModal() {
-    // Mantendo a lógica existente para o modal de lead manual caso necessário
     const modal = document.getElementById('lead-modal');
     const content = document.getElementById('lead-modal-content');
     const closeBtn = document.getElementById('close-lead-modal');
@@ -376,7 +387,7 @@ async function initSite() {
     setupFooterLeadForm();
     initFilterBadges();
     
-    // Inicia o Popup Inteligente
+    // Inicia o Popup Inteligente (Lead Magnets)
     initSmartPopup();
     
     try {
@@ -481,7 +492,7 @@ async function loadProperties(filters = null) {
         }
         let { data: imoveis, error } = await query.order('destaque', { ascending: false }).order('created_at', { ascending: false });
         if (error) throw error;
-        const { data: fotos } = await supabase.from('imoveis_fotos').select('*').eq('is_capa', true);
+        const { data: fotos } = await supabase.from('imis_fotos').select('*').eq('is_capa', true);
         
         allImoveisCache = imoveis || [];
         allFotosCache = fotos || [];
