@@ -59,20 +59,25 @@ function initLightbox() {
     if (!modal) {
         modal = document.createElement('div');
         modal.id = 'lightbox-modal';
-        modal.className = 'fixed inset-0 z-[200] bg-black/98 flex flex-col items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300';
+        // z-index altíssimo para sobrepor tudo. Fundo preto quase opaco.
+        modal.className = 'fixed inset-0 z-[1000] bg-black/98 flex flex-col items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300';
         modal.innerHTML = `
-            <button id="lb-close" class="absolute top-6 right-6 text-white hover:text-red-500 z-[210] p-2 transition-colors">
-                <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+            <!-- Botão Fechar Aprimorado (Mobile Friendly) -->
+            <button id="lb-close" class="absolute top-4 right-4 md:top-8 md:right-8 text-white bg-white/10 hover:bg-white/20 border border-white/20 backdrop-blur-md rounded-full z-[1010] p-4 transition-all hover:scale-110 active:scale-90 flex items-center justify-center shadow-2xl" aria-label="Fechar galeria">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
-            <button id="lb-prev" class="absolute left-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white transition p-4 z-[210]">
+            
+            <button id="lb-prev" class="absolute left-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white transition p-4 z-[1010] hidden md:block">
                 <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
             </button>
-            <button id="lb-next" class="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white transition p-4 z-[210]">
+            <button id="lb-next" class="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white transition p-4 z-[1010] hidden md:block">
                 <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
             </button>
+            
             <div class="w-full h-full flex items-center justify-center p-4">
                 <img id="lb-img" src="" class="max-w-full max-h-[85vh] object-contain shadow-2xl transition-all duration-300 select-none">
             </div>
+            
             <div id="lb-counter" class="absolute bottom-10 text-white/60 font-black text-xs tracking-[0.3em] uppercase"></div>
         `;
         document.body.appendChild(modal);
@@ -88,10 +93,19 @@ function initLightbox() {
             atualizarExibicaoGaleria();
         };
 
-        modal.querySelector('#lb-close').onclick = close;
+        modal.querySelector('#lb-close').onclick = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            close();
+        };
+        
         modal.querySelector('#lb-prev').onclick = (e) => { e.stopPropagation(); navigate(-1); };
         modal.querySelector('#lb-next').onclick = (e) => { e.stopPropagation(); navigate(1); };
-        modal.onclick = (e) => { if(e.target.id === 'lightbox-modal') close(); };
+        
+        // Fechar ao clicar fora da imagem
+        modal.onclick = (e) => { 
+            if(e.target.id === 'lightbox-modal' || e.target.tagName === 'DIV') close(); 
+        };
 
         document.addEventListener('keydown', (e) => {
             if (modal.classList.contains('pointer-events-none')) return;
