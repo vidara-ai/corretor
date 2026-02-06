@@ -63,7 +63,7 @@ function applySiteSettings(config) {
     }
 
     const logoText = document.getElementById('site-logo-text');
-    if (logoText) logoText.innerText = config.header_nome_site || 'ImobiMaster';
+    if (logoText) logoText.innerText = config.header_nome_site || '&nbsp;';
     
     const heroTitle = document.querySelector('header h1');
     if (heroTitle && config.hero_titulo) heroTitle.innerText = config.hero_titulo;
@@ -87,7 +87,7 @@ function applySiteSettings(config) {
     if (sectionSub && config.home_subtitulo_oportunidades) sectionSub.innerText = config.home_subtitulo_oportunidades;
 
     const footerText = document.getElementById('footer-copyright-text');
-    if (footerText) footerText.innerText = config.rodape_texto || '© ImobiMaster';
+    if (footerText) footerText.innerText = config.rodape_texto || '&nbsp;';
 
     const headerCta = document.getElementById('header-cta-contato');
     if (headerCta) {
