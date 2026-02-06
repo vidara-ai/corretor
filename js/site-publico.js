@@ -492,7 +492,8 @@ async function loadProperties(filters = null) {
         }
         let { data: imoveis, error } = await query.order('destaque', { ascending: false }).order('created_at', { ascending: false });
         if (error) throw error;
-        const { data: fotos } = await supabase.from('imis_fotos').select('*').eq('is_capa', true);
+        // CORREÇÃO: A tabela correta é 'imoveis_fotos'
+        const { data: fotos } = await supabase.from('imoveis_fotos').select('*').eq('is_capa', true);
         
         allImoveisCache = imoveis || [];
         allFotosCache = fotos || [];
