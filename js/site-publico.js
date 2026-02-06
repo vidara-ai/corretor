@@ -43,7 +43,7 @@ function parseSearchQuery(text) {
         tokens: []
     };
 
-    // Regex para referências (Ex: CS-001, CS001, C-001)
+    // Regex para referências: XX-000 ou XX000
     const refMatch = raw.match(/([a-z]{1,}-?\d+)/i);
     if (refMatch) {
         filters.referencia = refMatch[0].toUpperCase();
@@ -59,22 +59,29 @@ function parseSearchQuery(text) {
         'Casa': ['casa', 'casas'],
         'Apartamento': ['apartamento', 'apto', 'aptos'],
         'Terreno': ['terreno', 'lote'],
-        'Comercial': ['comercial', 'sala']
+        'Comercial': ['comercial', 'sala', 'galpão']
     };
 
     words.forEach(word => {
+        // Pula se for a referência detectada
         if (filters.referencia && word.toUpperCase() === filters.referencia) return;
 
         let isKeyword = false;
+        
+        // Check Finalidade
         for (const [key, aliases] of Object.entries(keywordsFinalidade)) {
             if (aliases.includes(word)) { filters.finalidade = key; isKeyword = true; break; }
         }
+        
+        // Check Tipo
         if (!isKeyword) {
             for (const [key, aliases] of Object.entries(keywordsTipo)) {
                 if (aliases.includes(word)) { filters.tipo_imovel = key; isKeyword = true; break; }
             }
         }
-        if (!isKeyword && word.length > 1) {
+        
+        // Se não for keyword e tiver mais que 1 caractere (permite "PB", "RJ"), vira token
+        if (!isKeyword && word.length >= 2) {
             filters.tokens.push(word);
         }
     });
@@ -109,7 +116,6 @@ function injectSearchIntoHero() {
     form.onsubmit = (e) => {
         e.preventDefault();
         const searchText = input.value.trim();
-        console.log("🔍 Iniciando busca por:", searchText);
         const filters = parseSearchQuery(searchText);
         const resultsSection = document.getElementById('regular-section');
         if (resultsSection) resultsSection.scrollIntoView({ behavior: 'smooth' });
@@ -118,7 +124,7 @@ function injectSearchIntoHero() {
 
     const input = document.createElement('input');
     input.type = 'search';
-    input.placeholder = 'Referência (CS-001) ou Localização...';
+    input.placeholder = 'Ex: Casa venda Bessa ou CS-001';
     input.className = 'flex-1 px-6 py-4 rounded-xl text-slate-900 bg-white border-none shadow-xl outline-none focus:ring-2 focus:ring-blue-500 transition-all font-medium';
 
     const button = document.createElement('button');
@@ -148,7 +154,7 @@ function applySiteSettings(config) {
 }
 
 /**
- * CARGA DE IMÓVEIS (Correção para Incidentes de Busca Vazia)
+ * CARGA DE IMÓVEIS (Correção para Incidentes de Busca Vazia e Erro 42703)
  */
 async function loadProperties(filters = null) {
     const container = document.getElementById('lista-imoveis');
@@ -157,62 +163,52 @@ async function loadProperties(filters = null) {
     container.innerHTML = '<div class="col-span-full py-20 text-center animate-pulse text-slate-400">Processando consulta...</div>';
 
     try {
-        // QUERY BUILDER
+        console.debug("🔍 Iniciando query com filtros:", filters);
+
         let query = supabase.from('imoveis').select('*').eq('ativo', true);
 
         if (filters) {
-            console.log("🛠 Filtros processados:", filters);
-
-            // 1. Busca por Referência (CS-001) - ILIKE para ignorar case
+            // 1. Busca por Referência Direta
             if (filters.referencia) {
                 query = query.ilike('referencia', `%${filters.referencia}%`);
             }
 
-            // 2. Filtros Fixos
+            // 2. Filtros de Categorias
             if (filters.finalidade) query = query.ilike('finalidade', filters.finalidade);
             if (filters.tipo_imovel) query = query.ilike('tipo_imovel', filters.tipo_imovel);
 
-            // 3. Busca de Texto Livre (Tokens)
+            // 3. Busca de Texto Livre (Tokens) em múltiplas colunas
             if (filters.tokens.length > 0) {
                 filters.tokens.forEach(token => {
-                    // Nota: Apenas colunas garantidas na tabela imoveis.
-                    // Se a coluna 'descricao' não existir, a query falhará com 400.
-                    const searchFields = ['titulo', 'bairro', 'cidade', 'estado'];
+                    /**
+                     * CORREÇÃO ERRO 42703: 
+                     * Mudança de 'estado' para 'uf' conforme o schema real da tabela.
+                     */
+                    const searchFields = ['titulo', 'bairro', 'cidade', 'uf'];
                     const orStr = searchFields.map(field => `${field}.ilike.%${token}%`).join(',');
                     query = query.or(orStr);
                 });
             }
         }
 
-        // EXECUÇÃO COM DEBUG DE STATUS
-        const startTime = performance.now();
         const { data: imoveis, error, status } = await query
             .order('destaque', { ascending: false })
             .order('created_at', { ascending: false });
-        const endTime = performance.now();
-
-        console.debug(`⏱ Consulta concluída em ${(endTime - startTime).toFixed(2)}ms. Status: ${status}`);
 
         if (error) {
-            console.error("❌ Erro Supabase:", error.message, error.details);
+            console.error(`❌ Falha na Query (Status ${status}):`, error.message);
             throw error;
-        }
-
-        // DIAGNÓSTICO DE RLS: Se data é [], status é 200 e filtros eram nulos, RLS SELECT está bloqueado.
-        if (imoveis.length === 0 && !filters) {
-            console.warn("⚠️ RLS ALERTA: Nenhum dado retornado na carga inicial. Verifique as Políticas de SELECT no Supabase.");
         }
 
         if (!imoveis || imoveis.length === 0) {
             container.innerHTML = `
                 <div class="col-span-full py-20 text-center">
-                    <p class="text-slate-500 text-lg">Nenhum resultado para esta busca.</p>
+                    <p class="text-slate-500 text-lg">Nenhum imóvel corresponde aos critérios.</p>
                     <button onclick="window.location.reload()" class="mt-4 text-blue-600 font-bold hover:underline">Ver todos os imóveis</button>
                 </div>`;
             return;
         }
 
-        // BUSCA FOTOS DE CAPA
         const { data: fotos } = await supabase.from('imoveis_fotos').select('*').eq('is_capa', true);
         
         container.innerHTML = imoveis.map(imovel => {
@@ -225,7 +221,7 @@ async function loadProperties(filters = null) {
                     <div class="card-imagem">
                         <img src="${imagem}" alt="${imovel.titulo}" loading="lazy">
                         <span class="badge-tipo">${imovel.tipo_imovel || 'Imóvel'}</span>
-                        <span class="badge-local">${imovel.cidade}</span>
+                        <span class="badge-local">${imovel.cidade} / ${imovel.uf || ''}</span>
                         ${imovel.destaque ? '<div class="badge-destaque">DESTAQUE</div>' : ''}
                     </div>
                     <div class="card-imovel-body">
@@ -253,7 +249,7 @@ async function loadProperties(filters = null) {
 
     } catch (err) {
         console.error("Critical Render Error:", err);
-        container.innerHTML = `<p class="col-span-full text-center text-red-500 py-10">Erro ao carregar dados. Tente novamente.</p>`;
+        container.innerHTML = `<p class="col-span-full text-center text-red-500 py-10">Erro ao carregar dados. Verifique a estrutura da tabela imoveis.</p>`;
     }
 }
 
