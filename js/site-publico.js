@@ -107,6 +107,9 @@ function mascaraTelefone(valor) {
     return valor;
 }
 
+/**
+ * CONFIGURAÇÃO DO MODAL DE CAPTURA DE LEADS
+ */
 function setupLeadModal() {
     const modal = document.getElementById('lead-modal');
     const content = document.getElementById('lead-modal-content');
@@ -114,14 +117,20 @@ function setupLeadModal() {
     const form = document.getElementById('lead-capture-form');
     const inputTelefone = document.getElementById('lead-telefone');
 
-    if (!modal) return;
+    // Validação básica de existência dos elementos
+    if (!modal || !content || !form) return;
 
-    inputTelefone.addEventListener('input', (e) => {
-        e.target.value = mascaraTelefone(e.target.value);
-    });
+    // Mascara de telefone no input se ele existir
+    if (inputTelefone) {
+        inputTelefone.addEventListener('input', (e) => {
+            e.target.value = mascaraTelefone(e.target.value);
+        });
+    }
 
     const openModal = () => {
+        // Se o lead já foi enviado nesta máquina, não abre novamente
         if (localStorage.getItem('imobi_lead_sent')) return;
+        
         modal.classList.remove('opacity-0', 'pointer-events-none');
         content.classList.remove('scale-90', 'opacity-0');
         content.classList.add('scale-100', 'opacity-100');
@@ -133,18 +142,34 @@ function setupLeadModal() {
         content.classList.add('scale-90', 'opacity-0');
     };
 
-    closeBtn.onclick = closeModal;
-    setTimeout(openModal, 4000);
+    // Event listener para fechar o modal
+    if (closeBtn) {
+        closeBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            closeModal();
+        });
+    }
 
-    form.onsubmit = async (e) => {
+    // Delay de 5 segundos para a primeira aparição (conforme solicitado)
+    setTimeout(openModal, 5000);
+
+    // Lógica de envio do formulário
+    form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const btn = form.querySelector('button[type="submit"]');
         const fields = document.getElementById('lead-form-fields');
         const success = document.getElementById('lead-success-msg');
-        const nome = document.getElementById('lead-nome').value;
-        const telefone = inputTelefone.value;
+        
+        const nomeInput = document.getElementById('lead-nome');
+        const telInput = document.getElementById('lead-telefone');
+
+        if (!nomeInput || !telInput) return;
+
+        const nome = nomeInput.value;
+        const telefone = telInput.value;
 
         btn.disabled = true;
+        const originalText = btn.innerText;
         btn.innerText = "Enviando...";
 
         try {
@@ -155,16 +180,25 @@ function setupLeadModal() {
                 imovel_interesse: 'Interesse Geral (Captura Automática)',
                 created_at: new Date().toISOString()
             });
+
             if (error) throw error;
-            fields.classList.add('hidden');
-            success.classList.remove('hidden');
+
+            // Feedback de sucesso
+            if (fields) fields.classList.add('hidden');
+            if (success) success.classList.remove('hidden');
+            
+            // Marca no navegador que o lead já foi enviado
             localStorage.setItem('imobi_lead_sent', 'true');
+            
+            // Fecha o modal após 2.5 segundos de exibir o sucesso
             setTimeout(closeModal, 2500);
         } catch (err) {
+            console.error('Erro ao salvar lead:', err);
             btn.disabled = false;
-            btn.innerText = "Quero Atendimento";
+            btn.innerText = originalText;
+            alert('Houve um problema ao enviar seus dados. Por favor, tente novamente.');
         }
-    };
+    });
 }
 
 function setupFooterLeadForm() {
