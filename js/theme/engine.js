@@ -14,7 +14,7 @@ export function resolveColorScheme(id) {
 }
 
 /**
- * Aplica o esquema de cores ao :root do documento e persiste no localStorage.
+ * Aplica o esquema de cores ao :root do documento.
  * @param {import('./schemes.js').ColorScheme} scheme
  */
 export function applyColorScheme(scheme) {
@@ -33,18 +33,9 @@ export function applyColorScheme(scheme) {
     '--color-text-on-primary': scheme.textOnPrimary
   };
 
-  // Aplica as variáveis CSS ao :root
   Object.entries(tokens).forEach(([key, value]) => {
     root.style.setProperty(key, value);
   });
-
-  // Salva no localStorage para carregamento imediato no head nas próximas visitas
-  try {
-    localStorage.setItem('imobimaster_theme_tokens', JSON.stringify(tokens));
-    localStorage.setItem('imobimaster_theme_id', scheme.id);
-  } catch (e) {
-    console.warn('Falha ao salvar tema no localStorage', e);
-  }
 }
 
 function getFallback() {
