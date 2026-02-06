@@ -11,24 +11,32 @@ let currentFinalidade = 'Aluguel'; // Inicial padrão
  * SMART LEAD POPUP LOGIC - REFATORADO
  */
 function initSmartPopup() {
-    // Verifica se o lead já enviou o formulário anteriormente (localStorage para persistência longa)
+    // Se o lead já converteu (envio bem sucedido), bloqueia permanentemente via localStorage
     if (localStorage.getItem('smart_popup_completed')) return;
+    
+    // Se o usuário já visualizou/fechou nesta sessão, bloqueia apenas nesta sessão via sessionStorage
+    if (sessionStorage.getItem('smart_popup_dismissed')) return;
+
+    let popupOpened = false;
 
     const showPopup = () => {
-        if (document.getElementById('smart-lead-popup')) return;
+        if (popupOpened || document.getElementById('smart-lead-popup')) return;
+        popupOpened = true;
         
-        // Remove listeners para não disparar múltiplas vezes
+        // Remove listeners imediatos após o primeiro gatilho
         document.removeEventListener('click', showPopup);
         document.removeEventListener('touchstart', showPopup);
+        document.removeEventListener('scroll', showPopup);
         clearTimeout(timerTrigger);
 
         injectPopup();
     };
 
-    // Dispara após 5 segundos ou na primeira interação real
+    // Dispara após 5 segundos ou na primeira interação real (clique, toque ou scroll)
     const timerTrigger = setTimeout(showPopup, 5000);
-    document.addEventListener('click', showPopup);
-    document.addEventListener('touchstart', showPopup);
+    document.addEventListener('click', showPopup, { once: true });
+    document.addEventListener('touchstart', showPopup, { once: true });
+    document.addEventListener('scroll', showPopup, { once: true });
 }
 
 function injectPopup() {
@@ -76,18 +84,23 @@ function injectPopup() {
     });
 
     // Função para fechar o popup
-    const closePopup = () => {
+    const closePopup = (isDismissal = true) => {
         backdrop.classList.remove('opacity-100');
         card.classList.add('translate-y-full', 'sm:translate-y-12', 'sm:opacity-0');
+        
+        if (isDismissal) {
+            sessionStorage.setItem('smart_popup_dismissed', 'true');
+        }
+
         setTimeout(() => {
             const el = document.getElementById('smart-lead-popup');
             if (el) el.remove();
-            document.body.style.overflow = ''; // Garante liberação do scroll
+            document.body.style.overflow = ''; 
         }, 700);
     };
 
-    document.getElementById('close-smart-popup').onclick = closePopup;
-    backdrop.onclick = closePopup;
+    document.getElementById('close-smart-popup').onclick = () => closePopup(true);
+    backdrop.onclick = () => closePopup(true);
 
     // Mascara telefone
     document.getElementById('pop-telefone').oninput = (e) => {
@@ -114,10 +127,10 @@ function injectPopup() {
 
             if (error) throw error;
 
-            // Sucesso: Persiste que o usuário já converteu
+            // Sucesso: Persiste que o usuário já converteu permanentemente
             localStorage.setItem('smart_popup_completed', 'true');
 
-            // Feedback Visual de Sucesso (Premium)
+            // Feedback Visual de Sucesso
             wrapper.innerHTML = `
                 <div class="flex flex-col items-center justify-center py-10 text-center animate-in fade-in zoom-in duration-300">
                     <div class="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mb-6">
@@ -129,8 +142,7 @@ function injectPopup() {
             
             // Aguarda 0.8s e executa as ações finais
             setTimeout(() => {
-                closePopup();
-                // Scroll para a Hero (topo da página)
+                closePopup(false);
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             }, 800);
 
@@ -171,14 +183,6 @@ function renderCardList(imoveis, fotos) {
         const finalidade = imovel.finalidade || 'Venda';
         const referencia = imovel.referencia || `#${imovel.id.toString().slice(-4)}`;
         
-        const localParts = [];
-        if (imovel.bairro) localParts.push(imovel.bairro);
-        let cidadeUf = "";
-        if (imovel.cidade) cidadeUf += imovel.cidade;
-        if (imovel.uf) cidadeUf += (cidadeUf ? '/' : '') + imovel.uf;
-        if (cidadeUf) localParts.push(cidadeUf);
-        const localizacao = localParts.join(', ') || 'Localização não informada';
-
         const specs = [];
         if (imovel.area_m2 > 0) specs.push(`<div class="flex items-center gap-2.5"><svg class="w-5 h-5 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg> ${imovel.area_m2}m²</div>`);
         if (imovel.dormitorios > 0) specs.push(`<div class="flex items-center gap-2.5"><svg class="w-5 h-5 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg> ${imovel.dormitorios} Qts</div>`);
@@ -286,14 +290,12 @@ function setupLeadModal() {
     if (!modal || !content || !form) return;
 
     const alreadySent = localStorage.getItem('imobi_lead_sent');
-    const alreadyShown = localStorage.getItem('imobi_lead_modal_shown');
-    if (alreadySent || alreadyShown) return;
+    if (alreadySent) return;
 
     let opened = false;
     const openModal = () => {
         if (opened) return;
         opened = true;
-        localStorage.setItem('imobi_lead_modal_shown', 'true');
         modal.classList.remove('opacity-0', 'pointer-events-none');
         content.classList.remove('scale-90', 'opacity-0');
         content.classList.add('scale-100', 'opacity-100');
@@ -386,8 +388,6 @@ async function initSite() {
     setupLeadModal();
     setupFooterLeadForm();
     initFilterBadges();
-    
-    // Inicia o Popup Inteligente (Lead Magnets)
     initSmartPopup();
     
     try {
@@ -492,7 +492,6 @@ async function loadProperties(filters = null) {
         }
         let { data: imoveis, error } = await query.order('destaque', { ascending: false }).order('created_at', { ascending: false });
         if (error) throw error;
-        // CORREÇÃO: A tabela correta é 'imoveis_fotos'
         const { data: fotos } = await supabase.from('imoveis_fotos').select('*').eq('is_capa', true);
         
         allImoveisCache = imoveis || [];

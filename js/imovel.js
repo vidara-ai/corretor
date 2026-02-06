@@ -16,9 +16,13 @@ const LABELS_PAGAMENTO = {
     fgts: "Uso de FGTS",
     cartao: "Cartão de crédito",
     permuta: "Aceita permuta",
-    carta_credito: "Carta de Crédito",
+    carta_credito: "Carta de Crédito"
+};
+
+const LABELS_GARANTIAS = {
+    fiador: "Fiador",
     caucao: "Depósito Caução",
-    fiador: "Fiador"
+    seguro_fianca: "Seguro Fiança"
 };
 
 /**
@@ -42,7 +46,8 @@ function formatarBRL(valor) {
 }
 
 function obterValorImovel(imovel) {
-    if (imovel.finalidade === 'Aluguel' || imovel.finalidade === 'aluguel') return imovel.valor_locacao;
+    const fin = (imovel.finalidade || '').toLowerCase();
+    if (fin === 'aluguel') return imovel.valor_locacao;
     return imovel.valor_venda;
 }
 
@@ -149,16 +154,23 @@ function renderizarImovel(p, config) {
 
     const mainPhotoUrl = currentPhotos.length > 0 ? currentPhotos[0].url : 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=600';
     const precoFormatado = formatarBRL(obterValorImovel(p));
+    const finalidadeLower = (p.finalidade || '').toLowerCase();
+    const isAluguel = finalidadeLower === 'aluguel';
+
     const whatsappNum = config.header_whatsapp || '5500000000000';
-    const ctaTexto = config.imovel_cta_texto || 'Falar com corretor';
     const msgText = `Olá! Vi o imóvel "${p.titulo}" (Ref: ${p.referencia || p.id}) no site e gostaria de agendar uma visita.`;
     const whatsappLink = `https://wa.me/${whatsappNum.replace(/\D/g, '')}?text=${encodeURIComponent(msgText)}`;
 
     const caracImovel = ensureArray(p.caracteristicas_imovel);
     const caracCondo = ensureArray(p.caracteristicas_condominio);
+    
+    // Processamento de Negociação e Garantias
     const negopay = ensureArray(p.opcoes_pagamento);
-    const negogua = ensureArray(p.garantias_locacao);
-    const hasNegotiation = negopay.length > 0 || negogua.length > 0;
+    const garantiasArray = ensureArray(p.garantias_locacao);
+    
+    // Suporte a campos booleanos explícitos (fiador, deposito_caucao) se existirem no schema
+    if (p.fiador && !garantiasArray.includes('fiador')) garantiasArray.push('fiador');
+    if (p.deposito_caucao && !garantiasArray.includes('caucao')) garantiasArray.push('caucao');
 
     container.innerHTML = `
         <div class="animate-in fade-in slide-in-from-bottom-4 duration-1000">
@@ -188,28 +200,26 @@ function renderizarImovel(p, config) {
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-12 items-start">
                 <div class="lg:col-span-2 space-y-12">
-                    <!-- GALERIA PRINCIPAL -->
+                    <!-- CARROSSEL PRINCIPAL -->
                     <div class="galeria-imovel group relative shadow-2xl rounded-[2rem] overflow-hidden bg-slate-100 aspect-video">
-                        ${currentPhotos.length > 1 ? `
-                            <button id="btn-prev" class="absolute left-6 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-slate-900 w-12 h-12 rounded-full flex items-center justify-center shadow-xl z-20 opacity-0 group-hover:opacity-100 transition-all hover:scale-110">
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7"/></svg>
-                            </button>
-                            <button id="btn-next" class="absolute right-6 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-slate-900 w-12 h-12 rounded-full flex items-center justify-center shadow-xl z-20 opacity-0 group-hover:opacity-100 transition-all hover:scale-110">
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 5l7 7-7 7"/></svg>
-                            </button>
-                        ` : ''}
+                        <button id="btn-prev" class="absolute left-6 top-1/2 -translate-y-1/2 bg-white/95 hover:bg-white text-slate-900 w-12 h-12 rounded-full flex items-center justify-center shadow-xl z-20 md:opacity-0 group-hover:opacity-100 transition-all hover:scale-110 active:scale-95">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7"/></svg>
+                        </button>
+                        <button id="btn-next" class="absolute right-6 top-1/2 -translate-y-1/2 bg-white/95 hover:bg-white text-slate-900 w-12 h-12 rounded-full flex items-center justify-center shadow-xl z-20 md:opacity-0 group-hover:opacity-100 transition-all hover:scale-110 active:scale-95">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 5l7 7-7 7"/></svg>
+                        </button>
                         
-                        <img id="galeria-foto-principal" src="${mainPhotoUrl}" class="cursor-zoom-in w-full h-full object-cover transition-transform duration-700 hover:scale-105">
+                        <img id="galeria-foto-principal" src="${mainPhotoUrl}" class="cursor-zoom-in w-full h-full object-cover transition-all duration-700 hover:scale-105" alt="Foto principal do imóvel">
                         
                         <div class="absolute bottom-6 right-6 bg-slate-900/80 backdrop-blur text-white px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest z-20">
-                            Clique para ver detalhes
+                            Clique para ampliar
                         </div>
                     </div>
 
                     ${currentPhotos.length > 1 ? `
                         <div class="flex gap-4 overflow-x-auto no-scrollbar pb-2" id="galeria-miniaturas">
                             ${currentPhotos.map((f, idx) => `
-                                <img src="${f.url}" class="miniatura-item w-24 h-24 md:w-32 md:h-32 rounded-2xl object-cover cursor-pointer transition-all shrink-0 ${idx === 0 ? 'ring-4 ring-blue-600 scale-95 border-2 border-white' : 'opacity-40 hover:opacity-100'}" data-index="${idx}">
+                                <img src="${f.url}" class="miniatura-item w-24 h-24 md:w-32 md:h-32 rounded-2xl object-cover cursor-pointer transition-all shrink-0 ${idx === 0 ? 'ring-4 ring-blue-600 scale-95 border-2 border-white opacity-100' : 'opacity-40 hover:opacity-100'}" data-index="${idx}" alt="Miniatura ${idx + 1}">
                             `).join('')}
                         </div>
                     ` : ''}
@@ -246,11 +256,11 @@ function renderizarImovel(p, config) {
                         </div>` : ''}
                     </div>
 
-                    ${hasNegotiation ? `
+                    ${(negopay.length > 0 || (isAluguel && garantiasArray.length > 0)) ? `
                     <div class="space-y-8 bg-slate-50/50 p-8 md:p-12 rounded-[2.5rem] border border-slate-100">
                         <h2 class="text-2xl font-black text-slate-900 flex items-center gap-3">
                             <span class="w-1.5 h-8 bg-blue-600 rounded-full"></span>
-                            Formas de Pagamento
+                            Negociação
                         </h2>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                             ${negopay.length > 0 ? `
@@ -264,6 +274,18 @@ function renderizarImovel(p, config) {
                                         </li>`).join('')}
                                 </ul>
                             </div>` : ''}
+
+                            ${(isAluguel && garantiasArray.length > 0) ? `
+                            <div class="space-y-4">
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Garantias (Locação)</p>
+                                <ul class="space-y-3">
+                                    ${garantiasArray.map(opt => `
+                                        <li class="flex items-center gap-3 text-slate-700 font-bold text-sm">
+                                            <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center"><svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg></div>
+                                            ${LABELS_GARANTIAS[opt] || opt}
+                                        </li>`).join('')}
+                                </ul>
+                            </div>` : ''}
                         </div>
                     </div>` : ''}
                 </div>
@@ -271,8 +293,8 @@ function renderizarImovel(p, config) {
                 <div class="space-y-8 sticky top-28">
                     <div class="bg-white p-8 md:p-10 rounded-[3rem] border border-slate-100 shadow-2xl space-y-8">
                         <div class="text-center space-y-1">
-                            <h3 class="font-black text-slate-900 text-2xl">Detalhes</h3>
-                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Informações técnicas</p>
+                            <h3 class="font-black text-slate-900 text-2xl">Especificações</h3>
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Ficha técnica</p>
                         </div>
 
                         <div class="grid grid-cols-2 gap-4">
@@ -311,6 +333,7 @@ function setupGalleryEvents() {
     const mainImg = document.getElementById('galeria-foto-principal');
     if (!mainImg) return;
 
+    // Abrir Lightbox ao clicar na imagem principal
     mainImg.onclick = () => openLightbox(currentIndex);
 
     const btnNext = document.getElementById('btn-next');
@@ -319,6 +342,7 @@ function setupGalleryEvents() {
     if (btnNext) btnNext.onclick = (e) => { e.stopPropagation(); navigateGallery(1); };
     if (btnPrev) btnPrev.onclick = (e) => { e.stopPropagation(); navigateGallery(-1); };
 
+    // Clique nas miniaturas
     document.querySelectorAll('.miniatura-item').forEach(thumb => {
         thumb.onclick = (e) => {
             e.stopPropagation();
