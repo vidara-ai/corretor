@@ -183,4 +183,21 @@ function setupCardEventListeners() {
     });
 }
 
-document.addEventListener('DOMContentLoaded', initSite);
+// Inicialização imediata do JS de dados
+initSite();
+
+/**
+ * ELIMINAÇÃO DO FOUC:
+ * Usamos 'load' em vez de 'DOMContentLoaded' porque o Tailwind CDN 
+ * injeta estilos de forma assíncrona e precisamos garantir que 
+ * as fontes externas também foram resolvidas antes de mostrar a UI.
+ */
+window.addEventListener('load', () => {
+  const boot = document.getElementById('boot-screen');
+  if (boot) {
+    // Adicionamos a classe 'ready' ao body para tornar o conteúdo visível
+    document.body.classList.add('ready');
+    // Removemos o overlay
+    boot.remove();
+  }
+});
