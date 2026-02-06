@@ -5,35 +5,42 @@ import { resolveColorScheme, applyColorScheme } from './theme/engine.js';
 let siteConfig = null;
 let allImoveisCache = [];
 let allFotosCache = [];
-let currentFinalidade = 'Todos'; // Inicial padrão: Todos
-let isDestaqueOnly = false; // Estado para filtro de destaque
+let currentFinalidade = 'Todos'; 
+let isDestaqueOnly = false; 
+let currentSearchTokens = []; // Armazena os termos da busca atual
+
+const STOPWORDS = ['a', 'o', 'e', 'ou', 'nem', 'de', 'da', 'do', 'em', 'para', 'com', 'um', 'uma', 'os', 'as', 'no', 'na', 'por', 'dos', 'das', 'ao', 'aos', 'pelo', 'pela'];
 
 /**
- * SMART LEAD POPUP LOGIC - REFATORADO
+ * Normaliza texto: remove acentos e converte para minúsculas
+ */
+function normalizeText(text) {
+    if (!text) return "";
+    return text.toString()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .trim();
+}
+
+/**
+ * SMART LEAD POPUP LOGIC
  */
 function initSmartPopup() {
-    // Se o lead já converteu (envio bem sucedido), bloqueia permanentemente via localStorage
     if (localStorage.getItem('smart_popup_completed')) return;
-    
-    // Se o usuário já visualizou/fechou nesta sessão, bloqueia apenas nesta sessão via sessionStorage
     if (sessionStorage.getItem('smart_popup_dismissed')) return;
 
     let popupOpened = false;
-
     const showPopup = () => {
         if (popupOpened || document.getElementById('smart-lead-popup')) return;
         popupOpened = true;
-        
-        // Remove listeners imediatos após o primeiro gatilho
         document.removeEventListener('click', showPopup);
         document.removeEventListener('touchstart', showPopup);
         document.removeEventListener('scroll', showPopup);
         clearTimeout(timerTrigger);
-
         injectPopup();
     };
 
-    // Dispara após 5 segundos ou na primeira interação real (clique, toque ou scroll)
     const timerTrigger = setTimeout(showPopup, 5000);
     document.addEventListener('click', showPopup, { once: true });
     document.addEventListener('touchstart', showPopup, { once: true });
@@ -43,80 +50,52 @@ function initSmartPopup() {
 function injectPopup() {
     const popupHTML = `
         <div id="smart-lead-popup" class="fixed inset-0 z-[300] flex items-end sm:items-center justify-center pointer-events-none">
-            <!-- Backdrop -->
             <div id="popup-backdrop" class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm opacity-0 transition-opacity duration-500 pointer-events-auto"></div>
-            
-            <!-- Content Card -->
             <div id="popup-card" class="relative w-full sm:max-w-[420px] bg-white rounded-t-[2.5rem] sm:rounded-[2.5rem] shadow-2xl p-8 md:p-10 transform translate-y-full sm:translate-y-12 sm:opacity-0 transition-all duration-700 ease-out pointer-events-auto">
                 <button id="close-smart-popup" class="absolute top-6 right-6 text-slate-300 hover:text-slate-900 transition-colors">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
-
                 <div id="popup-content-wrapper">
                     <div class="mb-8">
                         <h3 class="text-xl font-black text-slate-900 leading-tight">Para uma melhor experiência, responda as perguntas:</h3>
                     </div>
-
                     <form id="smart-popup-form" class="space-y-4">
                         <div class="space-y-4">
                             <input type="text" id="pop-nome" required placeholder="Qual é seu nome?" class="w-full p-5 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-blue-500/10 transition-all font-medium text-slate-700">
                             <input type="tel" id="pop-telefone" required placeholder="Qual seu contato?" class="w-full p-5 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-blue-500/10 transition-all font-medium text-slate-700">
-                            
-                            <button type="submit" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-black text-lg shadow-xl shadow-blue-100 hover:scale-[1.02] active:scale-95 transition-all mt-4">
-                                Ver imóveis agora
-                            </button>
+                            <button type="submit" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-black text-lg shadow-xl shadow-blue-100 hover:scale-[1.02] active:scale-95 transition-all mt-4">Ver imóveis agora</button>
                         </div>
                     </form>
                 </div>
             </div>
-        </div>
-    `;
-
+        </div>`;
     document.body.insertAdjacentHTML('beforeend', popupHTML);
-
-    // Animar entrada
     const backdrop = document.getElementById('popup-backdrop');
     const card = document.getElementById('popup-card');
-    
     requestAnimationFrame(() => {
         backdrop.classList.add('opacity-100');
         card.classList.remove('translate-y-full', 'sm:translate-y-12', 'sm:opacity-0');
         card.classList.add('translate-y-0', 'sm:translate-y-0', 'sm:opacity-100');
     });
-
-    // Função para fechar o popup
     const closePopup = (isDismissal = true) => {
         backdrop.classList.remove('opacity-100');
         card.classList.add('translate-y-full', 'sm:translate-y-12', 'sm:opacity-0');
-        
-        if (isDismissal) {
-            sessionStorage.setItem('smart_popup_dismissed', 'true');
-        }
-
+        if (isDismissal) sessionStorage.setItem('smart_popup_dismissed', 'true');
         setTimeout(() => {
             const el = document.getElementById('smart-lead-popup');
             if (el) el.remove();
             document.body.style.overflow = ''; 
         }, 700);
     };
-
     document.getElementById('close-smart-popup').onclick = () => closePopup(true);
     backdrop.onclick = () => closePopup(true);
-
-    // Mascara telefone
-    document.getElementById('pop-telefone').oninput = (e) => {
-        e.target.value = mascaraTelefone(e.target.value);
-    };
-
-    // Submissão do Formulário
+    document.getElementById('pop-telefone').oninput = (e) => { e.target.value = mascaraTelefone(e.target.value); };
     document.getElementById('smart-popup-form').onsubmit = async (e) => {
         e.preventDefault();
         const btn = e.target.querySelector('button');
         const wrapper = document.getElementById('popup-content-wrapper');
-
         btn.disabled = true;
         btn.innerText = "Processando...";
-
         try {
             const { error } = await supabase.from('leads').insert({
                 nome: document.getElementById('pop-nome').value,
@@ -125,28 +104,15 @@ function injectPopup() {
                 origem: 'popup',
                 created_at: new Date().toISOString()
             });
-
             if (error) throw error;
-
-            // Sucesso: Persiste que o usuário já converteu permanentemente
             localStorage.setItem('smart_popup_completed', 'true');
-
-            // Feedback Visual de Sucesso
-            wrapper.innerHTML = `
-                <div class="flex flex-col items-center justify-center py-10 text-center animate-in fade-in zoom-in duration-300">
-                    <div class="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mb-6">
-                        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
-                    </div>
-                    <h3 class="text-2xl font-black text-slate-900 tracking-tight">Experiência Premium Desbloqueada</h3>
+            wrapper.innerHTML = `<div class="flex flex-col items-center justify-center py-10 text-center animate-in fade-in zoom-in duration-300">
+                <div class="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mb-6">
+                    <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
                 </div>
-            `;
-            
-            // Aguarda 0.8s e executa as ações finais
-            setTimeout(() => {
-                closePopup(false);
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            }, 800);
-
+                <h3 class="text-2xl font-black text-slate-900 tracking-tight">Experiência Premium Desbloqueada</h3>
+            </div>`;
+            setTimeout(() => { closePopup(false); window.scrollTo({ top: 0, behavior: 'smooth' }); }, 800);
         } catch (err) {
             console.error('Erro no popup:', err);
             btn.disabled = false;
@@ -173,17 +139,13 @@ function obterValorImovel(imovel) {
 }
 
 function renderCardList(imoveis, fotos) {
-    if (imoveis.length === 0) {
-        return `<div class="col-span-full py-20 text-center text-slate-400 font-medium bg-white rounded-[2.5rem] border border-dashed border-slate-200">Não encontramos imóveis nesta categoria no momento.</div>`;
-    }
-
+    if (imoveis.length === 0) return "";
     return imoveis.map(imovel => {
         const foto = (fotos || []).find(f => f.imovel_id === imovel.id);
         const imagem = foto ? foto.url : 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=600';
         const preco = formatarBRL(obterValorImovel(imovel));
         const finalidade = imovel.finalidade || 'Venda';
         const referencia = imovel.referencia || `#${imovel.id.toString().slice(-4)}`;
-        
         const specs = [];
         const area = imovel.area_m2 || imovel.area_privativa;
         if (area > 0) specs.push(`<div class="whitespace-nowrap">Área: ${area} m²</div>`);
@@ -197,42 +159,27 @@ function renderCardList(imoveis, fotos) {
                 <div class="relative h-[250px] overflow-hidden shrink-0">
                     <img src="${imagem}" alt="${imovel.titulo}" loading="lazy" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
                     <div class="absolute top-5 left-5 flex flex-col gap-2 z-10">
-                        <span class="bg-white/95 backdrop-blur text-slate-900 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg">
-                            ${imovel.tipo_imovel || 'Imóvel'}
-                        </span>
+                        <span class="bg-white/95 backdrop-blur text-slate-900 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg">${imovel.tipo_imovel || 'Imóvel'}</span>
                     </div>
-                    <span class="absolute top-5 right-5 bg-slate-900/80 backdrop-blur text-white px-3 py-1.5 rounded-lg text-[9px] font-bold tracking-widest uppercase z-10 border border-white/20">
-                        REF: ${referencia}
-                    </span>
+                    <span class="absolute top-5 right-5 bg-slate-900/80 backdrop-blur text-white px-3 py-1.5 rounded-lg text-[9px] font-bold tracking-widest uppercase z-10 border border-white/20">REF: ${referencia}</span>
                     ${imovel.destaque ? '<div class="absolute bottom-5 left-5 bg-amber-400 text-slate-900 font-black text-[10px] px-4 py-2 rounded-full shadow-lg z-10 tracking-widest uppercase animate-pulse">Destaque</div>' : ''}
                 </div>
-
                 <div class="p-8 flex flex-col flex-grow">
                     <div class="mb-5">
                         <div class="flex items-center gap-2 mb-2">
-                             <span class="inline-flex bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider border border-blue-100/50">
-                                ${imovel.cidade}/${imovel.uf || 'PB'}
-                             </span>
+                             <span class="inline-flex bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider border border-blue-100/50">${imovel.cidade}/${imovel.uf || 'PB'}</span>
                              <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest truncate">${imovel.bairro || ''}</span>
                         </div>
                         <h3 class="text-xl font-bold text-slate-900 leading-tight group-hover:text-blue-600 transition-colors line-clamp-2 h-14">${imovel.titulo}</h3>
                     </div>
-
-                    <div class="grid grid-cols-2 gap-y-4 gap-x-2 border-t border-slate-100 pt-6 pb-6 text-slate-600 text-[11px] font-bold uppercase tracking-tight">
-                        ${specs.join('')}
-                    </div>
-
+                    <div class="grid grid-cols-2 gap-y-4 gap-x-2 border-t border-slate-100 pt-6 pb-6 text-slate-600 text-[11px] font-bold uppercase tracking-tight">${specs.join('')}</div>
                     <div class="border-t border-slate-100 py-6 mt-auto flex flex-col gap-5">
                         <div>
                             <p class="text-[11px] font-black text-blue-600/60 uppercase tracking-[0.2em] mb-1">${finalidade}</p>
                             <p class="text-3xl font-black text-blue-600 tracking-tighter">${preco}</p>
                         </div>
-                        
-                        <!-- Ação Principal: Ver Detalhes -->
                         <div class="pt-2">
-                             <span class="inline-flex items-center justify-center w-full bg-blue-600 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-700 transition-all active:scale-95 shadow-lg shadow-blue-100/50">
-                                Ver detalhes
-                             </span>
+                             <span class="inline-flex items-center justify-center w-full bg-blue-600 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-700 transition-all active:scale-95 shadow-lg shadow-blue-100/50">Ver detalhes</span>
                         </div>
                     </div>
                 </div>
@@ -243,7 +190,6 @@ function renderCardList(imoveis, fotos) {
 function initFilterBadges() {
     const container = document.getElementById('filter-badges-container');
     if (!container) return;
-
     const renderBadges = () => {
         container.innerHTML = `
             <button class="filter-badge ${currentFinalidade === 'Todos' && !isDestaqueOnly ? 'filter-badge-active' : 'filter-badge-inactive'}" data-type="finalidade" data-value="Todos">Todos</button>
@@ -251,45 +197,73 @@ function initFilterBadges() {
             <button class="filter-badge ${currentFinalidade === 'Aluguel' ? 'filter-badge-active' : 'filter-badge-inactive'}" data-type="finalidade" data-value="Aluguel">Aluguel</button>
             <button class="filter-badge ${isDestaqueOnly ? 'filter-badge-active' : 'filter-badge-inactive'}" data-type="destaque" data-value="true">Destaque</button>
         `;
-
         container.querySelectorAll('.filter-badge').forEach(btn => {
             btn.onclick = () => {
                 const type = btn.dataset.type;
                 const val = btn.dataset.value;
-
                 if (type === 'finalidade') {
-                    if (val === 'Todos') {
-                        currentFinalidade = 'Todos';
-                        isDestaqueOnly = false;
-                    } else {
-                        currentFinalidade = val;
-                    }
-                } else if (type === 'destaque') {
-                    isDestaqueOnly = !isDestaqueOnly;
-                }
-
+                    if (val === 'Todos') { currentFinalidade = 'Todos'; isDestaqueOnly = false; } else { currentFinalidade = val; }
+                } else if (type === 'destaque') { isDestaqueOnly = !isDestaqueOnly; }
                 renderBadges();
                 applyFiltersLocally();
             };
         });
     };
-
     renderBadges();
 }
 
+/**
+ * Lógica principal de filtragem com suporte a OR inteligente e Fallback
+ */
 function applyFiltersLocally() {
     const container = document.getElementById('lista-imoveis');
     if (!container) return;
 
-    const filtered = allImoveisCache.filter(imovel => {
+    let filtered = allImoveisCache.filter(imovel => {
+        // Filtro de Finalidade (Venda/Aluguel)
         const finLower = (imovel.finalidade || '').toLowerCase();
         const finMatch = currentFinalidade === 'Todos' || finLower === currentFinalidade.toLowerCase();
-        const destaqueMatch = !isDestaqueOnly || imovel.destaque === true;
         
-        return finMatch && destaqueMatch;
+        // Filtro de Botão Destaque
+        const destaqueMatch = !isDestaqueOnly || imovel.destaque === true;
+
+        // Lógica de Busca por Termos (OR Inteligente)
+        let searchMatch = true;
+        if (currentSearchTokens.length > 0) {
+            const fieldsToSearch = [
+                normalizeText(imovel.titulo),
+                normalizeText(imovel.tipo_imovel),
+                normalizeText(imovel.finalidade),
+                normalizeText(imovel.bairro),
+                normalizeText(imovel.cidade),
+                normalizeText(imovel.referencia)
+            ];
+            
+            // Verifica se ALGUNS (OR) dos tokens existem em QUALQUER um dos campos
+            searchMatch = currentSearchTokens.some(token => 
+                fieldsToSearch.some(field => field.includes(token))
+            );
+        }
+        
+        return finMatch && destaqueMatch && searchMatch;
     });
 
-    container.innerHTML = renderCardList(filtered, allFotosCache);
+    // TRATAMENTO DE FALLBACK
+    if (filtered.length === 0 && currentSearchTokens.length > 0) {
+        const destaques = allImoveisCache.filter(im => im.destaque);
+        container.innerHTML = `
+            <div class="col-span-full mb-12 animate-in fade-in duration-700">
+                <div class="bg-amber-50 border border-amber-100 p-10 rounded-[2.5rem] text-center shadow-sm">
+                    <p class="text-amber-900 font-extrabold text-xl leading-relaxed">
+                        Não encontramos registros para o termo consultado, mas temos esses imóveis que podem ser do seu interesse.
+                    </p>
+                </div>
+            </div>
+            ${renderCardList(destaques, allFotosCache)}
+        `;
+    } else {
+        container.innerHTML = renderCardList(filtered, allFotosCache) || `<div class="col-span-full py-20 text-center text-slate-400 font-medium bg-white rounded-[2.5rem] border border-dashed border-slate-200">Não encontramos imóveis nesta categoria no momento.</div>`;
+    }
     
     document.querySelectorAll('.card-imovel').forEach(card => {
         card.onclick = () => window.location.href = `imovel.html?id=${card.dataset.id}`;
@@ -316,53 +290,41 @@ function setupLeadModal() {
     const content = document.getElementById('lead-modal-content');
     const closeBtn = document.getElementById('close-lead-modal');
     const form = document.getElementById('lead-capture-form');
-
     if (!modal || !content || !form) return;
-
     const alreadySent = localStorage.getItem('imobi_lead_sent');
     if (alreadySent) return;
-
     let opened = false;
     const openModal = () => {
-        if (opened) return;
-        opened = true;
+        if (opened) return; opened = true;
         modal.classList.remove('opacity-0', 'pointer-events-none');
         content.classList.remove('scale-90', 'opacity-0');
         content.classList.add('scale-100', 'opacity-100');
     };
-
     const closeModal = () => {
         modal.classList.add('opacity-0', 'pointer-events-none');
         content.classList.remove('scale-100', 'opacity-100');
         content.classList.add('scale-90', 'opacity-0');
     };
-
     if (closeBtn) closeBtn.addEventListener('click', (e) => { e.preventDefault(); closeModal(); });
-
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const btn = form.querySelector('button[type="submit"]');
         const fields = document.getElementById('lead-form-fields');
         const success = document.getElementById('lead-success-msg');
-        const nome = document.getElementById('lead-nome').value;
-        const telefone = document.getElementById('lead-telefone').value;
-
         btn.disabled = true;
         btn.innerText = "Enviando...";
-
         try {
             const { error } = await supabase.from('leads').insert({
-                nome, telefone, origem: 'pagina', imovel_interesse: 'Interesse Geral', created_at: new Date().toISOString()
+                nome: document.getElementById('lead-nome').value,
+                telefone: document.getElementById('lead-telefone').value,
+                origem: 'pagina', imovel_interesse: 'Interesse Geral', created_at: new Date().toISOString()
             });
             if (error) throw error;
             if (fields) fields.classList.add('hidden');
             if (success) success.classList.remove('hidden');
             localStorage.setItem('imobi_lead_sent', 'true');
             setTimeout(closeModal, 2000);
-        } catch (err) {
-            btn.disabled = false;
-            btn.innerText = "Quero Atendimento";
-        }
+        } catch (err) { btn.disabled = false; btn.innerText = "Quero Atendimento"; }
     });
 }
 
@@ -376,41 +338,32 @@ function setupFooterLeadForm() {
         const btn = document.getElementById('btn-footer-submit');
         const fields = document.getElementById('footer-form-fields');
         const success = document.getElementById('footer-success-msg');
-        btn.disabled = true;
-        btn.innerText = "Enviando...";
+        btn.disabled = true; btn.innerText = "Enviando...";
         try {
             const { error } = await supabase.from('leads').insert({
                 nome: document.getElementById('footer-nome').value,
                 email: document.getElementById('footer-email').value,
                 telefone: inputTelefone.value,
                 mensagem: document.getElementById('footer-mensagem').value,
-                origem: 'footer',
-                imovel_interesse: 'Footer',
-                created_at: new Date().toISOString()
+                origem: 'footer', imovel_interesse: 'Footer', created_at: new Date().toISOString()
             });
             if (error) throw error;
-            fields.classList.add('hidden');
-            success.classList.remove('hidden');
-            form.reset();
-        } catch (err) {
-            btn.disabled = false;
-            btn.innerText = "Enviar Mensagem";
-        }
+            fields.classList.add('hidden'); success.classList.remove('hidden'); form.reset();
+        } catch (err) { btn.disabled = false; btn.innerText = "Enviar Mensagem"; }
     };
 }
 
+/**
+ * Parse inteligente da query de busca
+ */
 function parseSearchQuery(text) {
-    const raw = text.toLowerCase().trim();
-    if (!raw) return null;
-    const filters = { referencia: null, finalidade: null, tipo_imovel: null, tokens: [] };
-    const refMatch = raw.match(/([a-z]{1,}-?\d+)/i);
-    if (refMatch) filters.referencia = refMatch[0].toUpperCase();
-    const words = raw.split(/\s+/);
-    words.forEach(word => {
-        if (filters.referencia && word.toUpperCase() === filters.referencia) return;
-        filters.tokens.push(word);
-    });
-    return filters;
+    if (!text) return [];
+    
+    // Normaliza e divide em palavras
+    const rawWords = normalizeText(text).split(/\s+/);
+    
+    // Filtra palavras irrelevantes (Stopwords)
+    return rawWords.filter(word => word.length > 1 && !STOPWORDS.includes(word));
 }
 
 async function initSite() {
@@ -419,14 +372,11 @@ async function initSite() {
     setupFooterLeadForm();
     initFilterBadges();
     initSmartPopup();
-    
     try {
         const { data: config } = await supabase.from('configuracoes_site').select('*').limit(1).maybeSingle();
         if (config) { siteConfig = config; applySiteSettings(config); }
     } catch (err) { console.error('Config Error:', err); }
-    
-    const isDetailPage = window.location.pathname.includes('imovel.html');
-    if (!isDetailPage) loadProperties(); 
+    loadProperties(); 
 }
 
 function injectSearchIntoHero() {
@@ -437,10 +387,10 @@ function injectSearchIntoHero() {
     form.onsubmit = (e) => {
         e.preventDefault();
         const searchText = input.value.trim();
-        const filters = parseSearchQuery(searchText);
+        currentSearchTokens = parseSearchQuery(searchText);
         const resultsSection = document.getElementById('regular-section');
         if (resultsSection) resultsSection.scrollIntoView({ behavior: 'smooth' });
-        loadProperties(filters);
+        applyFiltersLocally();
     };
     const input = document.createElement('input');
     input.type = 'search';
@@ -502,7 +452,6 @@ function applySiteSettings(config) {
     const footerCopy = document.getElementById('footer-copyright-text');
     if (footerCopy) { footerCopy.innerText = config.footer_copyright || config.rodape_texto || `© ${new Date().getFullYear()} ${config.header_nome_site || 'ImobiMaster'}`; }
     
-    // Atualização do Botão WhatsApp Nativo
     const waBtn = document.getElementById('whatsapp-floating-btn');
     if (waBtn) {
         const whatsappValue = config.whatsapp_header || config.header_whatsapp;
@@ -512,35 +461,21 @@ function applySiteSettings(config) {
                 waBtn.href = `https://wa.me/${cleanNumber}`;
                 waBtn.style.display = 'block';
             }
-        } else {
-            waBtn.style.display = 'none';
-        }
+        } else { waBtn.style.display = 'none'; }
     }
-    
     const heroSection = document.querySelector('header.hero-home');
     if (heroSection && config.hero_bg_desktop_url) { heroSection.style.setProperty('--hero-bg-desktop', `url('${config.hero_bg_desktop_url}')`); }
 }
 
-async function loadProperties(filters = null) {
+async function loadProperties() {
     const container = document.getElementById('lista-imoveis');
     if (!container) return;
     try {
-        let query = supabase.from('imoveis').select('*').eq('ativo', true);
-        if (filters) {
-            if (filters.referencia) query = query.ilike('referencia', `%${filters.referencia}%`);
-            if (filters.tipo_imovel) query = query.ilike('tipo_imovel', filters.tipo_imovel);
-            if (filters.tokens && filters.tokens.length > 0) {
-              const search = filters.tokens.join(' ');
-              query = query.or(`titulo.ilike.%${search}%,bairro.ilike.%${search}%,cidade.ilike.%${search}%`);
-            }
-        }
-        let { data: imoveis, error } = await query.order('destaque', { ascending: false }).order('created_at', { ascending: false });
+        const { data: imoveis, error } = await supabase.from('imoveis').select('*').eq('ativo', true);
         if (error) throw error;
         const { data: fotos } = await supabase.from('imoveis_fotos').select('*').eq('is_capa', true);
-        
         allImoveisCache = imoveis || [];
         allFotosCache = fotos || [];
-        
         applyFiltersLocally();
     } catch (err) {
         container.innerHTML = `<p class="col-span-full text-center text-red-500 py-10 font-bold">Erro ao carregar imóveis.</p>`;
