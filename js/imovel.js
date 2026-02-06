@@ -170,18 +170,11 @@ async function iniciarPaginaImovel() {
                 }
             }
 
-            // Ajuste do Botão Flutuante de WhatsApp
-            const waButton = document.getElementById('wa-button');
-            if (waButton) {
-                const whatsappValue = config.header_whatsapp || config.whatsapp_header;
+            // Inicialização do Widget de WhatsApp (GetButton.io)
+            if (typeof window.initWhatsAppWidget === 'function') {
+                const whatsappValue = config.whatsapp_header || config.header_whatsapp;
                 const whatsappNumber = whatsappValue ? whatsappValue.replace(/\D/g, '') : '';
-                
-                if (whatsappNumber) {
-                    waButton.href = `https://wa.me/${whatsappNumber}`;
-                    waButton.style.display = 'flex';
-                } else {
-                    waButton.style.display = 'none';
-                }
+                window.initWhatsAppWidget(whatsappNumber);
             }
         }
 

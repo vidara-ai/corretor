@@ -502,18 +502,11 @@ function applySiteSettings(config) {
     const footerCopy = document.getElementById('footer-copyright-text');
     if (footerCopy) { footerCopy.innerText = config.footer_copyright || config.rodape_texto || `© ${new Date().getFullYear()} ${config.header_nome_site || 'ImobiMaster'}`; }
     
-    // Ajuste do Botão Flutuante de WhatsApp
-    const waButton = document.getElementById('wa-button');
-    if (waButton) {
+    // Inicialização do Widget de WhatsApp (GetButton.io)
+    if (typeof window.initWhatsAppWidget === 'function') {
         const whatsappValue = config.whatsapp_header || config.header_whatsapp;
         const whatsappNumber = whatsappValue ? whatsappValue.replace(/\D/g, '') : '';
-        
-        if (whatsappNumber && whatsappNumber.length >= 8) {
-            waButton.href = `https://wa.me/${whatsappNumber}`;
-            waButton.style.display = 'flex';
-        } else {
-            waButton.style.display = 'none';
-        }
+        window.initWhatsAppWidget(whatsappNumber);
     }
     
     const heroSection = document.querySelector('header.hero-home');
