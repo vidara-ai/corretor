@@ -26,6 +26,42 @@ body {
 .border-blue-600 { border-color: var(--color-primary) !important; }
 .ring-blue-100 { --tw-ring-color: var(--color-badge-alt) !important; }
 
+/* Filtros de Badges */
+.filter-badge {
+    padding: 8px 20px;
+    border-radius: 9999px;
+    font-size: 10px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 2px solid var(--color-primary);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.filter-badge-active {
+    background-color: var(--color-primary);
+    color: var(--color-text-on-primary);
+    box-shadow: 0 10px 20px -5px color-mix(in srgb, var(--color-primary), transparent 70%);
+}
+
+.filter-badge-inactive {
+    background-color: transparent;
+    color: var(--color-primary);
+}
+
+.filter-badge:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 15px 30px -8px color-mix(in srgb, var(--color-primary), transparent 75%);
+}
+
+.filter-badge:active {
+    transform: scale(0.95);
+}
+
 /* Componente de Busca do Hero (Dinâmico) */
 .btn-search-hero {
     background-color: var(--color-primary) !important;
@@ -38,15 +74,6 @@ body {
     background-color: var(--color-primary-hover) !important;
     box-shadow: 0 25px 50px -12px color-mix(in srgb, var(--color-primary), transparent 60%) !important;
     transform: translateY(-2px);
-}
-
-.btn-search-hero:active {
-    transform: scale(0.96);
-}
-
-.input-search-hero:focus {
-    box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-primary), transparent 85%) !important;
-    border-color: color-mix(in srgb, var(--color-primary), transparent 60%) !important;
 }
 
 /* HERO SECTION CUSTOM */
@@ -98,81 +125,3 @@ body {
     grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); 
     gap: 40px; 
 }
-
-/* GALERIA DE IMÓVEL (DETALHE) */
-.galeria-imovel {
-    position: relative;
-    width: 100%;
-    border-radius: 2rem;
-    overflow: hidden;
-    background: #000;
-}
-
-#galeria-foto-principal {
-    width: 100%;
-    aspect-ratio: 16/9;
-    object-fit: cover;
-    display: block;
-}
-
-.galeria-btn {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    background: rgba(255, 255, 255, 0.9);
-    color: #000;
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
-    font-weight: bold;
-    cursor: pointer;
-    z-index: 20;
-    border: none;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-}
-
-.galeria-prev { left: 20px; }
-.galeria-next { right: 20px; }
-
-.galeria-miniaturas {
-    display: flex;
-    gap: 12px;
-    padding: 20px;
-    background: white;
-    overflow-x: auto;
-    border-top: 1px solid #f1f5f9;
-}
-
-.miniatura-item {
-    width: 100px;
-    height: 60px;
-    object-fit: cover;
-    border-radius: 0.75rem;
-    cursor: pointer;
-    flex-shrink: 0;
-    transition: all 0.2s;
-    border: 3px solid transparent;
-}
-
-/* WHATSAPP MODERN PULSE */
-@keyframes pulse-soft {
-  0% { transform: scale(1); opacity: 0.6; }
-  100% { transform: scale(1.7); opacity: 0; }
-}
-
-.animate-pulse-soft {
-  animation: pulse-soft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-.wa-float { transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
-.wa-float:hover { transform: scale(1.1) translateY(-10px); }
-
-/* SCROLLBAR CUSTOM */
-::-webkit-scrollbar { width: 10px; }
-::-webkit-scrollbar-track { background: #f1f5f9; }
-::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; border: 3px solid #f1f5f9; }
-::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
