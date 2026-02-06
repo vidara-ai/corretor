@@ -16,8 +16,8 @@ let garantiasLocacao = [];
 const LISTA_IMOVEL = [
     "Ar condicionado", "Área de serviço", "Armário na cozinha", "Armário no quarto", 
     "Armários projetados", "Box no banheiro", "Caixa d’água", "Cisterna", 
-    "Dependência de empregada", "Quarto de empregada", "WC serviço", "Sala de estar", 
-    "Sala de jantar", "Sala de visita", "Varanda", "Varanda na sala", "Tela na varanda", 
+    "Dependência de empregada", "Quarto de empregada", "WC serviço", "Sala de estar", "Parcialmente Mobiliado"
+    "Sala de jantar", "Sala de visita", "Varanda", "Varanda na sala", "Tela na varanda", "Mobiliado"
     "Nascente", "Rua asfaltada", "Piscina privativa", "Churrasqueira", "Jardim", 
     "Quintal", "Escritório / Home office", "Closet", "Lavabo", "Pé-direito alto", "Energia solar"
 ];
@@ -31,34 +31,109 @@ const LISTA_CONDOMINIO = [
 ];
 
 /**
- * 4.1️⃣ FUNÇÃO DE UPLOAD
+ * Converte um arquivo de imagem para WebP no cliente usando Canvas API.
+ * Realiza limpeza de memória do canvas após processamento.
+ * @param {File} file - Arquivo original (JPG, PNG, etc)
+ * @returns {Promise<File>} - Nova instância de File no formato WebP
+ */
+async function convertToWebP(file) {
+  // Se já for WebP, não processa novamente para evitar perda de qualidade desnecessária
+  if (file.type === 'image/webp') return file;
+
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        
+        ctx.drawImage(img, 0, 0);
+        
+        canvas.toBlob((blob) => {
+          // Limpeza defensiva de memória do Canvas
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          canvas.width = canvas.height = 0;
+
+          if (!blob) return reject(new Error('Erro ao gerar blob WebP.'));
+          
+          const fileName = file.name.replace(/\.[^/.]+$/, "") + ".webp";
+          const webpFile = new File([blob], fileName, { type: 'image/webp' });
+          resolve(webpFile);
+        }, 'image/webp', 0.8);
+      };
+      img.onerror = (err) => reject(err);
+      img.src = event.target.result;
+    };
+    reader.onerror = (err) => reject(err);
+    reader.readAsDataURL(file);
+  });
+}
+
+/**
+ * Realiza validação de tipo, conversão WebP condicional e upload duplo (Original + WebP).
  */
 async function uploadFoto(file, imovelId, ordem, isCapa) {
-  const ext = file.name.split('.').pop();
-  const filePath = `${imovelId}/${crypto.randomUUID()}.${ext}`;
+  // Validação estrita de tipo de arquivo
+  if (!file.type.startsWith('image/')) {
+    throw new Error(`O arquivo ${file.name} não é uma imagem válida.`);
+  }
 
-  const { error: uploadError } = await supabase
-    .storage
-    .from('imoveis')
-    .upload(filePath, file);
+  try {
+    // Converter para WebP apenas se necessário
+    const webpFile = file.type === 'image/webp' ? file : await convertToWebP(file);
 
-  if (uploadError) throw uploadError;
+    const baseUuid = crypto.randomUUID();
+    const ext = file.name.split('.').pop();
 
-  const { data } = supabase
-    .storage
-    .from('imoveis')
-    .getPublicUrl(filePath);
+    const originalPath = `${imovelId}/raw_${baseUuid}.${ext}`;
+    const webpPath = `${imovelId}/${baseUuid}.webp`;
 
-  const { error: dbError } = await supabase
-    .from('imoveis_fotos')
-    .insert({
-      imovel_id: imovelId,
-      url: data.publicUrl,
-      ordem: ordem,
-      is_capa: isCapa
-    });
+    // Upload do arquivo ORIGINAL com hardening (upsert: false e contentType explícito)
+    const { error: originalError } = await supabase
+      .storage
+      .from('imoveis')
+      .upload(originalPath, file, {
+        upsert: false,
+        contentType: file.type
+      });
 
-  if (dbError) throw dbError;
+    if (originalError) throw originalError;
+
+    // Upload do arquivo WebP com hardening
+    const { error: webpError } = await supabase
+      .storage
+      .from('imoveis')
+      .upload(webpPath, webpFile, {
+        upsert: false,
+        contentType: 'image/webp'
+      });
+
+    if (webpError) throw webpError;
+
+    // Obter URL pública da versão WebP
+    const { data } = supabase
+      .storage
+      .from('imoveis')
+      .getPublicUrl(webpPath);
+
+    // Persistência no banco de dados (Apenas URL do WebP)
+    const { error: dbError } = await supabase
+      .from('imoveis_fotos')
+      .insert({
+        imovel_id: imovelId,
+        url: data.publicUrl,
+        ordem: ordem,
+        is_capa: isCapa
+      });
+
+    if (dbError) throw dbError;
+  } catch (err) {
+    console.error('Erro no processamento da imagem:', err);
+    throw err;
+  }
 }
 
 /**
@@ -106,12 +181,10 @@ function generateImovelCode() {
 async function init() {
     renderAllChips();
     
-    // ETAPA 2 & 3 — CHECKBOXES (PAGAMENTO E GARANTIAS)
     const checkboxes = document.querySelectorAll('input[name="negociacao"]');
     checkboxes.forEach(checkbox => {
         checkbox.addEventListener('change', (e) => {
             const valor = e.target.value;
-            // Categorias baseadas nos valores definidos no HTML
             const isPagamento = ["financiamento", "fgts", "carta_credito", "permuta"].includes(valor);
             const isGarantia = ["fiador", "caucao"].includes(valor);
 
@@ -149,7 +222,6 @@ async function loadPropertyData(id) {
         const { data: p, error } = await supabase.from('imoveis').select('*').eq('id', id).single();
         if (error) throw error;
 
-        // Básicos
         document.getElementById('f-referencia').value = p.referencia || '';
         document.getElementById('f-codigo').value = p.codigo_imovel || '';
         document.getElementById('f-title').value = p.titulo || '';
@@ -157,7 +229,6 @@ async function loadPropertyData(id) {
         document.getElementById('f-tipo').value = p.tipo_imovel || 'casa';
         document.getElementById('f-status').value = p.status_imovel || 'ativo';
         
-        // Finalidade - Prioriza coluna finalidade se existir, senão usa fallback
         if (p.finalidade) {
             document.getElementById('f-finalidade').value = p.finalidade;
         } else {
@@ -172,17 +243,14 @@ async function loadPropertyData(id) {
         document.getElementById('f-description').value = p.descricao || '';
         document.getElementById('f-featured').checked = p.destaque || false;
         
-        // Localização
         document.getElementById('f-bairro').value = p.bairro || '';
         document.getElementById('f-cidade').value = p.cidade || '';
         document.getElementById('f-uf').value = p.uf || '';
 
-        // Características
         if (p.caracteristicas_imovel) selectedImovelFeatures = new Set(p.caracteristicas_imovel);
         if (p.caracteristicas_condominio) selectedCondoFeatures = new Set(p.caracteristicas_condominio);
         renderAllChips();
 
-        // Negociação (Popular estado e marcar checkboxes)
         if (p.opcoes_pagamento) {
             opcoesPagamento = p.opcoes_pagamento;
             opcoesPagamento.forEach(val => {
@@ -198,7 +266,6 @@ async function loadPropertyData(id) {
             });
         }
 
-        // Fotos
         const { data: photos } = await supabase.from('imoveis_fotos').select('*').eq('imovel_id', id).order('is_capa', { ascending: false }).order('ordem', { ascending: true });
         if (photos) {
             uploadedPhotos = photos.map(ph => ({ id: ph.id, url: ph.url, isCover: ph.is_capa, existing: true }));
@@ -220,9 +287,16 @@ if (fileInput) fileInput.onchange = (e) => handleFiles(e.target.files);
 
 function handleFiles(files) {
     const newFiles = Array.from(files);
-    if (uploadedPhotos.length + newFiles.length > 15) return alert('Máximo 15 fotos.');
+    
+    // Validação básica de tipo antes de adicionar ao estado
+    const onlyImages = newFiles.filter(f => f.type.startsWith('image/'));
+    if (onlyImages.length !== newFiles.length) {
+        alert('Alguns arquivos foram ignorados. Apenas imagens são permitidas.');
+    }
 
-    newFiles.forEach(file => {
+    if (uploadedPhotos.length + onlyImages.length > 15) return alert('Máximo 15 fotos.');
+
+    onlyImages.forEach(file => {
         const reader = new FileReader();
         reader.onload = (e) => {
             uploadedPhotos.push({ file, preview: e.target.result, isCover: uploadedPhotos.length === 0, existing: false });
@@ -292,7 +366,7 @@ document.getElementById('property-form').onsubmit = async (e) => {
             descricao: document.getElementById('f-description').value,
             tipo_imovel: document.getElementById('f-tipo').value,
             status_imovel: document.getElementById('f-status').value,
-            finalidade: finalidade, // PERSISTÊNCIA DA COLUNA FINALIDADE
+            finalidade: finalidade,
             dormitorios: Number(document.getElementById('f-rooms').value || 0),
             suites: Number(document.getElementById('f-suites').value || 0),
             banheiros: Number(document.getElementById('f-bathrooms').value || 0),
@@ -308,7 +382,6 @@ document.getElementById('property-form').onsubmit = async (e) => {
             uf: uf,
             caracteristicas_imovel: caracteristicasImovel,
             caracteristicas_condominio: caracteristicasCondominio,
-            // ETAPA 4 — PAYLOAD SUPABASE
             opcoes_pagamento: opcoesPagamento,
             garantias_locacao: garantiasLocacao
         };
@@ -354,7 +427,7 @@ document.getElementById('property-form').onsubmit = async (e) => {
         window.location.href = 'imoveis.html';
     } catch (err) {
         console.error('Erro ao salvar:', err);
-        alert('Erro ao salvar imóvel.');
+        alert(err.message || 'Erro ao salvar imóvel.');
     } finally {
         btn.disabled = false;
         btnText.innerText = propertyId ? 'Atualizar Imóvel' : 'Salvar Imóvel';
