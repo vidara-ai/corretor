@@ -1,4 +1,3 @@
-
 import { supabase } from './supabase.js';
 import { resolveColorScheme, applyColorScheme } from './theme/engine.js';
 
@@ -170,11 +169,19 @@ async function iniciarPaginaImovel() {
                 }
             }
 
-            // Inicialização do Widget de WhatsApp (GetButton.io)
-            if (typeof window.initWhatsAppWidget === 'function') {
+            // Atualização do Botão WhatsApp Nativo
+            const waBtn = document.getElementById('whatsapp-floating-btn');
+            if (waBtn) {
                 const whatsappValue = config.whatsapp_header || config.header_whatsapp;
-                const whatsappNumber = whatsappValue ? whatsappValue.replace(/\D/g, '') : '';
-                window.initWhatsAppWidget(whatsappNumber);
+                if (whatsappValue) {
+                    const cleanNumber = whatsappValue.replace(/\D/g, '');
+                    if (cleanNumber.length >= 8) {
+                        waBtn.href = `https://wa.me/${cleanNumber}`;
+                        waBtn.style.display = 'block';
+                    }
+                } else {
+                    waBtn.style.display = 'none';
+                }
             }
         }
 
