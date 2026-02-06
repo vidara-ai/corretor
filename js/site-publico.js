@@ -5,7 +5,8 @@ import { resolveColorScheme, applyColorScheme } from './theme/engine.js';
 let siteConfig = null;
 let allImoveisCache = [];
 let allFotosCache = [];
-let currentFinalidade = 'Aluguel'; // Inicial padrão
+let currentFinalidade = 'Todos'; // Inicial padrão: Todos
+let isDestaqueOnly = false; // Estado para filtro de destaque
 
 /**
  * SMART LEAD POPUP LOGIC - REFATORADO
@@ -235,18 +236,30 @@ function initFilterBadges() {
 
     const renderBadges = () => {
         container.innerHTML = `
-            <button class="filter-badge ${currentFinalidade === 'Venda' ? 'filter-badge-active' : 'filter-badge-inactive'}" data-value="Venda">Venda</button>
-            <button class="filter-badge ${currentFinalidade === 'Aluguel' ? 'filter-badge-active' : 'filter-badge-inactive'}" data-value="Aluguel">Aluguel</button>
+            <button class="filter-badge ${currentFinalidade === 'Todos' && !isDestaqueOnly ? 'filter-badge-active' : 'filter-badge-inactive'}" data-type="finalidade" data-value="Todos">Todos</button>
+            <button class="filter-badge ${currentFinalidade === 'Venda' ? 'filter-badge-active' : 'filter-badge-inactive'}" data-type="finalidade" data-value="Venda">Venda</button>
+            <button class="filter-badge ${currentFinalidade === 'Aluguel' ? 'filter-badge-active' : 'filter-badge-inactive'}" data-type="finalidade" data-value="Aluguel">Aluguel</button>
+            <button class="filter-badge ${isDestaqueOnly ? 'filter-badge-active' : 'filter-badge-inactive'}" data-type="destaque" data-value="true">Destaque</button>
         `;
 
         container.querySelectorAll('.filter-badge').forEach(btn => {
             btn.onclick = () => {
+                const type = btn.dataset.type;
                 const val = btn.dataset.value;
-                if (currentFinalidade !== val) {
-                    currentFinalidade = val;
-                    renderBadges();
-                    applyFiltersLocally();
+
+                if (type === 'finalidade') {
+                    if (val === 'Todos') {
+                        currentFinalidade = 'Todos';
+                        isDestaqueOnly = false;
+                    } else {
+                        currentFinalidade = val;
+                    }
+                } else if (type === 'destaque') {
+                    isDestaqueOnly = !isDestaqueOnly;
                 }
+
+                renderBadges();
+                applyFiltersLocally();
             };
         });
     };
@@ -259,8 +272,11 @@ function applyFiltersLocally() {
     if (!container) return;
 
     const filtered = allImoveisCache.filter(imovel => {
-        const fin = (imovel.finalidade || '').toLowerCase();
-        return fin === currentFinalidade.toLowerCase();
+        const finLower = (imovel.finalidade || '').toLowerCase();
+        const finMatch = currentFinalidade === 'Todos' || finLower === currentFinalidade.toLowerCase();
+        const destaqueMatch = !isDestaqueOnly || imovel.destaque === true;
+        
+        return finMatch && destaqueMatch;
     });
 
     container.innerHTML = renderCardList(filtered, allFotosCache);
@@ -270,7 +286,11 @@ function applyFiltersLocally() {
     });
 
     const title = document.querySelector('#regular-section h2');
-    if (title) title.innerText = `Imóveis para ${currentFinalidade}`;
+    if (title) {
+        let label = currentFinalidade === 'Todos' ? 'Todos os Imóveis' : `Imóveis para ${currentFinalidade}`;
+        if (isDestaqueOnly) label += ' em Destaque';
+        title.innerText = label;
+    }
 }
 
 function mascaraTelefone(valor) {
