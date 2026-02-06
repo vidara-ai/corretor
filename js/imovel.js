@@ -1,3 +1,4 @@
+
 import { supabase } from './supabase.js';
 import { resolveColorScheme, applyColorScheme } from './theme/engine.js';
 
@@ -6,6 +7,63 @@ import { resolveColorScheme, applyColorScheme } from './theme/engine.js';
  */
 let currentPhotos = [];
 let currentIndex = 0;
+
+/**
+ * Mapeamentos de Labels Humanas
+ */
+const LABELS_PAGAMENTO = {
+    financiamento: "Financiamento",
+    fgts: "Uso de FGTS",
+    cartao: "Cartão de crédito",
+    permuta: "Aceita permuta",
+    carta_credito: "Carta de Crédito",
+    caucao: "Depósito Caução",
+    fiador: "Fiador"
+};
+
+const LABELS_GARANTIAS = {
+    fiador: "Fiador",
+    caucao: "Depósito caução",
+    seguro: "Seguro fiança"
+};
+
+/**
+ * NORMALIZADOR DE DADOS (Shape Fix)
+ * Converte diferentes formatos de retorno do Supabase/Postgres em Array padrão JS
+ */
+function ensureArray(val) {
+    if (!val) return [];
+    if (Array.isArray(val)) return val;
+    
+    // Caso 1: String (JSON string ou Postgres Array "{a,b}" ou CSV)
+    if (typeof val === 'string') {
+        const trimmed = val.trim();
+        // JSON String "[...]"
+        if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+            try { return JSON.parse(trimmed); } catch (e) { return []; }
+        }
+        // Postgres Native Array "{item1,item2}"
+        if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+            return trimmed.slice(1, -1).split(',')
+                .map(s => s.trim().replace(/^"|"$/g, ''))
+                .filter(s => s !== "");
+        }
+        // CSV simples "item1, item2"
+        if (trimmed.includes(',')) {
+            return trimmed.split(',').map(s => s.trim());
+        }
+        return [trimmed];
+    }
+
+    // Caso 2: Objeto literal {"chave": true}
+    if (typeof val === 'object') {
+        return Object.entries(val)
+            .filter(([_, active]) => active === true || active === 'true')
+            .map(([key]) => key);
+    }
+
+    return [];
+}
 
 function formatarBRL(valor) {
     if (!valor || valor === 0) return 'Sob consulta';
@@ -52,7 +110,6 @@ async function iniciarPaginaImovel() {
             .limit(1)
             .maybeSingle();
 
-        // Aplica o tema (Coluna correta: color_scheme)
         if (config && config.color_scheme) {
             const scheme = resolveColorScheme(config.color_scheme);
             applyColorScheme(scheme);
@@ -78,6 +135,12 @@ function renderizarImovel(p, config) {
     const msgText = `Olá!\nTenho interesse no imóvel Ref: ${referencia}`;
     const whatsappLink = `https://wa.me/${whatsappNum.replace(/\D/g, '')}?text=${encodeURIComponent(msgText)}`;
 
+    // APLICAÇÃO DO NORMALIZADOR NOS CAMPOS PROBLEMÁTICOS
+    const imovelFeatures = ensureArray(p.caracteristicas_imovel);
+    const condoFeatures = ensureArray(p.caracteristicas_condominio);
+    const pagamentos = ensureArray(p.opcoes_pagamento);
+    const garantias = ensureArray(p.garantias_locacao);
+
     container.innerHTML = `
         <div class="animate-in fade-in duration-700">
             <div class="galeria-imovel mb-8">
@@ -94,6 +157,7 @@ function renderizarImovel(p, config) {
                     </div>
                 ` : ''}
             </div>
+            
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start mt-12">
                 <div class="space-y-6">
                     <div class="flex flex-wrap gap-2">
@@ -101,27 +165,76 @@ function renderizarImovel(p, config) {
                         ${p.destaque ? '<span class="bg-amber-100 text-amber-700 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider">Destaque</span>' : ''}
                         ${p.finalidade ? `<span class="bg-indigo-100 text-indigo-700 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider badge-finalidade-detalhe">Para ${p.finalidade}</span>` : ''}
                     </div>
+                    
                     <h1 class="text-4xl md:text-5xl font-black text-slate-900 leading-tight">${p.titulo}</h1>
                     <p class="text-4xl text-blue-600 font-black">${precoFormatado}</p>
+                    
                     <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-4">
                         <h3 class="font-bold text-slate-800 text-xl border-b pb-4">Descrição</h3>
                         <div class="prose prose-slate max-w-none text-slate-600 text-lg whitespace-pre-line leading-relaxed">${p.descricao || 'Sem descrição.'}</div>
                     </div>
-                    ${p.caracteristicas_imovel && p.caracteristicas_imovel.length > 0 ? `
+
+                    ${imovelFeatures.length > 0 ? `
                         <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
-                            <h3 class="font-bold text-slate-800 text-xl mb-6">Características</h3>
+                            <h3 class="font-bold text-slate-800 text-xl mb-6">Características do Imóvel</h3>
                             <div class="flex flex-wrap gap-2">
-                                ${p.caracteristicas_imovel.map(feat => `<span class="bg-slate-50 border border-slate-100 text-slate-600 px-4 py-2 rounded-xl text-sm font-medium">${feat}</span>`).join('')}
+                                ${imovelFeatures.map(f => `<span class="bg-slate-50 border border-slate-100 text-slate-600 px-4 py-2 rounded-xl text-sm font-medium">${f}</span>`).join('')}
                             </div>
                         </div>
                     ` : ''}
+
+                    ${condoFeatures.length > 0 ? `
+                        <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
+                            <h3 class="font-bold text-slate-800 text-xl mb-6">Características do Condomínio</h3>
+                            <div class="flex flex-wrap gap-2">
+                                ${condoFeatures.map(f => `<span class="bg-blue-50 border border-blue-100 text-blue-700 px-4 py-2 rounded-xl text-sm font-medium">${f}</span>`).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+
+                    ${(pagamentos.length > 0 || garantias.length > 0) ? `
+                        <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-8">
+                            ${pagamentos.length > 0 ? `
+                                <div>
+                                    <h3 class="font-bold text-slate-800 text-xl mb-4">Opções de Pagamento</h3>
+                                    <div class="flex flex-wrap gap-2">
+                                        ${pagamentos.map(key => `<span class="bg-emerald-50 text-emerald-700 px-4 py-2 rounded-xl text-sm font-semibold border border-emerald-100">${LABELS_PAGAMENTO[key] || key}</span>`).join('')}
+                                    </div>
+                                </div>
+                            ` : ''}
+                            
+                            ${garantias.length > 0 ? `
+                                <div>
+                                    <h3 class="font-bold text-slate-800 text-xl mb-4">Garantias de Locação</h3>
+                                    <div class="flex flex-wrap gap-2">
+                                        ${garantias.map(key => `<span class="bg-slate-100 text-slate-700 px-4 py-2 rounded-xl text-sm font-semibold border border-slate-200">${LABELS_GARANTIAS[key] || key}</span>`).join('')}
+                                    </div>
+                                </div>
+                            ` : ''}
+                        </div>
+                    ` : ''}
                 </div>
+
                 <div class="space-y-8 sticky top-24">
                     <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-xl space-y-6">
                         <h3 class="font-bold text-slate-900 text-xl">Ficha Técnica</h3>
                         <div class="grid grid-cols-2 gap-4">
-                            <div class="bg-slate-50 p-4 rounded-2xl"><p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Dormitórios</p><p class="text-slate-900 font-bold text-lg">${p.dormitorios || 0}</p></div>
-                            <div class="bg-slate-50 p-4 rounded-2xl"><p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Área</p><p class="text-slate-900 font-bold text-lg">${p.area_m2 || 0} m²</p></div>
+                            <div class="bg-slate-50 p-4 rounded-2xl">
+                                <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Dormitórios</p>
+                                <p class="text-slate-900 font-bold text-lg">${p.dormitorios || 0}</p>
+                            </div>
+                            <div class="bg-slate-50 p-4 rounded-2xl">
+                                <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Área</p>
+                                <p class="text-slate-900 font-bold text-lg">${p.area_m2 || 0} m²</p>
+                            </div>
+                            <div class="bg-slate-50 p-4 rounded-2xl">
+                                <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Banheiros</p>
+                                <p class="text-slate-900 font-bold text-lg">${p.banheiros || 0}</p>
+                            </div>
+                            <div class="bg-slate-50 p-4 rounded-2xl">
+                                <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Vagas</p>
+                                <p class="text-slate-900 font-bold text-lg">${p.vagas_garagem || 0}</p>
+                            </div>
                         </div>
                         <div class="space-y-3 pt-4">
                             <p class="text-sm font-bold text-slate-400 uppercase tracking-widest">Localização</p>
@@ -165,7 +278,7 @@ function finalizarLoading() {
 
 function mostrarErro(msg) {
     const container = document.getElementById('property-detail');
-    if (container) container.innerHTML = `<div class="text-center py-20"><p>${msg}</p></div>`;
+    if (container) container.innerHTML = `<div class="text-center py-20"><p class="text-slate-500 font-medium">${msg}</p></div>`;
 }
 
 document.addEventListener('DOMContentLoaded', iniciarPaginaImovel);
