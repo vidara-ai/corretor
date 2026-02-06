@@ -99,18 +99,9 @@ function removeHeroLoading() {
  * Aplica as configurações visuais ao site
  */
 function applySiteSettings(config) {
-    // Logo Dinâmico (Sem Fallback)
-    const logoImg = document.getElementById('header-logo-img');
-    if (logoImg) {
-        if (config.header_logo_url) {
-            logoImg.src = config.header_logo_url;
-            logoImg.classList.remove('hidden');
-        } else {
-            logoImg.classList.add('hidden');
-        }
-    }
+    const logoText = document.getElementById('site-logo-text');
+    if (logoText) logoText.innerText = config.header_nome_site || 'ImobiMaster';
     
-    // Configurações do Hero
     const heroTitle = document.querySelector('header h1');
     if (heroTitle && config.hero_titulo) heroTitle.innerText = config.hero_titulo;
 
@@ -144,7 +135,7 @@ function applySiteSettings(config) {
     const footerText = document.getElementById('footer-copyright-text');
     if (footerText) footerText.innerText = config.rodape_texto || '© ImobiMaster';
 
-    // CTA do Header (WhatsApp) - Ativado para Desktop e Mobile
+    // CTA do Header (Entre em contato)
     const headerCta = document.getElementById('header-cta-contato');
     if (headerCta) {
         if (config.header_whatsapp) {
@@ -156,13 +147,6 @@ function applySiteSettings(config) {
         } else {
             headerCta.classList.add('hidden');
         }
-    }
-
-    // Botão flutuante WhatsApp (se houver número no header ou em outro lugar relevante)
-    const waButton = document.getElementById('wa-button');
-    if (waButton && config.header_whatsapp) {
-        const num = config.header_whatsapp.replace(/\D/g, '');
-        waButton.href = `https://wa.me/${num}`;
     }
 
     // Finaliza o carregamento do Hero após aplicar tudo
