@@ -28,6 +28,17 @@ function renderCardList(imoveis, fotos) {
         const finalidade = imovel.finalidade || 'Venda';
         const referencia = imovel.referencia || `#${imovel.id.toString().slice(-4)}`;
         
+        // Formatação da Localização (Bairro, Cidade/UF)
+        const partesLocal = [];
+        if (imovel.bairro) partesLocal.push(imovel.bairro);
+        
+        let cidadeUf = "";
+        if (imovel.cidade) cidadeUf += imovel.cidade;
+        if (imovel.uf) cidadeUf += (cidadeUf ? '/' : '') + imovel.uf;
+        
+        if (cidadeUf) partesLocal.push(cidadeUf);
+        const localizacao = partesLocal.join(', ') || 'Localização não informada';
+
         return `
             <div class="card-imovel group bg-white border border-slate-100 rounded-[2.5rem] shadow-xl hover:shadow-2xl hover:-translate-y-3 transition-all duration-500 ease-out overflow-hidden flex flex-col h-full" data-id="${imovel.id}">
                 <!-- Imagem e Badges -->
@@ -45,13 +56,13 @@ function renderCardList(imoveis, fotos) {
                 </div>
 
                 <div class="p-8 flex flex-col flex-grow">
-                    <!-- Título e Local -->
+                    <!-- Título e Local (Restaurado) -->
                     <div class="mb-5">
-                        <span class="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 block">${imovel.bairro}</span>
+                        <span class="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 block truncate" title="${localizacao}">${localizacao}</span>
                         <h3 class="text-xl font-bold text-slate-900 leading-tight group-hover:text-blue-600 transition-colors line-clamp-2 h-14">${imovel.titulo}</h3>
                     </div>
 
-                    <!-- Informações Técnicas (Restauradas) -->
+                    <!-- Informações Técnicas -->
                     <div class="grid grid-cols-2 gap-y-3 gap-x-2 border-t border-slate-100 pt-5 pb-5">
                         <div class="flex items-center gap-2 text-slate-500 text-[11px] font-bold uppercase tracking-tight">
                             <svg class="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
@@ -71,7 +82,7 @@ function renderCardList(imoveis, fotos) {
                         </div>
                     </div>
 
-                    <!-- Valor e Botão (Sincronizados com o tema) -->
+                    <!-- Valor e Botão -->
                     <div class="border-t border-slate-100 py-5">
                         <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">${finalidade}</p>
                         <p class="text-3xl font-black text-blue-600 tracking-tighter">${preco}</p>
