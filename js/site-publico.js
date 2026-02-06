@@ -55,24 +55,75 @@ async function initSite() {
     if (!isDetailPage) loadHomeProperties();
 }
 
+/**
+ * Injeta o componente de busca no Hero usando apenas DOM API
+ * Requisito: Executado somente após window.load
+ */
+function injectSearchIntoHero() {
+    const heroSection = document.querySelector('header.hero-home');
+    if (!heroSection) return;
+
+    // Evita duplicação se o script rodar mais de uma vez
+    if (heroSection.querySelector('.js-search-form-injected')) return;
+
+    // Localiza o wrapper visual interno do hero
+    const contentWrapper = heroSection.querySelector('.hero-content') || heroSection.querySelector('div');
+    if (!contentWrapper) return;
+
+    const subtitle = contentWrapper.querySelector('p');
+    if (!subtitle) return;
+
+    // Remove qualquer elemento de busca estático residual para garantir integridade
+    const existingSearch = contentWrapper.querySelector('.hero-search-container');
+    if (existingSearch) existingSearch.remove();
+
+    // Criar o Formulário (Tailwind: max-w-2xl, flex responsivo)
+    const form = document.createElement('form');
+    form.className = 'js-search-form-injected mt-8 flex flex-col md:flex-row gap-3 w-full max-w-2xl mx-auto';
+    
+    form.onsubmit = (e) => {
+        e.preventDefault();
+        const query = input.value.trim();
+        if (query) {
+            console.log('Iniciando busca por:', query);
+            // Lógica de busca/redirecionamento pode ser adicionada aqui
+        }
+    };
+
+    // Criar o Input de Busca
+    const input = document.createElement('input');
+    input.type = 'search';
+    input.placeholder = 'Bairro, cidade ou código do imóvel...';
+    input.className = 'flex-1 px-6 py-4 rounded-xl text-slate-900 bg-white/95 border-none shadow-xl outline-none focus:ring-2 focus:ring-blue-500 transition-all font-medium';
+
+    // Criar o Botão CTA
+    const button = document.createElement('button');
+    button.type = 'submit';
+    button.textContent = 'Buscar agora';
+    button.className = 'bg-blue-600 hover:bg-blue-700 text-white px-10 py-4 rounded-xl font-bold transition-all shadow-xl active:scale-95 whitespace-nowrap text-lg';
+
+    // Montagem da estrutura
+    form.appendChild(input);
+    form.appendChild(button);
+
+    // Inserção logo abaixo do subtítulo
+    subtitle.insertAdjacentElement('afterend', form);
+}
+
 function applySiteSettings(config) {
-    // Aplica o tema (Coluna: color_scheme)
     if (config.color_scheme) {
         const scheme = resolveColorScheme(config.color_scheme);
         applyColorScheme(scheme);
     }
 
     const logoText = document.getElementById('site-logo-text');
-    if (logoText) logoText.innerText = config.header_nome_site || '&nbsp;';
+    if (logoText) logoText.innerText = config.header_nome_site || 'ImobiMaster';
     
     const heroTitle = document.querySelector('header h1');
     if (heroTitle && config.hero_titulo) heroTitle.innerText = config.hero_titulo;
 
     const heroSub = document.querySelector('header p');
     if (heroSub && config.hero_subtitulo) heroSub.innerText = config.hero_subtitulo;
-
-    const heroCtaBtn = document.querySelector('header button');
-    if (heroCtaBtn && config.hero_cta_texto) heroCtaBtn.innerText = config.hero_cta_texto;
 
     const heroSection = document.querySelector('header.hero-home');
     if (heroSection) {
@@ -87,7 +138,7 @@ function applySiteSettings(config) {
     if (sectionSub && config.home_subtitulo_oportunidades) sectionSub.innerText = config.home_subtitulo_oportunidades;
 
     const footerText = document.getElementById('footer-copyright-text');
-    if (footerText) footerText.innerText = config.rodape_texto || '&nbsp;';
+    if (footerText) footerText.innerText = config.rodape_texto || '© ImobiMaster';
 
     const headerCta = document.getElementById('header-cta-contato');
     if (headerCta) {
@@ -183,21 +234,20 @@ function setupCardEventListeners() {
     });
 }
 
-// Inicialização imediata do JS de dados
+// Inicialização imediata do JS de dados e configurações parciais
 initSite();
 
 /**
- * ELIMINAÇÃO DO FOUC:
- * Usamos 'load' em vez de 'DOMContentLoaded' porque o Tailwind CDN 
- * injeta estilos de forma assíncrona e precisamos garantir que 
- * as fontes externas também foram resolvidas antes de mostrar a UI.
+ * FINALIZAÇÃO DO CARREGAMENTO (ELIMINAÇÃO DO BOOT SCREEN)
+ * Injeta componentes dinâmicos que dependem de layout final.
  */
 window.addEventListener('load', () => {
+  // Injeta o formulário de busca no Hero (Requisito: JS puro no window.load)
+  injectSearchIntoHero();
+
   const boot = document.getElementById('boot-screen');
   if (boot) {
-    // Adicionamos a classe 'ready' ao body para tornar o conteúdo visível
     document.body.classList.add('ready');
-    // Removemos o overlay
     boot.remove();
   }
 });
