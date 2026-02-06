@@ -118,9 +118,50 @@
         </a>
     </div>
 
-    <footer class="bg-white border-t border-slate-100 py-20 mt-12">
-        <div class="max-w-7xl mx-auto px-4 text-center text-slate-400 text-sm font-medium">
-            <p id="footer-copyright-text">&nbsp;</p>
+    <!-- Footer com Captação Especializada -->
+    <footer class="bg-white border-t border-slate-100 pt-20 pb-10 mt-12">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+                <!-- Esquerda: Info e Copyright -->
+                <div class="text-center lg:text-left">
+                    <h2 class="text-2xl font-bold text-slate-900 mb-4" id="footer-logo-text-bottom">ImobiMaster</h2>
+                    <p class="text-slate-500 max-w-sm mx-auto lg:mx-0 mb-12 font-medium leading-relaxed">
+                        Especialistas em encontrar o lar dos seus sonhos nas localizações mais exclusivas e desejadas.
+                    </p>
+                    <p id="footer-copyright-text" class="text-slate-400 text-sm font-medium">&nbsp;</p>
+                </div>
+
+                <!-- Direita: Formulário de Lead do Footer -->
+                <div class="bg-slate-50 p-8 md:p-10 rounded-[2.5rem] border border-slate-100 shadow-inner">
+                    <h3 class="text-xl font-black text-slate-900 mb-2">Não encontrou seu imóvel?</h3>
+                    <p class="text-slate-500 text-sm mb-8 leading-relaxed font-medium">
+                        Deixe-nos uma mensagem com detalhes do seu imóvel desejado. Vamos encontrar a melhor opção para você.
+                    </p>
+                    
+                    <form id="footer-lead-form" class="space-y-4">
+                        <div id="footer-success-msg" class="hidden bg-emerald-50 text-emerald-700 p-6 rounded-2xl text-center text-sm font-bold border border-emerald-100 mb-6 animate-in fade-in zoom-in">
+                            Mensagem enviada com sucesso! Em breve entraremos em contato.
+                        </div>
+
+                        <div id="footer-form-fields" class="space-y-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <input type="text" id="footer-nome" required placeholder="Nome completo" 
+                                    class="w-full p-4 bg-white border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all text-sm font-medium text-slate-900">
+                                <input type="email" id="footer-email" required placeholder="Seu e-mail" 
+                                    class="w-full p-4 bg-white border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all text-sm font-medium text-slate-900">
+                            </div>
+                            <input type="tel" id="footer-telefone" required placeholder="WhatsApp (00) 00000-0000" 
+                                class="w-full p-4 bg-white border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all text-sm font-medium text-slate-900">
+                            <textarea id="footer-mensagem" required rows="3" placeholder="Como seria seu imóvel ideal? (Bairro, quartos, valor aproximado...)" 
+                                class="w-full p-4 bg-white border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all text-sm font-medium text-slate-900 resize-none"></textarea>
+                            
+                            <button type="submit" id="btn-footer-submit" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black text-sm hover:bg-slate-800 transition-all active:scale-[0.98] shadow-xl shadow-slate-200">
+                                Enviar Mensagem
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
     </footer>
 
