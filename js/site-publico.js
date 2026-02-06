@@ -30,6 +30,7 @@ function renderCardList(imoveis, fotos) {
         
         return `
             <div class="card-imovel group bg-white border border-slate-100 rounded-[2.5rem] shadow-xl hover:shadow-2xl hover:-translate-y-3 transition-all duration-500 ease-out overflow-hidden flex flex-col h-full" data-id="${imovel.id}">
+                <!-- Imagem e Badges -->
                 <div class="relative h-[250px] overflow-hidden shrink-0">
                     <img src="${imagem}" alt="${imovel.titulo}" loading="lazy" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
                     <div class="absolute top-5 left-5 flex flex-col gap-2 z-10">
@@ -42,17 +43,42 @@ function renderCardList(imoveis, fotos) {
                     </span>
                     ${imovel.destaque ? '<div class="absolute bottom-5 left-5 bg-amber-400 text-slate-900 font-black text-[10px] px-4 py-2 rounded-full shadow-lg z-10 tracking-widest uppercase animate-pulse">Destaque</div>' : ''}
                 </div>
+
                 <div class="p-8 flex flex-col flex-grow">
+                    <!-- Título e Local -->
                     <div class="mb-5">
                         <span class="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 block">${imovel.bairro}</span>
                         <h3 class="text-xl font-bold text-slate-900 leading-tight group-hover:text-blue-600 transition-colors line-clamp-2 h-14">${imovel.titulo}</h3>
                     </div>
+
+                    <!-- Informações Técnicas (Restauradas) -->
+                    <div class="grid grid-cols-2 gap-y-3 gap-x-2 border-t border-slate-100 pt-5 pb-5">
+                        <div class="flex items-center gap-2 text-slate-500 text-[11px] font-bold uppercase tracking-tight">
+                            <svg class="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
+                            ${imovel.area_m2 || 0} m²
+                        </div>
+                        <div class="flex items-center gap-2 text-slate-500 text-[11px] font-bold uppercase tracking-tight">
+                            <svg class="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                            ${imovel.dormitorios || 0} Quartos
+                        </div>
+                        <div class="flex items-center gap-2 text-slate-500 text-[11px] font-bold uppercase tracking-tight">
+                            <svg class="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-7.714 2.143L11 21l-2.286-6.857L1 12l7.714-2.143L11 3z"/></svg>
+                            ${imovel.suites || 0} Suítes
+                        </div>
+                        <div class="flex items-center gap-2 text-slate-500 text-[11px] font-bold uppercase tracking-tight">
+                            <svg class="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
+                            ${imovel.vagas_garagem || 0} Vagas
+                        </div>
+                    </div>
+
+                    <!-- Valor e Botão (Sincronizados com o tema) -->
                     <div class="border-t border-slate-100 py-5">
                         <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">${finalidade}</p>
                         <p class="text-3xl font-black text-blue-600 tracking-tighter">${preco}</p>
                     </div>
-                    <div class="mt-auto pt-6">
-                        <button class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-[0.2em] group-hover:bg-blue-600 transition-all flex items-center justify-center gap-2 shadow-xl shadow-slate-200 group-hover:shadow-blue-200">
+                    
+                    <div class="mt-auto pt-4">
+                        <button class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-blue-700 transition-all flex items-center justify-center gap-2 shadow-xl shadow-blue-100">
                             Ver Detalhes
                             <svg class="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                         </button>
