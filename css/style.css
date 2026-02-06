@@ -145,3 +145,14 @@ body {
     grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); 
     gap: 40px; 
 }
+
+/* Ocultar Branding GetButton.io */
+.getbutton-widget .getbutton-link,
+.getbutton-widget a[href*="getbutton"],
+.getbutton-widget-branding {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    height: 0 !important;
+    pointer-events: none !important;
+}
