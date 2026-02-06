@@ -258,12 +258,12 @@ function injectSearchIntoHero() {
     const input = document.createElement('input');
     input.type = 'search';
     input.placeholder = 'Ex: Casa venda Bessa ou CS-001';
-    input.className = 'w-full md:flex-1 px-8 py-6 rounded-3xl text-slate-900 bg-white border-none shadow-2xl outline-none focus:ring-4 focus:ring-red-500/20 transition-all font-bold text-lg placeholder:text-slate-400 placeholder:font-medium';
+    input.className = 'w-full md:flex-1 px-8 py-6 rounded-3xl text-slate-900 bg-white border-none shadow-2xl outline-none transition-all font-bold text-lg placeholder:text-slate-400 placeholder:font-medium input-search-hero';
 
     const button = document.createElement('button');
     button.type = 'submit';
     button.textContent = (siteConfig && siteConfig.hero_cta_texto) ? siteConfig.hero_cta_texto : 'Buscar';
-    button.className = 'w-full md:w-auto bg-red-600 hover:bg-red-700 text-white px-14 py-6 rounded-3xl font-black transition-all shadow-2xl shadow-red-500/30 active:scale-[0.96] text-lg uppercase tracking-widest';
+    button.className = 'w-full md:w-auto btn-search-hero px-14 py-6 rounded-3xl font-black transition-all active:scale-[0.96] text-lg uppercase tracking-widest';
 
     form.appendChild(input);
     form.appendChild(button);
