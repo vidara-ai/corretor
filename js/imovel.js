@@ -157,6 +157,11 @@ function renderizarImovel(p, config) {
 
     const caracImovel = ensureArray(p.caracteristicas_imovel);
     const caracCondo = ensureArray(p.caracteristicas_condominio);
+    
+    // Processamento de Opções de Negociação
+    const negopay = ensureArray(p.opcoes_pagamento);
+    const negogua = ensureArray(p.garantias_locacao);
+    const hasNegotiation = negopay.length > 0 || negogua.length > 0;
 
     container.innerHTML = `
         <div class="animate-in fade-in slide-in-from-bottom-4 duration-1000">
@@ -240,6 +245,44 @@ function renderizarImovel(p, config) {
                         </h2>
                         <div class="flex flex-wrap gap-3">
                             ${caracCondo.map(c => `<span class="bg-white border border-slate-100 px-5 py-2.5 rounded-2xl text-sm font-bold text-slate-700 shadow-sm">${c}</span>`).join('')}
+                        </div>
+                    </div>
+                    ` : ''}
+
+                    <!-- OPÇÕES DE NEGOCIAÇÃO (NOVA SEÇÃO) -->
+                    ${hasNegotiation ? `
+                    <div class="space-y-8 bg-slate-50/50 p-8 md:p-12 rounded-[2.5rem] border border-slate-100">
+                        <h2 class="text-2xl font-black text-slate-900 flex items-center gap-3">
+                            <span class="w-1.5 h-8 bg-blue-600 rounded-full"></span>
+                            Opções de Negociação
+                        </h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            ${negopay.length > 0 ? `
+                            <div class="space-y-4">
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Pagamento</p>
+                                <ul class="space-y-3">
+                                    ${negopay.map(opt => `
+                                        <li class="flex items-center gap-3 text-slate-700 font-bold text-sm">
+                                            <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                                            ${LABELS_PAGAMENTO[opt] || opt}
+                                        </li>
+                                    `).join('')}
+                                </ul>
+                            </div>
+                            ` : ''}
+                            ${negogua.length > 0 ? `
+                            <div class="space-y-4">
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Garantias (Locação)</p>
+                                <ul class="space-y-3">
+                                    ${negogua.map(opt => `
+                                        <li class="flex items-center gap-3 text-slate-700 font-bold text-sm">
+                                            <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                                            ${LABELS_PAGAMENTO[opt] || opt}
+                                        </li>
+                                    `).join('')}
+                                </ul>
+                            </div>
+                            ` : ''}
                         </div>
                     </div>
                     ` : ''}
