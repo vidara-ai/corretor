@@ -26,6 +26,29 @@ body {
 .border-blue-600 { border-color: var(--color-primary) !important; }
 .ring-blue-100 { --tw-ring-color: var(--color-badge-alt) !important; }
 
+/* Componente de Busca do Hero (Dinâmico) */
+.btn-search-hero {
+    background-color: var(--color-primary) !important;
+    color: var(--color-text-on-primary) !important;
+    box-shadow: 0 20px 40px -10px color-mix(in srgb, var(--color-primary), transparent 70%) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-search-hero:hover {
+    background-color: var(--color-primary-hover) !important;
+    box-shadow: 0 25px 50px -12px color-mix(in srgb, var(--color-primary), transparent 60%) !important;
+    transform: translateY(-2px);
+}
+
+.btn-search-hero:active {
+    transform: scale(0.96);
+}
+
+.input-search-hero:focus {
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-primary), transparent 85%) !important;
+    border-color: color-mix(in srgb, var(--color-primary), transparent 60%) !important;
+}
+
 /* HERO SECTION CUSTOM */
 .hero-home {
   position: relative;
