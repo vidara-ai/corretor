@@ -226,14 +226,11 @@ async function initSite() {
 }
 
 function injectSearchIntoHero() {
-    const heroSection = document.querySelector('header.hero-home');
-    if (!heroSection) return;
-    const contentWrapper = heroSection.querySelector('.hero-content') || heroSection.querySelector('div');
-    if (!contentWrapper || heroSection.querySelector('.js-search-form-injected')) return;
+    const heroSearchContainer = document.querySelector('.hero-search-container');
+    if (!heroSearchContainer || heroSearchContainer.querySelector('.js-search-form-injected')) return;
 
-    const subtitle = contentWrapper.querySelector('p');
     const form = document.createElement('form');
-    form.className = 'js-search-form-injected mt-8 flex flex-col md:flex-row gap-3 w-full max-w-2xl mx-auto';
+    form.className = 'js-search-form-injected flex flex-col md:flex-row gap-4 w-full mt-2';
     
     form.onsubmit = (e) => {
         e.preventDefault();
@@ -247,16 +244,16 @@ function injectSearchIntoHero() {
     const input = document.createElement('input');
     input.type = 'search';
     input.placeholder = 'Ex: Casa venda Bessa ou CS-001';
-    input.className = 'flex-1 px-6 py-4 rounded-xl text-slate-900 bg-white border-none shadow-xl outline-none focus:ring-2 focus:ring-blue-500 transition-all font-medium';
+    input.className = 'w-full md:flex-1 px-6 py-5 rounded-2xl text-slate-900 bg-white border-none shadow-xl outline-none focus:ring-2 focus:ring-red-500 transition-all font-medium text-lg';
 
     const button = document.createElement('button');
     button.type = 'submit';
     button.textContent = (siteConfig && siteConfig.hero_cta_texto) ? siteConfig.hero_cta_texto : 'Buscar';
-    button.className = 'bg-blue-600 hover:bg-blue-700 text-white px-10 py-4 rounded-xl font-bold transition-all shadow-xl active:scale-95 text-lg';
+    button.className = 'w-full md:w-auto bg-red-600 hover:bg-red-700 text-white px-12 py-5 rounded-2xl font-bold transition-all shadow-xl active:scale-95 text-lg uppercase tracking-wide';
 
     form.appendChild(input);
     form.appendChild(button);
-    if (subtitle) subtitle.insertAdjacentElement('afterend', form);
+    heroSearchContainer.appendChild(form);
 }
 
 function applySiteSettings(config) {
