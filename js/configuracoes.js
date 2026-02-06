@@ -9,10 +9,6 @@ import { resolveColorScheme, applyColorScheme } from './theme/engine.js';
 
 /** @type {string | null} */
 let configuracaoId = null;
-/** @type {string | null} */
-let currentHeroBgUrl = null;
-/** @type {File | null} */
-let pendingFile = null;
 
 async function persistColorScheme(schemeId) {
   if (!configuracaoId || !schemeId) return;
@@ -73,18 +69,16 @@ async function loadConfig() {
       document.getElementById('c-hero-title').value = data.hero_titulo || '';
       document.getElementById('c-hero-subtitle').value = data.hero_subtitulo || '';
 
-      // Footer Fields
+      // Footer Fields - Mapped to Database Columns
       document.getElementById('footer_titulo').value = data.footer_titulo || '';
       document.getElementById('footer_bio').value = data.footer_bio || '';
       document.getElementById('footer_creci').value = data.footer_creci || '';
       document.getElementById('footer_telefone').value = data.footer_telefone || '';
-      document.getElementById('footer_instagram').value = data.footer_instagram || '';
-      document.getElementById('footer_tiktok').value = data.footer_tiktok || '';
-      document.getElementById('footer_x').value = data.footer_x || '';
-      document.getElementById('footer_linkedin').value = data.footer_linkedin || '';
-      document.getElementById('c-footer-text').value = data.rodape_texto || '';
-
-      currentHeroBgUrl = data.hero_bg_desktop_url;
+      document.getElementById('footer_instagram_url').value = data.footer_instagram_url || '';
+      document.getElementById('footer_tiktok_url').value = data.footer_tiktok_url || '';
+      document.getElementById('footer_x_url').value = data.footer_x_url || '';
+      document.getElementById('footer_linkedin_url').value = data.footer_linkedin_url || '';
+      document.getElementById('footer_copyright').value = data.footer_copyright || data.rodape_texto || '';
     }
   } catch (err) {
     console.error('Falha ao carregar configurações:', err);
@@ -108,17 +102,17 @@ document.getElementById('config-form').onsubmit = async (e) => {
       hero_titulo: document.getElementById('c-hero-title').value,
       hero_subtitulo: document.getElementById('c-hero-subtitle').value,
       
-      // Footer Data
+      // New Footer Columns mapping
       footer_titulo: document.getElementById('footer_titulo').value || null,
       footer_bio: document.getElementById('footer_bio').value || null,
       footer_creci: document.getElementById('footer_creci').value || null,
       footer_telefone: document.getElementById('footer_telefone').value || null,
-      footer_instagram: document.getElementById('footer_instagram').value || null,
-      footer_tiktok: document.getElementById('footer_tiktok').value || null,
-      footer_x: document.getElementById('footer_x').value || null,
-      footer_linkedin: document.getElementById('footer_linkedin').value || null,
+      footer_instagram_url: document.getElementById('footer_instagram_url').value || null,
+      footer_tiktok_url: document.getElementById('footer_tiktok_url').value || null,
+      footer_x_url: document.getElementById('footer_x_url').value || null,
+      footer_linkedin_url: document.getElementById('footer_linkedin_url').value || null,
+      footer_copyright: document.getElementById('footer_copyright').value || null,
       
-      rodape_texto: document.getElementById('c-footer-text').value,
       updated_at: new Date().toISOString()
     };
 
