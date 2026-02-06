@@ -1,5 +1,4 @@
 import { supabase } from './supabase.js';
-import { resolveColorScheme, applyColorScheme } from './theme/engine.js';
 
 // Estado global para a galeria da página de detalhes
 let currentPhotos = [];
@@ -32,9 +31,26 @@ function obterValorImovel(imovel) {
     return imovel.valor_venda;
 }
 
-async function initSite() {
+/**
+ * Inicialização do Site - Execução Síncrona para Preparação da UI
+ */
+function initSite() {
+    // Sincronização de containers (Fallback para páginas com loaders estruturais)
+    const loader = document.getElementById('loading-container');
+    const content = document.getElementById('content-container');
+    if (loader) loader.style.display = 'none';
+    if (content) content.style.display = 'block';
+
     initTheme();
 
+    // Dispara carregamento assíncrono em background sem bloquear a UI principal
+    startDataLoading();
+}
+
+/**
+ * Processamento assíncrono em background (Não bloqueante)
+ */
+async function startDataLoading() {
     try {
         const { data: config, error: configError } = await supabase
             .from('configuracoes_site')
@@ -44,50 +60,61 @@ async function initSite() {
 
         if (configError) {
             console.warn('Falha ao carregar configurações:', configError.message);
+            applySiteSettings({});
         } else if (config) {
             applySiteSettings(config);
+        } else {
+            applySiteSettings({});
         }
     } catch (err) {
         console.warn('Erro ao processar configurações:', err);
+        applySiteSettings({});
     }
 
     const isDetailPage = window.location.pathname.includes('imovel.html');
-    if (!isDetailPage) loadHomeProperties();
+    if (!isDetailPage) {
+        loadHomeProperties();
+    }
 }
 
+/**
+ * Aplica as configurações do site e atualiza o Hero já existente
+ */
 function applySiteSettings(config) {
-    // Aplica o tema (Coluna: color_scheme)
-    if (config.color_scheme) {
-        const scheme = resolveColorScheme(config.color_scheme);
-        applyColorScheme(scheme);
-    }
-
+    // 1. Identidade Visual (Textos Globais)
     const logoText = document.getElementById('site-logo-text');
     if (logoText) logoText.innerText = config.header_nome_site || 'ImobiMaster';
-    
-    const heroTitle = document.querySelector('header h1');
-    if (heroTitle && config.hero_titulo) heroTitle.innerText = config.hero_titulo;
 
-    const heroSub = document.querySelector('header p');
-    if (heroSub && config.hero_subtitulo) heroSub.innerText = config.hero_subtitulo;
+    const footerText = document.getElementById('footer-copyright-text');
+    if (footerText) footerText.innerText = config.rodape_texto || '© ImobiMaster';
 
-    const heroCtaBtn = document.querySelector('header button');
-    if (heroCtaBtn && config.hero_cta_texto) heroCtaBtn.innerText = config.hero_cta_texto;
-
+    // 2. Atualização do Hero (O esqueleto já foi injetado via HTML estático ou script inline)
     const heroSection = document.querySelector('header.hero-home');
     if (heroSection) {
-        if (config.hero_bg_desktop_url) heroSection.style.setProperty('--hero-bg-desktop', `url('${config.hero_bg_desktop_url}')`);
-        if (config.hero_bg_mobile_url) heroSection.style.setProperty('--hero-bg-mobile', `url('${config.hero_bg_mobile_url}')`);
+        // Define as variáveis de background
+        if (config.hero_bg_desktop_url) {
+            heroSection.style.setProperty('--hero-bg-desktop', `url('${config.hero_bg_desktop_url}')`);
+        }
+        if (config.hero_bg_mobile_url) {
+            heroSection.style.setProperty('--hero-bg-mobile', `url('${config.hero_bg_mobile_url}')`);
+        }
+
+        // Atualiza apenas os textos dinâmicos sem sobrescrever o HTML completo (evita flashes de layout)
+        const h1 = heroSection.querySelector('h1');
+        const p = heroSection.querySelector('p');
+        const btn = heroSection.querySelector('button');
+
+        if (h1 && config.hero_titulo) h1.innerText = config.hero_titulo;
+        if (p && config.hero_subtitulo) p.innerText = config.hero_subtitulo;
+        if (btn && config.hero_cta_texto) btn.innerText = config.hero_cta_texto;
     }
 
+    // 3. Outras Seções
     const sectionTitle = document.querySelector('#regular-section h2');
     if (sectionTitle && config.home_titulo_oportunidades) sectionTitle.innerText = config.home_titulo_oportunidades;
 
     const sectionSub = document.querySelector('#regular-section p');
     if (sectionSub && config.home_subtitulo_oportunidades) sectionSub.innerText = config.home_subtitulo_oportunidades;
-
-    const footerText = document.getElementById('footer-copyright-text');
-    if (footerText) footerText.innerText = config.rodape_texto || '© ImobiMaster';
 
     const headerCta = document.getElementById('header-cta-contato');
     if (headerCta) {
@@ -183,4 +210,17 @@ function setupCardEventListeners() {
     });
 }
 
-document.addEventListener('DOMContentLoaded', initSite);
+// EXECUÇÃO INICIAL
+initSite();
+
+// Liberação FINAL do render — após DOM, CSS e tema estarem prontos
+requestAnimationFrame(() => {
+  requestAnimationFrame(() => {
+    document.documentElement.classList.remove('render-locked');
+  });
+});
+
+window.addEventListener('load', () => {
+  const boot = document.getElementById('boot-screen');
+  if (boot) boot.remove();
+});
