@@ -18,6 +18,25 @@ const INTENT_VENDA = ['comprar', 'compra', 'venda', 'vender', 'vende'];
 const INTENT_ALUGUEL = ['alugar', 'aluguel', 'locacao', 'locar', 'aluga', 'alugo'];
 
 /**
+ * Função única para geração de links do WhatsApp com suporte a variáveis e fallbacks.
+ */
+function buildWhatsAppLink({ numero, mensagem }, imovel = {}) {
+  if (!numero) return null;
+
+  const cleanNumber = numero.replace(/\D/g, '');
+  if (cleanNumber.length < 8) return null;
+
+  const texto = (mensagem || '')
+    .replace(/{{titulo}}/g, imovel.titulo || '')
+    .replace(/{{referencia}}/g, imovel.referencia || imovel.id || '')
+    .replace(/{{bairro}}/g, imovel.bairro || '')
+    .replace(/{{cidade}}/g, imovel.cidade || '')
+    .replace(/{{valor}}/g, '');
+
+  return `https://wa.me/${cleanNumber}?text=${encodeURIComponent(texto)}`;
+}
+
+/**
  * Normaliza texto: remove acentos e converte para minúsculas
  */
 function normalizeText(text) {
@@ -36,104 +55,6 @@ function debounce(func, timeout = 300) {
     return (...args) => {
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(() => { func.apply(this, args); }, timeout);
-    };
-}
-
-/**
- * SMART LEAD POPUP LOGIC
- */
-function initSmartPopup() {
-    if (localStorage.getItem('smart_popup_completed')) return;
-    if (sessionStorage.getItem('smart_popup_dismissed')) return;
-
-    let popupOpened = false;
-    const showPopup = () => {
-        if (popupOpened || document.getElementById('smart-lead-popup')) return;
-        popupOpened = true;
-        document.removeEventListener('click', showPopup);
-        document.removeEventListener('touchstart', showPopup);
-        document.removeEventListener('scroll', showPopup);
-        clearTimeout(timerTrigger);
-        injectPopup();
-    };
-
-    const timerTrigger = setTimeout(showPopup, 5000);
-    document.addEventListener('click', showPopup, { once: true });
-    document.addEventListener('touchstart', showPopup, { once: true });
-    document.addEventListener('scroll', showPopup, { once: true });
-}
-
-function injectPopup() {
-    const popupHTML = `
-        <div id="smart-lead-popup" class="fixed inset-0 z-[300] flex items-end sm:items-center justify-center pointer-events-none">
-            <div id="popup-backdrop" class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm opacity-0 transition-opacity duration-500 pointer-events-auto"></div>
-            <div id="popup-card" class="relative w-full sm:max-w-[420px] bg-white rounded-t-[2.5rem] sm:rounded-[2.5rem] shadow-2xl p-8 md:p-10 transform translate-y-full sm:translate-y-12 sm:opacity-0 transition-all duration-700 ease-out pointer-events-auto">
-                <button id="close-smart-popup" class="absolute top-6 right-6 text-slate-300 hover:text-slate-900 transition-colors">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
-                </button>
-                <div id="popup-content-wrapper">
-                    <div class="mb-8">
-                        <h3 class="text-xl font-black text-slate-900 leading-tight">Para uma melhor experiência, responda as perguntas:</h3>
-                    </div>
-                    <form id="smart-popup-form" class="space-y-4">
-                        <div class="space-y-4">
-                            <input type="text" id="pop-nome" required placeholder="Qual é seu nome?" class="w-full p-5 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-blue-500/10 transition-all font-medium text-slate-700">
-                            <input type="tel" id="pop-telefone" required placeholder="Qual seu contato?" class="w-full p-5 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-blue-500/10 transition-all font-medium text-slate-700">
-                            <button type="submit" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-black text-lg shadow-xl shadow-blue-100 hover:scale-[1.02] active:scale-95 transition-all mt-4">Ver imóveis agora</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>`;
-    document.body.insertAdjacentHTML('beforeend', popupHTML);
-    const backdrop = document.getElementById('popup-backdrop');
-    const card = document.getElementById('popup-card');
-    requestAnimationFrame(() => {
-        backdrop.classList.add('opacity-100');
-        card.classList.remove('translate-y-full', 'sm:translate-y-12', 'sm:opacity-0');
-        card.classList.add('translate-y-0', 'sm:translate-y-0', 'sm:opacity-100');
-    });
-    const closePopup = (isDismissal = true) => {
-        backdrop.classList.remove('opacity-100');
-        card.classList.add('translate-y-full', 'sm:translate-y-12', 'sm:opacity-0');
-        if (isDismissal) sessionStorage.setItem('smart_popup_dismissed', 'true');
-        setTimeout(() => {
-            const el = document.getElementById('smart-lead-popup');
-            if (el) el.remove();
-            document.body.style.overflow = ''; 
-        }, 700);
-    };
-    document.getElementById('close-smart-popup').onclick = () => closePopup(true);
-    backdrop.onclick = () => closePopup(true);
-    document.getElementById('pop-telefone').oninput = (e) => { e.target.value = mascaraTelefone(e.target.value); };
-    document.getElementById('smart-popup-form').onsubmit = async (e) => {
-        e.preventDefault();
-        const btn = e.target.querySelector('button');
-        const wrapper = document.getElementById('popup-content-wrapper');
-        btn.disabled = true;
-        btn.innerText = "Processando...";
-        try {
-            const { error } = await supabase.from('leads').insert({
-                nome: document.getElementById('pop-nome').value,
-                telefone: document.getElementById('pop-telefone').value,
-                imovel_interesse: 'Interesse via Popup Inteligente',
-                origem: 'popup',
-                created_at: new Date().toISOString()
-            });
-            if (error) throw error;
-            localStorage.setItem('smart_popup_completed', 'true');
-            wrapper.innerHTML = `<div class="flex flex-col items-center justify-center py-10 text-center animate-in fade-in zoom-in duration-300">
-                <div class="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mb-6">
-                    <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
-                </div>
-                <h3 class="text-2xl font-black text-slate-900 tracking-tight">Experiência Premium Desbloqueada</h3>
-            </div>`;
-            setTimeout(() => { closePopup(false); window.scrollTo({ top: 0, behavior: 'smooth' }); }, 800);
-        } catch (err) {
-            console.error('Erro no popup:', err);
-            btn.disabled = false;
-            btn.innerText = "Tentar novamente";
-        }
     };
 }
 
@@ -318,22 +239,45 @@ function setupLeadModal() {
     const content = document.getElementById('lead-modal-content');
     const closeBtn = document.getElementById('close-lead-modal');
     const form = document.getElementById('lead-capture-form');
+    
     if (!modal || !content || !form) return;
+    
     const alreadySent = localStorage.getItem('imobi_lead_sent');
-    if (alreadySent) return;
+    const alreadyShownThisSession = sessionStorage.getItem('lead_modal_shown');
+    
+    if (alreadySent === 'true' || alreadyShownThisSession === 'true') return;
+    
     let opened = false;
+    
     const openModal = () => {
-        if (opened) return; opened = true;
+        if (opened) return; 
+        opened = true;
+
+        // Limpa ouvintes para evitar disparos duplicados
+        document.removeEventListener('click', openModal);
+        document.removeEventListener('scroll', openModal);
+        if (typeof timerTrigger !== 'undefined') clearTimeout(timerTrigger);
+
         modal.classList.remove('opacity-0', 'pointer-events-none');
         content.classList.remove('scale-90', 'opacity-0');
         content.classList.add('scale-100', 'opacity-100');
+
+        sessionStorage.setItem('lead_modal_shown', 'true');
     };
+
     const closeModal = () => {
         modal.classList.add('opacity-0', 'pointer-events-none');
         content.classList.remove('scale-100', 'opacity-100');
         content.classList.add('scale-90', 'opacity-0');
     };
+
+    // Disparadores (Timer de 5s e primeira interação)
+    const timerTrigger = setTimeout(openModal, 5000);
+    document.addEventListener('click', openModal, { once: true });
+    document.addEventListener('scroll', openModal, { once: true });
+
     if (closeBtn) closeBtn.addEventListener('click', (e) => { e.preventDefault(); closeModal(); });
+    
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const btn = form.querySelector('button[type="submit"]');
@@ -480,7 +424,6 @@ async function initSite() {
     setupLeadModal();
     setupFooterLeadForm();
     initFilterBadges();
-    initSmartPopup();
     try {
         const { data: config } = await supabase.from('configuracoes_site').select('*').limit(1).maybeSingle();
         if (config) { siteConfig = config; applySiteSettings(config); }
@@ -527,12 +470,21 @@ function applySiteSettings(config) {
             }
         });
     }
+
+    // APLICAÇÃO DINÂMICA DO WHATSAPP DO HEADER
     const headerCta = document.getElementById('header-cta-contato');
-    if (headerCta && config.header_whatsapp) {
-        headerCta.classList.remove('hidden');
-        headerCta.href = `https://wa.me/${config.header_whatsapp.replace(/\D/g, '')}`;
-        headerCta.textContent = 'Entre em contato';
+    if (headerCta) {
+        const waNum = config.whatsapp_header;
+        const waMsg = config.whatsapp_msg_header || "Olá! Vim pelo seu site e gostaria de mais informações.";
+        const link = buildWhatsAppLink({ numero: waNum, mensagem: waMsg });
+        if (link) {
+            headerCta.classList.remove('hidden');
+            headerCta.href = link;
+        } else {
+            headerCta.classList.add('hidden');
+        }
     }
+
     const heroTitle = document.querySelector('header h1');
     if (heroTitle && config.hero_titulo) heroTitle.innerText = config.hero_titulo;
     const heroSub = document.querySelector('header p');
@@ -540,17 +492,20 @@ function applySiteSettings(config) {
     const footerCopy = document.getElementById('footer-copyright-text');
     if (footerCopy) { footerCopy.innerText = config.footer_copyright || config.rodape_texto || `© ${new Date().getFullYear()} ${config.header_nome_site || 'ImobiMaster'}`; }
     
+    // APLICAÇÃO DINÂMICA DO BOTÃO FLUTUANTE
     const waBtn = document.getElementById('whatsapp-floating-btn');
     if (waBtn) {
-        const whatsappValue = config.whatsapp_header || config.header_whatsapp;
-        if (whatsappValue) {
-            const cleanNumber = whatsappValue.replace(/\D/g, '');
-            if (cleanNumber.length >= 8) {
-                waBtn.href = `https://wa.me/${cleanNumber}`;
-                waBtn.style.display = 'block';
-            }
-        } else { waBtn.style.display = 'none'; }
+        const waNum = config.whatsapp_floating || config.whatsapp_header;
+        const waMsg = config.whatsapp_msg_floating || "Olá! Quero falar com um corretor agora.";
+        const link = buildWhatsAppLink({ numero: waNum, mensagem: waMsg });
+        if (link) {
+            waBtn.href = link;
+            waBtn.style.display = 'flex';
+        } else {
+            waBtn.style.display = 'none';
+        }
     }
+
     const heroSection = document.querySelector('header.hero-home');
     if (heroSection && config.hero_bg_desktop_url) { heroSection.style.setProperty('--hero-bg-desktop', `url('${config.hero_bg_desktop_url}')`); }
 }
