@@ -109,6 +109,7 @@ function mascaraTelefone(valor) {
 
 /**
  * CONFIGURAÇÃO DO MODAL DE CAPTURA DE LEADS
+ * Dispara na primeira interação (scroll ou clique) e salva estado no localStorage.
  */
 function setupLeadModal() {
     const modal = document.getElementById('lead-modal');
@@ -117,10 +118,11 @@ function setupLeadModal() {
     const form = document.getElementById('lead-capture-form');
     const inputTelefone = document.getElementById('lead-telefone');
 
-    // Validação básica de existência dos elementos
     if (!modal || !content || !form) return;
 
-    // Mascara de telefone no input se ele existir
+    // Se já enviou o lead ou já visualizou o modal, encerra a função
+    if (localStorage.getItem('imobi_lead_sent') || localStorage.getItem('imobi_lead_modal_shown')) return;
+
     if (inputTelefone) {
         inputTelefone.addEventListener('input', (e) => {
             e.target.value = mascaraTelefone(e.target.value);
@@ -128,12 +130,16 @@ function setupLeadModal() {
     }
 
     const openModal = () => {
-        // Se o lead já foi enviado nesta máquina, não abre novamente
-        if (localStorage.getItem('imobi_lead_sent')) return;
+        // Marca como visualizado no localStorage para evitar novas aparições
+        localStorage.setItem('imobi_lead_modal_shown', 'true');
         
         modal.classList.remove('opacity-0', 'pointer-events-none');
         content.classList.remove('scale-90', 'opacity-0');
         content.classList.add('scale-100', 'opacity-100');
+        
+        // Remove os gatilhos de interação imediatamente após a abertura
+        window.removeEventListener('scroll', openModal);
+        window.removeEventListener('click', openModal);
     };
 
     const closeModal = () => {
@@ -142,7 +148,6 @@ function setupLeadModal() {
         content.classList.add('scale-90', 'opacity-0');
     };
 
-    // Event listener para fechar o modal
     if (closeBtn) {
         closeBtn.addEventListener('click', (e) => {
             e.preventDefault();
@@ -150,10 +155,11 @@ function setupLeadModal() {
         });
     }
 
-    // Delay de 5 segundos para a primeira aparição (conforme solicitado)
-    setTimeout(openModal, 5000);
+    // Registra gatilhos para a primeira interação válida (Scroll ou Clique)
+    window.addEventListener('scroll', openModal, { passive: true });
+    window.addEventListener('click', openModal);
 
-    // Lógica de envio do formulário
+    // Lógica de envio do formulário de captura
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const btn = form.querySelector('button[type="submit"]');
@@ -183,14 +189,13 @@ function setupLeadModal() {
 
             if (error) throw error;
 
-            // Feedback de sucesso
             if (fields) fields.classList.add('hidden');
             if (success) success.classList.remove('hidden');
             
-            // Marca no navegador que o lead já foi enviado
+            // Marca como lead enviado para nunca mais exibir o modal
             localStorage.setItem('imobi_lead_sent', 'true');
             
-            // Fecha o modal após 2.5 segundos de exibir o sucesso
+            // Fecha o modal após o feedback de sucesso
             setTimeout(closeModal, 2500);
         } catch (err) {
             console.error('Erro ao salvar lead:', err);
