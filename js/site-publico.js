@@ -70,6 +70,95 @@ function renderCardList(imoveis, fotos) {
 }
 
 /**
+ * MÁSCARA DE TELEFONE (JS Puro)
+ */
+function mascaraTelefone(valor) {
+    if (!valor) return "";
+    valor = valor.replace(/\D/g, "");
+    valor = valor.replace(/^(\d{2})(\d)/g, "($1) $2");
+    valor = valor.replace(/(\d)(\d{4})$/, "$1-$2");
+    return valor;
+}
+
+/**
+ * GESTÃO DO MODAL DE LEADS
+ */
+function setupLeadModal() {
+    const modal = document.getElementById('lead-modal');
+    const content = document.getElementById('lead-modal-content');
+    const closeBtn = document.getElementById('close-lead-modal');
+    const form = document.getElementById('lead-capture-form');
+    const inputTelefone = document.getElementById('lead-telefone');
+
+    if (!modal) return;
+
+    // Máscara em tempo real
+    inputTelefone.addEventListener('input', (e) => {
+        e.target.value = mascaraTelefone(e.target.value);
+    });
+
+    const openModal = () => {
+        // Verifica se o usuário já converteu antes
+        if (localStorage.getItem('imobi_lead_sent')) return;
+
+        modal.classList.remove('opacity-0', 'pointer-events-none');
+        content.classList.remove('scale-95');
+        content.classList.add('scale-100');
+    };
+
+    const closeModal = () => {
+        modal.classList.add('opacity-0', 'pointer-events-none');
+        content.classList.remove('scale-100');
+        content.classList.add('scale-95');
+    };
+
+    closeBtn.onclick = closeModal;
+
+    // Delay de 4 segundos
+    setTimeout(openModal, 4000);
+
+    // Envio para o Supabase
+    form.onsubmit = async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('btn-submit-lead');
+        const fields = document.getElementById('lead-form-fields');
+        const success = document.getElementById('lead-success-msg');
+
+        const nome = document.getElementById('lead-nome').value;
+        const telefone = inputTelefone.value;
+
+        btn.disabled = true;
+        btn.innerText = "Enviando...";
+
+        try {
+            const { error } = await supabase.from('leads').insert({
+                nome: nome,
+                telefone: telefone,
+                origem: 'pagina',
+                imovel_interesse: 'Interesse Geral (Captura Automática)',
+                created_at: new Date().toISOString()
+            });
+
+            if (error) throw error;
+
+            // Sucesso UX
+            fields.classList.add('hidden');
+            success.classList.remove('hidden');
+            localStorage.setItem('imobi_lead_sent', 'true');
+
+            // Fecha após 2.5 segundos
+            setTimeout(closeModal, 2500);
+
+        } catch (err) {
+            console.error("Lead Error:", err);
+            alert("Ocorreu um erro ao enviar. Tente novamente.");
+            btn.disabled = false;
+            btn.innerText = "Quero Atendimento";
+        }
+    };
+}
+
+/**
  * PARSER INTELIGENTE DE BUSCA
  */
 function parseSearchQuery(text) {
@@ -122,6 +211,8 @@ function parseSearchQuery(text) {
 
 async function initSite() {
     initTheme();
+    setupLeadModal(); // Inicia o timer de captura de leads
+    
     try {
         const { data: config } = await supabase.from('configuracoes_site').select('*').limit(1).maybeSingle();
         if (config) {
@@ -205,7 +296,7 @@ function applySiteSettings(config) {
 }
 
 /**
- * CARGA DE IMÓVEIS (Com Fallback para DestaQUES)
+ * CARGA DE IMÓVEIS
  */
 async function loadProperties(filters = null) {
     const container = document.getElementById('lista-imoveis');
@@ -215,8 +306,7 @@ async function loadProperties(filters = null) {
 
     try {
         let query = supabase.from('imoveis').select('*').eq('ativo', true);
-        let isFallback = false;
-
+        
         if (filters) {
             if (filters.referencia) query = query.ilike('referencia', `%${filters.referencia}%`);
             if (filters.finalidade) query = query.ilike('finalidade', filters.finalidade);
@@ -237,26 +327,14 @@ async function loadProperties(filters = null) {
 
         if (error) throw error;
 
-        // REGRA DE UX: Fallback para Destaques se busca for vazia
-        let feedbackHtml = '';
         if (filters && (!imoveis || imoveis.length === 0)) {
-            isFallback = true;
-            feedbackHtml = `
-                <div class="col-span-full py-10 text-center animate-in fade-in slide-in-from-top-4">
-                    <h2 class="text-2xl font-bold text-slate-800 mb-2">Não encontramos o termo procurado...</h2>
-                    <p class="text-slate-500 italic">...mas temos estes imóveis em destaque que podem lhe interessar:</p>
-                </div>
-            `;
-            
-            // Busca apenas os destaques ativos
-            const { data: destaques, error: errorFeat } = await supabase
+            const { data: destaques } = await supabase
                 .from('imoveis')
                 .select('*')
                 .eq('ativo', true)
                 .eq('destaque', true)
                 .order('created_at', { ascending: false });
 
-            if (errorFeat) throw errorFeat;
             imoveis = destaques || [];
         }
 
@@ -266,18 +344,15 @@ async function loadProperties(filters = null) {
         }
 
         const { data: fotos } = await supabase.from('imoveis_fotos').select('*').eq('is_capa', true);
-        
-        // Renderização Final
-        container.innerHTML = feedbackHtml + renderCardList(imoveis, fotos);
+        container.innerHTML = renderCardList(imoveis, fotos);
 
-        // Bind de cliques
         document.querySelectorAll('.card-imovel').forEach(card => {
             card.onclick = () => window.location.href = `imovel.html?id=${card.dataset.id}`;
         });
 
     } catch (err) {
         console.error("Critical Load Error:", err);
-        container.innerHTML = `<p class="col-span-full text-center text-red-500 py-10 font-bold">Erro ao processar catálogo. Tente novamente em instantes.</p>`;
+        container.innerHTML = `<p class="col-span-full text-center text-red-500 py-10 font-bold">Erro ao processar catálogo.</p>`;
     }
 }
 
