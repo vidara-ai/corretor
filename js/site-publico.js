@@ -7,6 +7,129 @@ let allImoveisCache = [];
 let allFotosCache = [];
 let currentFinalidade = 'Aluguel'; // Inicial padrão
 
+/**
+ * SMART LEAD POPUP LOGIC
+ */
+function initSmartPopup() {
+    if (sessionStorage.getItem('smart_popup_viewed')) return;
+
+    const showPopup = () => {
+        if (document.getElementById('smart-lead-popup')) return;
+        
+        // Remove listeners para não disparar múltiplas vezes
+        document.removeEventListener('click', showPopup);
+        document.removeEventListener('touchstart', showPopup);
+        clearTimeout(timerTrigger);
+
+        injectPopup();
+    };
+
+    const timerTrigger = setTimeout(showPopup, 5000);
+    document.addEventListener('click', showPopup);
+    document.addEventListener('touchstart', showPopup);
+}
+
+function injectPopup() {
+    const popupHTML = `
+        <div id="smart-lead-popup" class="fixed inset-0 z-[300] flex items-end sm:items-center justify-center pointer-events-none">
+            <!-- Backdrop -->
+            <div id="popup-backdrop" class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm opacity-0 transition-opacity duration-500 pointer-events-auto"></div>
+            
+            <!-- Content Card -->
+            <div id="popup-card" class="relative w-full sm:max-w-[450px] bg-white rounded-t-[2.5rem] sm:rounded-[2.5rem] shadow-2xl p-8 md:p-10 transform translate-y-full sm:translate-y-12 sm:opacity-0 transition-all duration-700 ease-out pointer-events-auto">
+                <button id="close-smart-popup" class="absolute top-6 right-6 text-slate-300 hover:text-slate-900 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+
+                <div class="mb-8">
+                    <h3 class="text-2xl font-black text-slate-900 leading-tight">Encontramos o melhor para você!</h3>
+                    <p class="text-slate-500 mt-2 font-medium">Deixe seu contato e receba opções exclusivas no seu WhatsApp.</p>
+                </div>
+
+                <form id="smart-popup-form" class="space-y-4">
+                    <div id="popup-success-msg" class="hidden bg-emerald-50 text-emerald-700 p-6 rounded-3xl text-center font-bold border border-emerald-100 animate-in fade-in zoom-in duration-300">
+                        Obrigado! Entraremos em contato em breve.
+                    </div>
+                    
+                    <div id="popup-form-fields" class="space-y-4">
+                        <div class="space-y-1">
+                            <input type="text" id="pop-nome" required placeholder="Seu nome" class="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-blue-500/10 transition-all">
+                        </div>
+                        <div class="space-y-1">
+                            <input type="tel" id="pop-telefone" required placeholder="Seu WhatsApp" class="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-blue-500/10 transition-all">
+                        </div>
+                        <div class="space-y-1">
+                            <textarea id="pop-interesse" rows="2" placeholder="Qual tipo de imóvel você busca?" class="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-blue-500/10 transition-all resize-none"></textarea>
+                        </div>
+                        <button type="submit" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-black text-lg shadow-xl shadow-blue-100 hover:scale-[1.02] active:scale-95 transition-all">
+                            Quero Atendimento VIP
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', popupHTML);
+
+    // Animar entrada
+    const backdrop = document.getElementById('popup-backdrop');
+    const card = document.getElementById('popup-card');
+    
+    requestAnimationFrame(() => {
+        backdrop.classList.add('opacity-100');
+        card.classList.remove('translate-y-full', 'sm:translate-y-12', 'sm:opacity-0');
+        card.classList.add('translate-y-0', 'sm:translate-y-0', 'sm:opacity-100');
+    });
+
+    // Eventos de Fechar
+    const closePopup = () => {
+        backdrop.classList.remove('opacity-100');
+        card.classList.add('translate-y-full', 'sm:translate-y-12', 'sm:opacity-0');
+        sessionStorage.setItem('smart_popup_viewed', 'true');
+        setTimeout(() => document.getElementById('smart-lead-popup').remove(), 700);
+    };
+
+    document.getElementById('close-smart-popup').onclick = closePopup;
+    backdrop.onclick = closePopup;
+
+    // Mascara telefone
+    document.getElementById('pop-telefone').oninput = (e) => {
+        e.target.value = mascaraTelefone(e.target.value);
+    };
+
+    // Submissão
+    document.getElementById('smart-popup-form').onsubmit = async (e) => {
+        e.preventDefault();
+        const btn = e.target.querySelector('button');
+        const fields = document.getElementById('popup-form-fields');
+        const success = document.getElementById('popup-success-msg');
+
+        btn.disabled = true;
+        btn.innerText = "Enviando...";
+
+        try {
+            const { error } = await supabase.from('leads').insert({
+                nome: document.getElementById('pop-nome').value,
+                telefone: document.getElementById('pop-telefone').value,
+                imovel_interesse: document.getElementById('pop-interesse').value || 'Interesse Geral',
+                origem: 'popup_inteligente',
+                created_at: new Date().toISOString()
+            });
+
+            if (error) throw error;
+
+            fields.classList.add('hidden');
+            success.classList.remove('hidden');
+            
+            setTimeout(closePopup, 3000);
+        } catch (err) {
+            btn.disabled = false;
+            btn.innerText = "Tentar novamente";
+        }
+    };
+}
+
 function initTheme() {
     const body = document.body;
     const savedTheme = localStorage.getItem("theme");
@@ -36,7 +159,6 @@ function renderCardList(imoveis, fotos) {
         const finalidade = imovel.finalidade || 'Venda';
         const referencia = imovel.referencia || `#${imovel.id.toString().slice(-4)}`;
         
-        // Formatação da Localização
         const localParts = [];
         if (imovel.bairro) localParts.push(imovel.bairro);
         let cidadeUf = "";
@@ -45,8 +167,6 @@ function renderCardList(imoveis, fotos) {
         if (cidadeUf) localParts.push(cidadeUf);
         const localizacao = localParts.join(', ') || 'Localização não informada';
 
-        // Ícones e Informações Técnicas (Exibir apenas se > 0)
-        // Tamanho dos ícones aumentado para w-5 h-5 (aprox. 20px) e gap aumentado para gap-2.5
         const specs = [];
         if (imovel.area_m2 > 0) specs.push(`<div class="flex items-center gap-2.5"><svg class="w-5 h-5 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg> ${imovel.area_m2}m²</div>`);
         if (imovel.dormitorios > 0) specs.push(`<div class="flex items-center gap-2.5"><svg class="w-5 h-5 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg> ${imovel.dormitorios} Qts</div>`);
@@ -93,9 +213,6 @@ function renderCardList(imoveis, fotos) {
     }).join('');
 }
 
-/**
- * INICIALIZAÇÃO DAS BADGES DE FILTRO
- */
 function initFilterBadges() {
     const container = document.getElementById('filter-badges-container');
     if (!container) return;
@@ -121,9 +238,6 @@ function initFilterBadges() {
     renderBadges();
 }
 
-/**
- * FILTRAGEM LOCAL (Sem Refresh)
- */
 function applyFiltersLocally() {
     const container = document.getElementById('lista-imoveis');
     if (!container) return;
@@ -135,12 +249,10 @@ function applyFiltersLocally() {
 
     container.innerHTML = renderCardList(filtered, allFotosCache);
     
-    // Reatribui links
     document.querySelectorAll('.card-imovel').forEach(card => {
         card.onclick = () => window.location.href = `imovel.html?id=${card.dataset.id}`;
     });
 
-    // Atualiza texto de título da seção se necessário
     const title = document.querySelector('#regular-section h2');
     if (title) title.innerText = `Imóveis para ${currentFinalidade}`;
 }
@@ -154,6 +266,7 @@ function mascaraTelefone(valor) {
 }
 
 function setupLeadModal() {
+    // Mantendo a lógica existente para o modal de lead manual caso necessário
     const modal = document.getElementById('lead-modal');
     const content = document.getElementById('lead-modal-content');
     const closeBtn = document.getElementById('close-lead-modal');
@@ -173,8 +286,6 @@ function setupLeadModal() {
         modal.classList.remove('opacity-0', 'pointer-events-none');
         content.classList.remove('scale-90', 'opacity-0');
         content.classList.add('scale-100', 'opacity-100');
-        document.removeEventListener('click', interactionTrigger);
-        window.removeEventListener('scroll', interactionTrigger);
     };
 
     const closeModal = () => {
@@ -183,10 +294,7 @@ function setupLeadModal() {
         content.classList.add('scale-90', 'opacity-0');
     };
 
-    const interactionTrigger = () => openModal();
     if (closeBtn) closeBtn.addEventListener('click', (e) => { e.preventDefault(); closeModal(); });
-    document.addEventListener('click', interactionTrigger);
-    window.addEventListener('scroll', interactionTrigger, { passive: true });
 
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -201,12 +309,13 @@ function setupLeadModal() {
 
         try {
             const { error } = await supabase.from('leads').insert({
-                nome, telefone, origem: 'pagina', imovel_interesse: 'Interesse Geral (Captura Automática)', created_at: new Date().toISOString()
+                nome, telefone, origem: 'pagina', imovel_interesse: 'Interesse Geral', created_at: new Date().toISOString()
             });
             if (error) throw error;
             if (fields) fields.classList.add('hidden');
             if (success) success.classList.remove('hidden');
             localStorage.setItem('imobi_lead_sent', 'true');
+            setTimeout(closeModal, 2000);
         } catch (err) {
             btn.disabled = false;
             btn.innerText = "Quero Atendimento";
@@ -232,7 +341,7 @@ function setupFooterLeadForm() {
                 email: document.getElementById('footer-email').value,
                 telefone: inputTelefone.value,
                 mensagem: document.getElementById('footer-mensagem').value,
-                origem: 'Footer - Busca Personalizada',
+                origem: 'footer',
                 imovel_interesse: 'Footer',
                 created_at: new Date().toISOString()
             });
@@ -266,6 +375,9 @@ async function initSite() {
     setupLeadModal();
     setupFooterLeadForm();
     initFilterBadges();
+    
+    // Inicia o Popup Inteligente
+    initSmartPopup();
     
     try {
         const { data: config } = await supabase.from('configuracoes_site').select('*').limit(1).maybeSingle();
