@@ -1,13 +1,10 @@
+
 import { supabase } from './supabase.js';
 import { resolveColorScheme, applyColorScheme } from './theme/engine.js';
 
-// Estado global para a galeria da página de detalhes
-let currentPhotos = [];
-let currentIndex = 0;
+// Estado global para as configurações do site
+let siteConfig = null;
 
-/**
- * Lógica de Tema (Dark/Light Mode)
- */
 function initTheme() {
     const toggle = document.getElementById("theme-toggle");
     const body = document.body;
@@ -32,219 +29,238 @@ function obterValorImovel(imovel) {
     return imovel.valor_venda;
 }
 
-async function initSite() {
-    initTheme();
+/**
+ * PARSER INTELIGENTE DE BUSCA (Versão Estável)
+ */
+function parseSearchQuery(text) {
+    const raw = text.toLowerCase().trim();
+    if (!raw) return null;
 
-    try {
-        const { data: config, error: configError } = await supabase
-            .from('configuracoes_site')
-            .select('*')
-            .limit(1)
-            .maybeSingle();
+    const filters = {
+        referencia: null,
+        finalidade: null,
+        tipo_imovel: null,
+        tokens: []
+    };
 
-        if (configError) {
-            console.warn('Falha ao carregar configurações:', configError.message);
-        } else if (config) {
-            applySiteSettings(config);
-        }
-    } catch (err) {
-        console.warn('Erro ao processar configurações:', err);
+    // Regex para referências (Ex: CS-001, CS001, C-001)
+    const refMatch = raw.match(/([a-z]{1,}-?\d+)/i);
+    if (refMatch) {
+        filters.referencia = refMatch[0].toUpperCase();
     }
 
-    const isDetailPage = window.location.pathname.includes('imovel.html');
-    if (!isDetailPage) loadHomeProperties();
+    const words = raw.split(/\s+/);
+    const keywordsFinalidade = {
+        'Aluguel': ['aluguel', 'alugar', 'locação', 'locacao'],
+        'Venda': ['venda', 'vender', 'comprar', 'compra']
+    };
+
+    const keywordsTipo = {
+        'Casa': ['casa', 'casas'],
+        'Apartamento': ['apartamento', 'apto', 'aptos'],
+        'Terreno': ['terreno', 'lote'],
+        'Comercial': ['comercial', 'sala']
+    };
+
+    words.forEach(word => {
+        if (filters.referencia && word.toUpperCase() === filters.referencia) return;
+
+        let isKeyword = false;
+        for (const [key, aliases] of Object.entries(keywordsFinalidade)) {
+            if (aliases.includes(word)) { filters.finalidade = key; isKeyword = true; break; }
+        }
+        if (!isKeyword) {
+            for (const [key, aliases] of Object.entries(keywordsTipo)) {
+                if (aliases.includes(word)) { filters.tipo_imovel = key; isKeyword = true; break; }
+            }
+        }
+        if (!isKeyword && word.length > 1) {
+            filters.tokens.push(word);
+        }
+    });
+
+    return filters;
 }
 
-/**
- * Injeta o componente de busca no Hero usando apenas DOM API
- * Requisito: Executado somente após window.load
- */
+async function initSite() {
+    initTheme();
+    try {
+        const { data: config } = await supabase.from('configuracoes_site').select('*').limit(1).maybeSingle();
+        if (config) {
+            siteConfig = config;
+            applySiteSettings(config);
+        }
+    } catch (err) { console.error('Config Error:', err); }
+
+    const isDetailPage = window.location.pathname.includes('imovel.html');
+    if (!isDetailPage) loadProperties(); 
+}
+
 function injectSearchIntoHero() {
     const heroSection = document.querySelector('header.hero-home');
     if (!heroSection) return;
-
-    // Evita duplicação se o script rodar mais de uma vez
-    if (heroSection.querySelector('.js-search-form-injected')) return;
-
-    // Localiza o wrapper visual interno do hero
     const contentWrapper = heroSection.querySelector('.hero-content') || heroSection.querySelector('div');
-    if (!contentWrapper) return;
+    if (!contentWrapper || heroSection.querySelector('.js-search-form-injected')) return;
 
     const subtitle = contentWrapper.querySelector('p');
-    if (!subtitle) return;
-
-    // Remove qualquer elemento de busca estático residual para garantir integridade
-    const existingSearch = contentWrapper.querySelector('.hero-search-container');
-    if (existingSearch) existingSearch.remove();
-
-    // Criar o Formulário (Tailwind: max-w-2xl, flex responsivo)
     const form = document.createElement('form');
     form.className = 'js-search-form-injected mt-8 flex flex-col md:flex-row gap-3 w-full max-w-2xl mx-auto';
     
     form.onsubmit = (e) => {
         e.preventDefault();
-        const query = input.value.trim();
-        if (query) {
-            console.log('Iniciando busca por:', query);
-            // Lógica de busca/redirecionamento pode ser adicionada aqui
-        }
+        const searchText = input.value.trim();
+        console.log("🔍 Iniciando busca por:", searchText);
+        const filters = parseSearchQuery(searchText);
+        const resultsSection = document.getElementById('regular-section');
+        if (resultsSection) resultsSection.scrollIntoView({ behavior: 'smooth' });
+        loadProperties(filters);
     };
 
-    // Criar o Input de Busca
     const input = document.createElement('input');
     input.type = 'search';
-    input.placeholder = 'Bairro, cidade ou código do imóvel...';
-    input.className = 'flex-1 px-6 py-4 rounded-xl text-slate-900 bg-white/95 border-none shadow-xl outline-none focus:ring-2 focus:ring-blue-500 transition-all font-medium';
+    input.placeholder = 'Referência (CS-001) ou Localização...';
+    input.className = 'flex-1 px-6 py-4 rounded-xl text-slate-900 bg-white border-none shadow-xl outline-none focus:ring-2 focus:ring-blue-500 transition-all font-medium';
 
-    // Criar o Botão CTA
     const button = document.createElement('button');
     button.type = 'submit';
-    button.textContent = 'Buscar agora';
-    button.className = 'bg-blue-600 hover:bg-blue-700 text-white px-10 py-4 rounded-xl font-bold transition-all shadow-xl active:scale-95 whitespace-nowrap text-lg';
+    button.textContent = (siteConfig && siteConfig.hero_cta_texto) ? siteConfig.hero_cta_texto : 'Buscar';
+    button.className = 'bg-blue-600 hover:bg-blue-700 text-white px-10 py-4 rounded-xl font-bold transition-all shadow-xl active:scale-95 text-lg';
 
-    // Montagem da estrutura
     form.appendChild(input);
     form.appendChild(button);
-
-    // Inserção logo abaixo do subtítulo
-    subtitle.insertAdjacentElement('afterend', form);
+    if (subtitle) subtitle.insertAdjacentElement('afterend', form);
 }
 
 function applySiteSettings(config) {
-    if (config.color_scheme) {
-        const scheme = resolveColorScheme(config.color_scheme);
-        applyColorScheme(scheme);
-    }
-
+    if (config.color_scheme) applyColorScheme(resolveColorScheme(config.color_scheme));
     const logoText = document.getElementById('site-logo-text');
     if (logoText) logoText.innerText = config.header_nome_site || 'ImobiMaster';
-    
     const heroTitle = document.querySelector('header h1');
     if (heroTitle && config.hero_titulo) heroTitle.innerText = config.hero_titulo;
-
     const heroSub = document.querySelector('header p');
     if (heroSub && config.hero_subtitulo) heroSub.innerText = config.hero_subtitulo;
-
+    const footerText = document.getElementById('footer-copyright-text');
+    if (footerText) footerText.innerText = config.rodape_texto || '© ImobiMaster';
     const heroSection = document.querySelector('header.hero-home');
     if (heroSection) {
         if (config.hero_bg_desktop_url) heroSection.style.setProperty('--hero-bg-desktop', `url('${config.hero_bg_desktop_url}')`);
-        if (config.hero_bg_mobile_url) heroSection.style.setProperty('--hero-bg-mobile', `url('${config.hero_bg_mobile_url}')`);
-    }
-
-    const sectionTitle = document.querySelector('#regular-section h2');
-    if (sectionTitle && config.home_titulo_oportunidades) sectionTitle.innerText = config.home_titulo_oportunidades;
-
-    const sectionSub = document.querySelector('#regular-section p');
-    if (sectionSub && config.home_subtitulo_oportunidades) sectionSub.innerText = config.home_subtitulo_oportunidades;
-
-    const footerText = document.getElementById('footer-copyright-text');
-    if (footerText) footerText.innerText = config.rodape_texto || '© ImobiMaster';
-
-    const headerCta = document.getElementById('header-cta-contato');
-    if (headerCta) {
-        if (config.header_whatsapp) {
-            const msg = "Olá, quero receber um contato para sanar algumas dúvidas.";
-            const num = config.header_whatsapp.replace(/\D/g, '');
-            headerCta.href = `https://wa.me/${num}?text=${encodeURIComponent(msg)}`;
-            headerCta.target = "_blank";
-            headerCta.classList.remove('hidden');
-        } else {
-            headerCta.classList.add('hidden');
-        }
     }
 }
 
-async function loadHomeProperties() {
+/**
+ * CARGA DE IMÓVEIS (Correção para Incidentes de Busca Vazia)
+ */
+async function loadProperties(filters = null) {
     const container = document.getElementById('lista-imoveis');
     if (!container) return;
-    try {
-        const { data: imoveis, error: imoveisError } = await supabase
-          .from('imoveis')
-          .select('*')
-          .eq('ativo', true)
-          .order('destaque', { ascending: false })
-          .order('ordem_destaque', { ascending: true, nullsLast: true })
-          .order('created_at', { ascending: false });
 
-        if (imoveisError) {
-          container.innerHTML = `<p class="col-span-full text-center text-red-500 py-10">Erro: ${imoveisError.message}</p>`;
-          return;
+    container.innerHTML = '<div class="col-span-full py-20 text-center animate-pulse text-slate-400">Processando consulta...</div>';
+
+    try {
+        // QUERY BUILDER
+        let query = supabase.from('imoveis').select('*').eq('ativo', true);
+
+        if (filters) {
+            console.log("🛠 Filtros processados:", filters);
+
+            // 1. Busca por Referência (CS-001) - ILIKE para ignorar case
+            if (filters.referencia) {
+                query = query.ilike('referencia', `%${filters.referencia}%`);
+            }
+
+            // 2. Filtros Fixos
+            if (filters.finalidade) query = query.ilike('finalidade', filters.finalidade);
+            if (filters.tipo_imovel) query = query.ilike('tipo_imovel', filters.tipo_imovel);
+
+            // 3. Busca de Texto Livre (Tokens)
+            if (filters.tokens.length > 0) {
+                filters.tokens.forEach(token => {
+                    // Nota: Apenas colunas garantidas na tabela imoveis.
+                    // Se a coluna 'descricao' não existir, a query falhará com 400.
+                    const searchFields = ['titulo', 'bairro', 'cidade', 'estado'];
+                    const orStr = searchFields.map(field => `${field}.ilike.%${token}%`).join(',');
+                    query = query.or(orStr);
+                });
+            }
         }
 
-        const { data: fotos } = await supabase.from('imoveis_fotos').select('*').eq('is_capa', true);
-        const imoveisComFoto = imoveis.map(imovel => {
-          const fotoCapa = (fotos || []).find(f => f.imovel_id === imovel.id);
-          return { ...imovel, foto_url: fotoCapa ? fotoCapa.url : null };
-        });
+        // EXECUÇÃO COM DEBUG DE STATUS
+        const startTime = performance.now();
+        const { data: imoveis, error, status } = await query
+            .order('destaque', { ascending: false })
+            .order('created_at', { ascending: false });
+        const endTime = performance.now();
 
-        if (imoveisComFoto.length === 0) {
-            container.innerHTML = '<p class="col-span-full text-center text-slate-400 py-10">Nenhum imóvel disponível.</p>';
+        console.debug(`⏱ Consulta concluída em ${(endTime - startTime).toFixed(2)}ms. Status: ${status}`);
+
+        if (error) {
+            console.error("❌ Erro Supabase:", error.message, error.details);
+            throw error;
+        }
+
+        // DIAGNÓSTICO DE RLS: Se data é [], status é 200 e filtros eram nulos, RLS SELECT está bloqueado.
+        if (imoveis.length === 0 && !filters) {
+            console.warn("⚠️ RLS ALERTA: Nenhum dado retornado na carga inicial. Verifique as Políticas de SELECT no Supabase.");
+        }
+
+        if (!imoveis || imoveis.length === 0) {
+            container.innerHTML = `
+                <div class="col-span-full py-20 text-center">
+                    <p class="text-slate-500 text-lg">Nenhum resultado para esta busca.</p>
+                    <button onclick="window.location.reload()" class="mt-4 text-blue-600 font-bold hover:underline">Ver todos os imóveis</button>
+                </div>`;
             return;
         }
 
-        container.innerHTML = imoveisComFoto.map(imovel => {
-            const precoFormatado = formatarBRL(obterValorImovel(imovel));
-            const imagem = imovel.foto_url || 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=600';
-            const badgeDestaque = imovel.destaque ? `<div class="badge-destaque">DESTAQUE</div>` : '';
+        // BUSCA FOTOS DE CAPA
+        const { data: fotos } = await supabase.from('imoveis_fotos').select('*').eq('is_capa', true);
+        
+        container.innerHTML = imoveis.map(imovel => {
+            const foto = (fotos || []).find(f => f.imovel_id === imovel.id);
+            const imagem = foto ? foto.url : 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=600';
+            const preco = formatarBRL(obterValorImovel(imovel));
+            
             return `
-                <div class="card-imovel" data-id="${imovel.id}">
+                <div class="card-imovel animate-in fade-in slide-in-from-bottom-4 duration-500" data-id="${imovel.id}">
                     <div class="card-imagem">
-                        <img src="${imagem}" alt="${imovel.titulo}">
+                        <img src="${imagem}" alt="${imovel.titulo}" loading="lazy">
                         <span class="badge-tipo">${imovel.tipo_imovel || 'Imóvel'}</span>
                         <span class="badge-local">${imovel.cidade}</span>
-                        ${badgeDestaque}
+                        ${imovel.destaque ? '<div class="badge-destaque">DESTAQUE</div>' : ''}
                     </div>
-                    <div class="card-imovel-body imovel-card-content">
+                    <div class="card-imovel-body">
                         <span class="imovel-bairro">${imovel.bairro}</span>
-                        <h3 class="imovel-titulo text-center lg:text-left font-bold">${imovel.titulo}</h3>
+                        <h3 class="imovel-titulo font-bold">${imovel.titulo}</h3>
                         <div class="divisor-card"></div>
                         <div class="preco text-center">
-                            <div class="imovel-finalidade text-xs opacity-70">${imovel.finalidade || 'Venda'}</div>
-                            <strong>${precoFormatado}</strong>
+                            <div class="imovel-finalidade text-xs opacity-70">${imovel.finalidade}</div>
+                            <strong>${preco}</strong>
                         </div>
                         <div class="divisor-card"></div>
-                        <div class="imovel-info">
-                            <div class="info-icons imovel-info-icons flex justify-center gap-6">
-                                <span>🛏 ${imovel.dormitorios || 0}</span>
-                                <span>🛁 ${imovel.banheiros || 0}</span>
-                                <span>🚗 ${imovel.vagas_garagem || 0}</span>
-                            </div>
-                            <div class="divisor-card"></div>
-                            <div class="imovel-ref-area text-xs opacity-60 text-center">
-                                Ref: ${imovel.referencia || 'N/I'} — Área: ${imovel.area_m2 || 0} m²
-                            </div>
+                        <div class="imovel-info-icons flex justify-center gap-6 text-sm">
+                            <span>🛏 ${imovel.dormitorios || 0}</span>
+                            <span>🛁 ${imovel.banheiros || 0}</span>
+                            <span>🚗 ${imovel.vagas_garagem || 0}</span>
                         </div>
-                        <button class="btn-detalhar w-full mt-4 py-3 font-bold uppercase text-xs">Detalhar</button>
+                        <button class="btn-detalhar w-full mt-6 py-3 font-bold uppercase text-xs">Ver Detalhes</button>
                     </div>
-                </div>
-            `;
+                </div>`;
         }).join('');
-        setupCardEventListeners();
+
+        document.querySelectorAll('.card-imovel').forEach(card => {
+            card.onclick = () => window.location.href = `imovel.html?id=${card.dataset.id}`;
+        });
+
     } catch (err) {
-        console.error('Erro crítico no site público:', err);
+        console.error("Critical Render Error:", err);
+        container.innerHTML = `<p class="col-span-full text-center text-red-500 py-10">Erro ao carregar dados. Tente novamente.</p>`;
     }
 }
 
-function setupCardEventListeners() {
-    document.querySelectorAll('.card-imovel').forEach(card => {
-        card.addEventListener('click', () => {
-            const id = card.dataset.id;
-            if (id) window.location.href = `imovel.html?id=${id}`;
-        });
-    });
-}
-
-// Inicialização imediata do JS de dados e configurações parciais
 initSite();
 
-/**
- * FINALIZAÇÃO DO CARREGAMENTO (ELIMINAÇÃO DO BOOT SCREEN)
- * Injeta componentes dinâmicos que dependem de layout final.
- */
 window.addEventListener('load', () => {
-  // Injeta o formulário de busca no Hero (Requisito: JS puro no window.load)
   injectSearchIntoHero();
-
   const boot = document.getElementById('boot-screen');
   if (boot) {
     document.body.classList.add('ready');
