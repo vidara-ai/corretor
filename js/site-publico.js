@@ -30,44 +30,88 @@ function obterValorImovel(imovel) {
 }
 
 /**
- * GERA HTML DOS CARDS (Frosted Card + Floating UI)
+ * GERA HTML DOS CARDS (Restaurado e Completo)
  */
 function renderCardList(imoveis, fotos) {
     return imoveis.map(imovel => {
         const foto = (fotos || []).find(f => f.imovel_id === imovel.id);
         const imagem = foto ? foto.url : 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=600';
         const preco = formatarBRL(obterValorImovel(imovel));
+        const finalidade = imovel.finalidade || 'Venda';
+        const referencia = imovel.referencia || `#${imovel.id.toString().slice(-4)}`;
         
         return `
-            <div class="card-imovel group bg-white/90 backdrop-blur-sm border border-slate-100/50 rounded-[2rem] shadow-xl hover:shadow-2xl hover:-translate-y-3 transition-all duration-500 ease-out overflow-hidden" data-id="${imovel.id}">
-                <div class="relative h-[260px] overflow-hidden">
+            <div class="card-imovel group bg-white border border-slate-100 rounded-[2.5rem] shadow-xl hover:shadow-2xl hover:-translate-y-3 transition-all duration-500 ease-out overflow-hidden flex flex-col h-full" data-id="${imovel.id}">
+                <!-- Container da Imagem -->
+                <div class="relative h-[250px] overflow-hidden shrink-0">
                     <img src="${imagem}" alt="${imovel.titulo}" loading="lazy" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
-                    <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                     
-                    <span class="absolute top-5 left-5 bg-white/95 backdrop-blur text-slate-900 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg z-10">${imovel.tipo_imovel || 'Imóvel'}</span>
-                    <span class="absolute top-16 left-5 bg-blue-600/90 backdrop-blur text-white px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg z-10">${imovel.cidade}</span>
-                    
-                    ${imovel.destaque ? '<div class="absolute top-5 right-5 bg-amber-400 text-slate-900 font-black text-[10px] px-4 py-2 rounded-full shadow-lg z-10 tracking-widest uppercase">Destaque</div>' : ''}
-                </div>
-                
-                <div class="p-8 flex flex-col h-full">
-                    <span class="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">${imovel.bairro}</span>
-                    <h3 class="text-xl font-bold text-slate-900 leading-tight mb-4 group-hover:text-blue-600 transition-colors">${imovel.titulo}</h3>
-                    
-                    <div class="flex items-center gap-6 mb-6 text-slate-500 text-sm font-medium">
-                        <span class="flex items-center gap-2">🛏 ${imovel.dormitorios || 0}</span>
-                        <span class="flex items-center gap-2">🛁 ${imovel.banheiros || 0}</span>
-                        <span class="flex items-center gap-2">🚗 ${imovel.vagas_garagem || 0}</span>
+                    <!-- Tags Superior Esquerda -->
+                    <div class="absolute top-5 left-5 flex flex-col gap-2 z-10">
+                        <span class="bg-white/95 backdrop-blur text-slate-900 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg">
+                            ${imovel.tipo_imovel || 'Imóvel'}
+                        </span>
+                        <span class="bg-blue-600/90 backdrop-blur text-white px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg">
+                            ${imovel.cidade} / ${imovel.uf || '..'}
+                        </span>
                     </div>
 
-                    <div class="mt-auto pt-6 border-t border-slate-50 flex items-center justify-between">
-                        <div>
-                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">${imovel.finalidade || 'Venda'}</p>
-                            <p class="text-2xl font-black text-slate-900 tracking-tighter">${preco}</p>
+                    <!-- Referência Superior Direita -->
+                    <span class="absolute top-5 right-5 bg-slate-900/80 backdrop-blur text-white px-3 py-1.5 rounded-lg text-[9px] font-bold tracking-widest uppercase z-10 border border-white/20">
+                        REF: ${referencia}
+                    </span>
+                    
+                    ${imovel.destaque ? '<div class="absolute bottom-5 left-5 bg-amber-400 text-slate-900 font-black text-[10px] px-4 py-2 rounded-full shadow-lg z-10 tracking-widest uppercase animate-pulse">Destaque</div>' : ''}
+                </div>
+                
+                <!-- Conteúdo do Card -->
+                <div class="p-8 flex flex-col flex-grow">
+                    <!-- Título e Bairro -->
+                    <div class="mb-5">
+                        <span class="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 block">${imovel.bairro}</span>
+                        <h3 class="text-xl font-bold text-slate-900 leading-tight group-hover:text-blue-600 transition-colors line-clamp-2 h-14">${imovel.titulo}</h3>
+                    </div>
+
+                    <!-- Preço e Finalidade -->
+                    <div class="border-t border-slate-100 py-5">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">${finalidade}</p>
+                        <p class="text-3xl font-black text-blue-600 tracking-tighter">${preco}</p>
+                    </div>
+
+                    <!-- Atributos Técnicos Grid -->
+                    <div class="grid grid-cols-4 gap-2 border-t border-slate-100 pt-6 pb-2">
+                        <div class="flex flex-col items-center gap-1.5 group/icon">
+                            <div class="w-9 h-9 bg-slate-50 rounded-xl flex items-center justify-center text-slate-500 group-hover/icon:bg-blue-50 group-hover/icon:text-blue-600 transition-colors">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                            </div>
+                            <span class="text-xs font-bold text-slate-700">${imovel.dormitorios || 0}</span>
                         </div>
-                        <div class="w-12 h-12 bg-slate-50 group-hover:bg-blue-600 group-hover:text-white rounded-2xl flex items-center justify-center transition-all duration-300">
-                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                        <div class="flex flex-col items-center gap-1.5 group/icon">
+                            <div class="w-9 h-9 bg-slate-50 rounded-xl flex items-center justify-center text-slate-500 group-hover/icon:bg-blue-50 group-hover/icon:text-blue-600 transition-colors">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v.01M12 14v.01M16 14v.01M21 12c0 1.657-1.007 3-2.25 3H5.25C4.007 15 3 13.657 3 12c0-1.657 1.007-3 2.25-3h13.5C19.993 9 21 10.343 21 12z"/></svg>
+                            </div>
+                            <span class="text-xs font-bold text-slate-700">${imovel.banheiros || 0}</span>
                         </div>
+                        <div class="flex flex-col items-center gap-1.5 group/icon">
+                            <div class="w-9 h-9 bg-slate-50 rounded-xl flex items-center justify-center text-slate-500 group-hover/icon:bg-blue-50 group-hover/icon:text-blue-600 transition-colors">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                            </div>
+                            <span class="text-xs font-bold text-slate-700">${imovel.vagas_garagem || 0}</span>
+                        </div>
+                        <div class="flex flex-col items-center gap-1.5 group/icon">
+                            <div class="w-9 h-9 bg-slate-50 rounded-xl flex items-center justify-center text-slate-500 group-hover/icon:bg-blue-50 group-hover/icon:text-blue-600 transition-colors">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5"/></svg>
+                            </div>
+                            <span class="text-xs font-bold text-slate-700">${imovel.area_m2 || 0}m²</span>
+                        </div>
+                    </div>
+
+                    <!-- Botão CTA Final -->
+                    <div class="mt-auto pt-6">
+                        <button class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-[0.2em] group-hover:bg-blue-600 transition-all flex items-center justify-center gap-2 shadow-xl shadow-slate-200 group-hover:shadow-blue-200">
+                            Ver Detalhes
+                            <svg class="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                        </button>
                     </div>
                 </div>
             </div>`;
@@ -142,8 +186,8 @@ function setupLeadModal() {
             localStorage.setItem('imobi_lead_sent', 'true');
             setTimeout(closeModal, 2500);
         } catch (err) {
-            console.error("Lead Error:", err);
-            alert("Ocorreu um erro ao enviar. Tente novamente.");
+            console.error("Lead Error details:", err);
+            alert(`Erro ao enviar: ${err.message || 'Verifique sua conexão.'}`);
             btn.disabled = false;
             btn.innerText = "Quero Atendimento";
         }
@@ -197,8 +241,8 @@ function setupFooterLeadForm() {
             form.reset();
 
         } catch (err) {
-            console.error("Footer Lead Error:", err);
-            alert("Não foi possível enviar sua mensagem agora. Tente novamente em instantes.");
+            console.error("Footer Lead Error details:", err);
+            alert(`Não foi possível enviar: ${err.message || 'Erro de rede.'}`);
             btn.disabled = false;
             btn.innerText = originalText;
         }
@@ -291,6 +335,9 @@ function applySiteSettings(config) {
     }
     const heroTitle = document.querySelector('header h1');
     if (heroTitle && config.hero_titulo) heroTitle.innerText = config.hero_titulo;
+    const heroTitleValue = config.hero_titulo || 'Encontre seu imóvel';
+    if (heroTitle) heroTitle.innerText = heroTitleValue;
+
     const heroSub = document.querySelector('header p');
     if (heroSub && config.hero_subtitulo) heroSub.innerText = config.hero_subtitulo;
     const footerText = document.getElementById('footer-copyright-text');
