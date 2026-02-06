@@ -46,8 +46,8 @@ body {
   inset: 0;
   background: linear-gradient(
     to bottom,
-    rgba(5, 10, 25, 0.55),
-    rgba(5, 10, 25, 0.75)
+    rgba(5, 10, 25, 0.45),
+    rgba(5, 10, 25, 0.65)
   );
   z-index: 1;
 }
@@ -55,28 +55,24 @@ body {
 .hero-home .hero-content {
   position: relative;
   z-index: 2;
-  padding: 48px 56px;
-  border-radius: 20px;
-  background: rgba(15, 23, 42, 0.4); 
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  /* Removido background fixo para permitir injeção via Tailwind */
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
 }
 
-.hero-home h1 { color: #ffffff; text-shadow: 0 6px 20px rgba(0, 0, 0, 0.55); }
-.hero-home p { color: #e5e7eb; text-shadow: 0 4px 14px rgba(0, 0, 0, 0.45); }
+.hero-home h1 { text-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); }
+.hero-home p { text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); }
 
 @media (max-width: 768px) {
   .hero-home {
-    min-height: 460px;
+    min-height: 500px;
     background-image: var(--hero-bg-mobile, var(--hero-bg-desktop));
     background-position: center top;
   }
-  .hero-home .hero-content { padding: 28px 22px; border-radius: 16px; }
 }
 
 .hero-search-container { background: transparent; }
-.hero-home input { background: rgba(255, 255, 255, 0.95); border-radius: 12px; border: none; box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25); }
-.hero-home button { box-shadow: 0 14px 35px rgba(0, 0, 0, 0.35); }
+/* Ajustes para inputs do hero caso necessário */
+.hero-home input::placeholder { color: #94a3b8; }
 
 /* GRID DE IMÓVEIS */
 #lista-imoveis { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 30px; }
