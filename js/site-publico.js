@@ -30,7 +30,7 @@ function obterValorImovel(imovel) {
 }
 
 /**
- * GERA HTML DOS CARDS (Reutilizável)
+ * GERA HTML DOS CARDS (Frosted Card + Floating UI)
  */
 function renderCardList(imoveis, fotos) {
     return imoveis.map(imovel => {
@@ -39,31 +39,36 @@ function renderCardList(imoveis, fotos) {
         const preco = formatarBRL(obterValorImovel(imovel));
         
         return `
-            <div class="card-imovel animate-in fade-in slide-in-from-bottom-4 duration-500" data-id="${imovel.id}">
-                <div class="card-imagem">
-                    <img src="${imagem}" alt="${imovel.titulo}" loading="lazy">
-                    <span class="badge-tipo">${imovel.tipo_imovel || 'Imóvel'}</span>
-                    <span class="badge-local">${imovel.cidade} / ${imovel.uf || ''}</span>
-                    ${imovel.destaque ? '<div class="badge-destaque">DESTAQUE</div>' : ''}
+            <div class="card-imovel group bg-white/90 backdrop-blur-sm border border-slate-100/50 rounded-[2rem] shadow-xl hover:shadow-2xl hover:-translate-y-3 transition-all duration-500 ease-out overflow-hidden" data-id="${imovel.id}">
+                <div class="relative h-[260px] overflow-hidden">
+                    <img src="${imagem}" alt="${imovel.titulo}" loading="lazy" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    
+                    <span class="absolute top-5 left-5 bg-white/95 backdrop-blur text-slate-900 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg z-10">${imovel.tipo_imovel || 'Imóvel'}</span>
+                    <span class="absolute top-16 left-5 bg-blue-600/90 backdrop-blur text-white px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg z-10">${imovel.cidade}</span>
+                    
+                    ${imovel.destaque ? '<div class="absolute top-5 right-5 bg-amber-400 text-slate-900 font-black text-[10px] px-4 py-2 rounded-full shadow-lg z-10 tracking-widest uppercase">Destaque</div>' : ''}
                 </div>
-                <div class="card-imovel-body">
-                    <span class="imovel-bairro">${imovel.bairro}</span>
-                    <h3 class="imovel-titulo font-bold">${imovel.titulo}</h3>
-                    <div class="imovel-ref-area text-xs font-bold text-slate-400 text-center mt-3">
-                        REF: ${imovel.referencia || 'N/I'} — ${imovel.area_m2 || 0}M²
+                
+                <div class="p-8 flex flex-col h-full">
+                    <span class="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">${imovel.bairro}</span>
+                    <h3 class="text-xl font-bold text-slate-900 leading-tight mb-4 group-hover:text-blue-600 transition-colors">${imovel.titulo}</h3>
+                    
+                    <div class="flex items-center gap-6 mb-6 text-slate-500 text-sm font-medium">
+                        <span class="flex items-center gap-2">🛏 ${imovel.dormitorios || 0}</span>
+                        <span class="flex items-center gap-2">🛁 ${imovel.banheiros || 0}</span>
+                        <span class="flex items-center gap-2">🚗 ${imovel.vagas_garagem || 0}</span>
                     </div>
-                    <div class="divisor-card"></div>
-                    <div class="preco text-center">
-                        <div class="imovel-finalidade text-xs opacity-70">${imovel.finalidade || 'Venda'}</div>
-                        <strong>${preco}</strong>
+
+                    <div class="mt-auto pt-6 border-t border-slate-50 flex items-center justify-between">
+                        <div>
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">${imovel.finalidade || 'Venda'}</p>
+                            <p class="text-2xl font-black text-slate-900 tracking-tighter">${preco}</p>
+                        </div>
+                        <div class="w-12 h-12 bg-slate-50 group-hover:bg-blue-600 group-hover:text-white rounded-2xl flex items-center justify-center transition-all duration-300">
+                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                        </div>
                     </div>
-                    <div class="divisor-card"></div>
-                    <div class="imovel-info-icons flex justify-center gap-6 text-sm">
-                        <span>🛏 ${imovel.dormitorios || 0}</span>
-                        <span>🛁 ${imovel.banheiros || 0}</span>
-                        <span>🚗 ${imovel.vagas_garagem || 0}</span>
-                    </div>
-                    <button class="btn-detalhar w-full mt-6 py-3 font-bold uppercase text-xs">Ver Detalhes</button>
                 </div>
             </div>`;
     }).join('');
@@ -92,38 +97,31 @@ function setupLeadModal() {
 
     if (!modal) return;
 
-    // Máscara em tempo real
     inputTelefone.addEventListener('input', (e) => {
         e.target.value = mascaraTelefone(e.target.value);
     });
 
     const openModal = () => {
-        // Verifica se o usuário já converteu antes
         if (localStorage.getItem('imobi_lead_sent')) return;
-
         modal.classList.remove('opacity-0', 'pointer-events-none');
-        content.classList.remove('scale-95');
-        content.classList.add('scale-100');
+        content.classList.remove('scale-90', 'opacity-0');
+        content.classList.add('scale-100', 'opacity-100');
     };
 
     const closeModal = () => {
         modal.classList.add('opacity-0', 'pointer-events-none');
-        content.classList.remove('scale-100');
-        content.classList.add('scale-95');
+        content.classList.remove('scale-100', 'opacity-100');
+        content.classList.add('scale-90', 'opacity-0');
     };
 
     closeBtn.onclick = closeModal;
-
-    // Delay de 4 segundos
     setTimeout(openModal, 4000);
 
-    // Envio para o Supabase
     form.onsubmit = async (e) => {
         e.preventDefault();
         const btn = document.getElementById('btn-submit-lead');
         const fields = document.getElementById('lead-form-fields');
         const success = document.getElementById('lead-success-msg');
-
         const nome = document.getElementById('lead-nome').value;
         const telefone = inputTelefone.value;
 
@@ -138,17 +136,11 @@ function setupLeadModal() {
                 imovel_interesse: 'Interesse Geral (Captura Automática)',
                 created_at: new Date().toISOString()
             });
-
             if (error) throw error;
-
-            // Sucesso UX
             fields.classList.add('hidden');
             success.classList.remove('hidden');
             localStorage.setItem('imobi_lead_sent', 'true');
-
-            // Fecha após 2.5 segundos
             setTimeout(closeModal, 2500);
-
         } catch (err) {
             console.error("Lead Error:", err);
             alert("Ocorreu um erro ao enviar. Tente novamente.");
@@ -164,73 +156,42 @@ function setupLeadModal() {
 function parseSearchQuery(text) {
     const raw = text.toLowerCase().trim();
     if (!raw) return null;
-
-    const filters = {
-        referencia: null,
-        finalidade: null,
-        tipo_imovel: null,
-        tokens: []
-    };
-
+    const filters = { referencia: null, finalidade: null, tipo_imovel: null, tokens: [] };
     const refMatch = raw.match(/([a-z]{1,}-?\d+)/i);
-    if (refMatch) {
-        filters.referencia = refMatch[0].toUpperCase();
-    }
-
+    if (refMatch) filters.referencia = refMatch[0].toUpperCase();
     const words = raw.split(/\s+/);
-    const keywordsFinalidade = {
-        'Aluguel': ['aluguel', 'alugar', 'locação', 'locacao'],
-        'Venda': ['venda', 'vender', 'comprar', 'compra']
-    };
-
-    const keywordsTipo = {
-        'Casa': ['casa', 'casas'],
-        'Apartamento': ['apartamento', 'apto', 'aptos'],
-        'Terreno': ['terreno', 'lote'],
-        'Comercial': ['comercial', 'sala', 'galpão']
-    };
-
+    const keywordsFinalidade = { 'Aluguel': ['aluguel', 'alugar', 'locação', 'locacao'], 'Venda': ['venda', 'vender', 'comprar', 'compra'] };
+    const keywordsTipo = { 'Casa': ['casa', 'casas'], 'Apartamento': ['apartamento', 'apto', 'aptos'], 'Terreno': ['terreno', 'lote'], 'Comercial': ['comercial', 'sala', 'galpão'] };
     words.forEach(word => {
         if (filters.referencia && word.toUpperCase() === filters.referencia) return;
         let isKeyword = false;
-        for (const [key, aliases] of Object.entries(keywordsFinalidade)) {
-            if (aliases.includes(word)) { filters.finalidade = key; isKeyword = true; break; }
-        }
-        if (!isKeyword) {
-            for (const [key, aliases] of Object.entries(keywordsTipo)) {
-                if (aliases.includes(word)) { filters.tipo_imovel = key; isKeyword = true; break; }
-            }
-        }
-        if (!isKeyword && word.length >= 2) {
-            filters.tokens.push(word);
-        }
+        for (const [key, aliases] of Object.entries(keywordsFinalidade)) { if (aliases.includes(word)) { filters.finalidade = key; isKeyword = true; break; } }
+        if (!isKeyword) { for (const [key, aliases] of Object.entries(keywordsTipo)) { if (aliases.includes(word)) { filters.tipo_imovel = key; isKeyword = true; break; } } }
+        if (!isKeyword && word.length >= 2) filters.tokens.push(word);
     });
-
     return filters;
 }
 
 async function initSite() {
     initTheme();
-    setupLeadModal(); // Inicia o timer de captura de leads
-    
+    setupLeadModal();
     try {
         const { data: config } = await supabase.from('configuracoes_site').select('*').limit(1).maybeSingle();
-        if (config) {
-            siteConfig = config;
-            applySiteSettings(config);
-        }
+        if (config) { siteConfig = config; applySiteSettings(config); }
     } catch (err) { console.error('Config Error:', err); }
-
     const isDetailPage = window.location.pathname.includes('imovel.html');
     if (!isDetailPage) loadProperties(); 
 }
 
+/**
+ * INJEÇÃO DE BUSCA MODERNIZADA
+ */
 function injectSearchIntoHero() {
     const heroSearchContainer = document.querySelector('.hero-search-container');
     if (!heroSearchContainer || heroSearchContainer.querySelector('.js-search-form-injected')) return;
 
     const form = document.createElement('form');
-    form.className = 'js-search-form-injected flex flex-col md:flex-row gap-4 w-full mt-2';
+    form.className = 'js-search-form-injected flex flex-col md:flex-row gap-5 w-full mt-4 p-2 bg-white/5 backdrop-blur-md rounded-[2rem] border border-white/10 shadow-inner';
     
     form.onsubmit = (e) => {
         e.preventDefault();
@@ -244,12 +205,12 @@ function injectSearchIntoHero() {
     const input = document.createElement('input');
     input.type = 'search';
     input.placeholder = 'Ex: Casa venda Bessa ou CS-001';
-    input.className = 'w-full md:flex-1 px-6 py-5 rounded-2xl text-slate-900 bg-white border-none shadow-xl outline-none focus:ring-2 focus:ring-red-500 transition-all font-medium text-lg';
+    input.className = 'w-full md:flex-1 px-8 py-6 rounded-3xl text-slate-900 bg-white border-none shadow-2xl outline-none focus:ring-4 focus:ring-red-500/20 transition-all font-bold text-lg placeholder:text-slate-400 placeholder:font-medium';
 
     const button = document.createElement('button');
     button.type = 'submit';
     button.textContent = (siteConfig && siteConfig.hero_cta_texto) ? siteConfig.hero_cta_texto : 'Buscar';
-    button.className = 'w-full md:w-auto bg-red-600 hover:bg-red-700 text-white px-12 py-5 rounded-2xl font-bold transition-all shadow-xl active:scale-95 text-lg uppercase tracking-wide';
+    button.className = 'w-full md:w-auto bg-red-600 hover:bg-red-700 text-white px-14 py-6 rounded-3xl font-black transition-all shadow-2xl shadow-red-500/30 active:scale-[0.96] text-lg uppercase tracking-widest';
 
     form.appendChild(input);
     form.appendChild(button);
@@ -274,7 +235,6 @@ function applySiteSettings(config) {
     const footerText = document.getElementById('footer-copyright-text');
     if (footerText) footerText.innerText = config.rodape_texto || '© ImobiMaster';
     
-    // Configurar Botão de WhatsApp Flutuante
     const waButton = document.getElementById('wa-button');
     if (waButton) {
         if (config.header_whatsapp) {
@@ -292,23 +252,16 @@ function applySiteSettings(config) {
     }
 }
 
-/**
- * CARGA DE IMÓVEIS
- */
 async function loadProperties(filters = null) {
     const container = document.getElementById('lista-imoveis');
     if (!container) return;
-
-    container.innerHTML = '<div class="col-span-full py-20 text-center animate-pulse text-slate-400 font-medium">Processando consulta...</div>';
-
+    container.innerHTML = '<div class="col-span-full py-20 text-center animate-pulse text-slate-400 font-bold tracking-widest uppercase text-sm">Acessando Banco de Dados...</div>';
     try {
         let query = supabase.from('imoveis').select('*').eq('ativo', true);
-        
         if (filters) {
             if (filters.referencia) query = query.ilike('referencia', `%${filters.referencia}%`);
             if (filters.finalidade) query = query.ilike('finalidade', filters.finalidade);
             if (filters.tipo_imovel) query = query.ilike('tipo_imovel', filters.tipo_imovel);
-
             if (filters.tokens.length > 0) {
                 filters.tokens.forEach(token => {
                     const searchFields = ['titulo', 'bairro', 'cidade', 'uf'];
@@ -317,44 +270,28 @@ async function loadProperties(filters = null) {
                 });
             }
         }
-
-        let { data: imoveis, error } = await query
-            .order('destaque', { ascending: false })
-            .order('created_at', { ascending: false });
-
+        let { data: imoveis, error } = await query.order('destaque', { ascending: false }).order('created_at', { ascending: false });
         if (error) throw error;
-
         if (filters && (!imoveis || imoveis.length === 0)) {
-            const { data: destaques } = await supabase
-                .from('imoveis')
-                .select('*')
-                .eq('ativo', true)
-                .eq('destaque', true)
-                .order('created_at', { ascending: false });
-
+            const { data: destaques } = await supabase.from('imoveis').select('*').eq('ativo', true).eq('destaque', true).order('created_at', { ascending: false });
             imoveis = destaques || [];
         }
-
         if (!imoveis || imoveis.length === 0) {
-            container.innerHTML = `<div class="col-span-full py-20 text-center"><p class="text-slate-500">Nenhum imóvel disponível no momento.</p></div>`;
+            container.innerHTML = `<div class="col-span-full py-20 text-center"><p class="text-slate-500 font-bold">Nenhum imóvel disponível para os critérios selecionados.</p></div>`;
             return;
         }
-
         const { data: fotos } = await supabase.from('imoveis_fotos').select('*').eq('is_capa', true);
         container.innerHTML = renderCardList(imoveis, fotos);
-
         document.querySelectorAll('.card-imovel').forEach(card => {
             card.onclick = () => window.location.href = `imovel.html?id=${card.dataset.id}`;
         });
-
     } catch (err) {
         console.error("Critical Load Error:", err);
-        container.innerHTML = `<p class="col-span-full text-center text-red-500 py-10 font-bold">Erro ao processar catálogo.</p>`;
+        container.innerHTML = `<p class="col-span-full text-center text-red-500 py-10 font-bold">Erro de conexão com o servidor.</p>`;
     }
 }
 
 initSite();
-
 window.addEventListener('load', () => {
   injectSearchIntoHero();
   const boot = document.getElementById('boot-screen');
