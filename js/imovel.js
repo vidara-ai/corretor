@@ -189,6 +189,9 @@ function renderizarImovel(p, config) {
     const pagamentos = ensureArray(p.opcoes_pagamento);
     const garantias = ensureArray(p.garantias_locacao);
 
+    // Formatação da Localização
+    const localizacao = `${p.bairro || ''}, ${p.cidade || ''}${p.uf ? '/' + p.uf : ''}`;
+
     container.innerHTML = `
         <div class="animate-in fade-in duration-700">
             <div class="galeria-imovel mb-8 group">
@@ -271,13 +274,25 @@ function renderizarImovel(p, config) {
                                 <p class="text-slate-900 font-bold text-lg">${p.dormitorios || 0}</p>
                             </div>
                             <div class="bg-slate-50 p-4 rounded-2xl">
-                                <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Área</p>
+                                <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Suítes</p>
+                                <p class="text-slate-900 font-bold text-lg">${p.suites || 0}</p>
+                            </div>
+                            <div class="bg-slate-50 p-4 rounded-2xl">
+                                <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Banheiros</p>
+                                <p class="text-slate-900 font-bold text-lg">${p.banheiros || 0}</p>
+                            </div>
+                            <div class="bg-slate-50 p-4 rounded-2xl">
+                                <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Vagas</p>
+                                <p class="text-slate-900 font-bold text-lg">${p.vagas_garagem || 0}</p>
+                            </div>
+                            <div class="bg-slate-50 p-4 rounded-2xl col-span-2">
+                                <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Área Total</p>
                                 <p class="text-slate-900 font-bold text-lg">${p.area_m2 || 0} m²</p>
                             </div>
                         </div>
                         <div class="space-y-3 pt-4 text-center">
                             <p class="text-sm font-bold text-slate-400 uppercase tracking-widest">Localização</p>
-                            <p class="text-slate-700 font-medium">${p.bairro || ''}, ${p.cidade || ''}</p>
+                            <p class="text-slate-700 font-medium">${localizacao}</p>
                         </div>
                         <a href="${whatsappLink}" target="_blank" class="block w-full text-center bg-emerald-500 text-white py-5 rounded-[2rem] font-bold text-lg hover:bg-emerald-600 transition-all shadow-xl shadow-emerald-100">
                             ${ctaTexto}
