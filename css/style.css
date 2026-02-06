@@ -1,3 +1,4 @@
+
 /* Base Mobile-First */
 :root {
     /* Fallback padrão (Ruby Red) */
@@ -54,11 +55,8 @@ body {
 .hero-home .hero-content {
   position: relative;
   z-index: 2;
-  max-width: 900px;
-  width: 95%;
   padding: 48px 56px;
   border-radius: 20px;
-  /* Fundo mais sólido para garantir visibilidade imediata e contraste */
   background: rgba(15, 23, 42, 0.4); 
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.15);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -227,4 +225,15 @@ body {
     border-color: var(--color-primary) !important;
 }
 
-.wa-float { position: fixed; bottom: 20px; right: 20px; z-index: 100; }
+/* WHATSAPP MODERN PULSE */
+@keyframes pulse-soft {
+  0% { transform: scale(1); opacity: 0.5; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.wa-float { transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.wa-float:hover { transform: scale(1.05); }
