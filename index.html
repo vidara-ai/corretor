@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -50,36 +51,27 @@
 
 <body class="bg-slate-50 font-['Inter']">
     <!-- Boot Screen como primeiro elemento do body -->
-    <div id="boot-screen">
-        <!-- Opcional: Um logo simples ou loader em SVG puro/CSS aqui -->
-    </div>
+    <div id="boot-screen"></div>
     
     <nav class="bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-slate-100">
         <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-            <a href="index.html" class="text-xl font-bold text-slate-900 flex items-center gap-2">
-                
+            <a href="index.html" class="text-lg md:text-xl font-bold text-slate-900 flex items-center gap-2">
                 <span id="site-logo-text">&nbsp;</span>
             </a>
-            <div class="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600">
-                <a href="#" class="hover:text-blue-600 transition">&nbsp;</a>
-                <a href="#" class="hover:text-blue-600 transition">&nbsp;</a>
-                <a href="login.html" class="hover:text-blue-600 transition">&nbsp;</a>
-                <a id="header-cta-contato" href="#" class="hidden bg-blue-600 text-white px-5 py-2.5 rounded-lg font-bold hover:bg-blue-700 transition-all active:scale-95">Entre em contato</a>
+            
+            <div class="flex items-center">
+                <a id="header-cta-contato" href="#" class="hidden bg-blue-600 text-white px-4 py-2 md:px-6 md:py-2.5 rounded-xl font-bold hover:bg-blue-700 transition-all active:scale-95 text-xs md:text-sm shadow-lg shadow-blue-100 whitespace-nowrap">
+                    Entre em contato
+                </a>
             </div>
-            <button class="md:hidden text-slate-600">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
-            </button>
         </div>
     </nav>
 
     <header class="hero-home py-12 md:py-32 px-4 text-center relative flex items-center justify-center">
         <div class="hero-content mx-auto">
             <h1 class="text-3xl md:text-7xl font-bold mb-6 tracking-tight leading-tight">&nbsp;</h1>
-            <p class="text-slate-200 text-base md:text-xl mb-12 max-w-2xl mx-auto opacity-90">Conectando...</p>
-            <div class="hero-search-container flex flex-col md:flex-row gap-2 max-w-2xl mx-auto">
-                
-                
-            </div>
+            <p class="text-slate-200 text-base md:text-xl mb-12 max-w-2xl mx-auto opacity-90">Conectando</p>
+            <div class="hero-search-container flex flex-col md:flex-row gap-2 max-w-2xl mx-auto"></div>
         </div>
     </header>
 
