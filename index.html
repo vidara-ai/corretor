@@ -113,11 +113,27 @@
                 </div>
 
                 <div class="bg-slate-50 p-8 md:p-10 rounded-[2.5rem] border border-slate-100 shadow-inner">
-                    <h3 class="text-xl font-black text-slate-900 mb-2">Não encontrou seu imóvel?</h3>
-                    <p class="text-slate-500 text-sm mb-8 leading-relaxed font-medium">Deixe-nos uma mensagem e vamos encontrar a melhor opção para você.</p>
+                    <h3 class="text-xl font-black text-slate-900 mb-2">Não encontrou seu imóvel ou quer vender seu imóvel?</h3>
+                    <p class="text-slate-500 text-sm mb-8 leading-relaxed font-medium">Deixe-nos uma mensagem e entraremos em contato com você.</p>
                     <form id="footer-lead-form" class="space-y-4">
-                        <div id="footer-success-msg" class="hidden bg-emerald-50 text-emerald-700 p-6 rounded-2xl text-center text-sm font-bold border border-emerald-100 mb-6">Mensagem enviada com sucesso!</div>
+                        <div id="footer-success-msg" class="hidden bg-emerald-50 text-emerald-700 p-6 rounded-2xl text-center text-sm font-bold border border-emerald-100 mb-6">Sua mensagem foi enviada com sucesso</div>
                         <div id="footer-form-fields" class="space-y-4">
+                            <!-- Checkboxes de Intenção -->
+                            <div class="bg-white p-4 rounded-2xl border border-slate-100 mb-4 transition-all" id="footer-checkbox-container">
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Qual seu objetivo?</p>
+                                <div class="flex gap-6 items-center">
+                                    <label class="flex items-center gap-2 text-sm font-bold text-slate-700 cursor-pointer group">
+                                        <input type="checkbox" name="footer-intent" value="Buscar Imóvel" class="w-5 h-5 rounded text-blue-600 border-slate-300 focus:ring-blue-500 transition-all">
+                                        <span class="group-hover:text-blue-600 transition-colors">Buscar Imóvel</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 text-sm font-bold text-slate-700 cursor-pointer group">
+                                        <input type="checkbox" name="footer-intent" value="Vender Imóvel" class="w-5 h-5 rounded text-blue-600 border-slate-300 focus:ring-blue-500 transition-all">
+                                        <span class="group-hover:text-blue-600 transition-colors">Vender Imóvel</span>
+                                    </label>
+                                </div>
+                                <p id="footer-checkbox-error" class="hidden text-red-500 text-[11px] font-bold mt-3">Preenchimento obrigatório de pelo menos uma opção</p>
+                            </div>
+
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <input type="text" id="footer-nome" required placeholder="Nome completo" class="w-full p-4 bg-white border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-blue-500/10 text-sm font-medium">
                                 <input type="email" id="footer-email" required placeholder="Seu e-mail" class="w-full p-4 bg-white border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-blue-500/10 text-sm font-medium">
